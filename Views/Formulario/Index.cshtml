@@ -18,52 +18,58 @@
 
     .pagina-campanha {
         position: relative;
-        min-height: 100vh;
         width: 100%;
+        /* deixa o wrapper crescer conforme o conteúdo (form ou fundo) */
+        min-height: 100vh;
         overflow: hidden;
     }
 
-    /* FUNDO ocupa a tela inteira */
+    /* FUNDO — agora estica conforme o formulário cresce */
     .conteudo-campanha {
         position: relative;
         width: 100%;
-        overflow: hidden;
         min-height: 100vh;
         background: #0D111A;
+        /* IMPORTANTE: removido o overflow:hidden para permitir que o conteúdo
+           interno seja "esticado" via flex e que filhos cresçam */
+        display: flex;
+        flex-direction: column;
     }
 
+        /* Faz o conteúdo HTML interno esticar verticalmente
+           para acompanhar a altura do .pagina-campanha (que cresce com o form) */
         .conteudo-campanha > * {
             width: 100%;
-            min-height: 100vh;
+            flex: 1 0 auto; /* estica para baixo se sobrar espaço */
+            min-height: 100vh; /* nunca menor que a viewport */
         }
 
     /* FORM SOBREPOSTO — exatamente na metade direita */
     .formulario-lateral {
         position: absolute;
         top: 10%;
-        overflow: hidden;
         right: 0;
-        width: 40%; /* metade exata da tela */
+        width: 40%;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
         z-index: 999;
-        pointer-events: none; /* permite clicar no fundo */
+        pointer-events: none;
         padding: 40px 30px;
+        box-sizing: border-box;
     }
 
-        /* O CARD do form recebe os cliques */
         .formulario-lateral > .form-card {
             pointer-events: all;
             width: 100%;
             max-width: 420px;
-            position: static; /* sobrescreve o sticky do shared */
+            position: static;
             margin: 0;
         }
 
     .fallback-campanha {
         background-color: #3d3d3d;
-        height: 100vh;
+        min-height: 100vh;
         width: 100%;
         display: flex;
         align-items: center;
@@ -79,10 +85,12 @@
 
         .conteudo-campanha {
             min-height: auto;
+            display: block;
         }
 
             .conteudo-campanha > * {
                 min-height: auto;
+                flex: none;
             }
 
         .formulario-lateral {
@@ -92,6 +100,7 @@
             min-height: auto;
             pointer-events: all;
             padding: 20px;
+            top: 0;
         }
 
             .formulario-lateral > .form-card {
@@ -126,4 +135,53 @@
 <script src="~/Scripts/forms.js?dc=@this.Request.QueryString["_dc"]"></script>
 @Html.AntiForgeryToken()
 
+<!-- Script que mede o formulário e estica o fundo se necessário -->
+<script>
+    (function () {
+        function ajustarAlturaFundo() {
+            // Só ajusta no desktop
+            if (window.innerWidth <= 900) {
+                document.querySelector('.pagina-campanha').style.minHeight = '';
+                document.querySelector('.conteudo-campanha').style.minHeight = '';
+                return;
+            }
 
+            var pagina = document.querySelector('.pagina-campanha');
+            var fundo = document.querySelector('.conteudo-campanha');
+            var formLateral = document.querySelector('.formulario-lateral');
+            var formCard = formLateral ? formLateral.querySelector('.form-card') : null;
+
+            if (!pagina || !fundo || !formLateral) return;
+
+            // Altura real necessária pelo formulário:
+            // offsetTop do .formulario-lateral (10%) + altura do card + folga de padding
+            var alturaCard = formCard ? formCard.offsetHeight : formLateral.offsetHeight;
+            var topo = formLateral.offsetTop;
+            var paddingExtra = 80; // respiro top/bottom
+
+            var alturaNecessaria = topo + alturaCard + paddingExtra;
+            var alturaViewport = window.innerHeight;
+
+            // Usa o maior entre viewport e o que o form precisa
+            var alturaFinal = Math.max(alturaViewport, alturaNecessaria);
+
+            pagina.style.minHeight = alturaFinal + 'px';
+            fundo.style.minHeight = alturaFinal + 'px';
+        }
+
+        // Executa na carga, após imagens, e em resize
+        window.addEventListener('load', ajustarAlturaFundo);
+        window.addEventListener('resize', ajustarAlturaFundo);
+
+        // Observa mudanças no formulário (campos dinâmicos, validações, etc.)
+        document.addEventListener('DOMContentLoaded', function () {
+            ajustarAlturaFundo();
+
+            var alvo = document.querySelector('.formulario-lateral');
+            if (alvo && 'ResizeObserver' in window) {
+                var ro = new ResizeObserver(ajustarAlturaFundo);
+                ro.observe(alvo);
+            }
+        });
+    })();
+</script>
