@@ -1,0 +1,251 @@
+﻿@using adm.Models
+@model List<Campanha>
+
+@{
+    ViewBag.Title = "Campanhas";
+    var candidatos = ViewBag.Candidatos as List<Candidato>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Campanhas</h2>
+    @Html.ActionLink("+ Nova campanha", "Create", null, new { @class = "btn btn-dark" })
+</div>
+
+<table class="table table-bordered table-hover">
+    <thead class="thead-light">
+        <tr>
+            <th>Título</th>
+            <th>Candidato</th>
+            <th>Partido</th>
+            <th>Status</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Criado em</th>
+            <th style="width:160px;">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            var cand = candidatos?.FirstOrDefault(x => x.Id == c.CandidatoId);
+            <tr>
+                <td>@c.Titulo</td>
+                <td>@(cand?.Nome ?? "-")</td>
+                <td>@(cand?.Partido ?? "-")</td>
+                <td>
+                    @if (c.Ativa == true)
+                    {
+                        <span class="badge badge-success" style="background-color:#009613">Ativa</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary" style="background-color:#808080">Inativa</span>
+                    }
+                </td>
+                <td>@(c.InicioEm?.ToString("dd/MM/yyyy") ?? "-")</td>
+                <td>@(c.FimEm?.ToString("dd/MM/yyyy") ?? "-")</td>
+                <td>@(c.CriadoEm?.ToString("dd/MM/yyyy") ?? "-")</td>
+                <td>
+                    <div class="custom-dropdown" style="position:relative; display:inline-block;">
+                        <div class="btn-group" role="group">
+                            @Html.ActionLink("Editar", "Edit", new { id = c.Id },
+                                new { @class = "btn btn-sm btn-dark" })
+
+                            <button type="button"
+                                    class="btn btn-sm btn-dark dropdown-toggle-custom"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    style="padding-left:8px; padding-right:8px;">
+                                <span style="display:inline-block; width:0; height:0;
+                                             border-left:4px solid transparent;
+                                             border-right:4px solid transparent;
+                                             border-top:5px solid #fff;
+                                             vertical-align:middle;"></span>
+                            </button>
+                        </div>
+
+                        <div class="dropdown-menu-custom"
+                             style="display:none; position:absolute; right:0; top:100%; z-index:1000;
+                                    min-width:180px; background:#fff; border:1px solid rgba(0,0,0,.15);
+                                    border-radius:4px; box-shadow:0 6px 12px rgba(0,0,0,.175);
+                                    padding:6px 0; margin-top:2px;">
+
+                            <a class="ddi"
+                               href="@Url.Action("Index", "Assinatura", new { campanhaId = c.Id })">
+                                Assinaturas
+                            </a>
+                            <a class="ddi"
+                               href="@Url.Action("Index", "Formulario", new { idCampanha = c.Id })">
+                                Formulário
+                            </a>
+
+                            <button type="button"
+                                    class="ddi btn-edit-html"
+                                    data-campanha-id="@c.Id"
+                                    data-campanha-titulo="@c.Titulo"
+                                    data-campanha-html="@(string.IsNullOrEmpty(c.html) ? "" : System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(c.html)))">
+                                Editar HTML
+                            </button>
+
+                            <div style="height:1px; background:#e9ecef; margin:6px 0;"></div>
+
+                            @using (Html.BeginForm("ToggleAtiva", "Campanha", new { id = c.Id }, FormMethod.Post, new { style = "margin:0;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="ddi">
+                                    @(c.Ativa == true ? "Inativar" : "Ativar")
+                                </button>
+                            }
+
+                            @using (Html.BeginForm("Delete", "Campanha", new { id = c.Id }, FormMethod.Post, new { style = "margin:0;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="ddi ddi-danger"
+                                        onclick="return confirm('Excluir esta campanha?')">
+                                    Excluir
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal para editar HTML -->
+<div id="modalEditHtml"
+     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; width:90%; max-width:900px; height:90vh;
+                border-radius:6px; display:flex; flex-direction:column; overflow:hidden;">
+
+        @using (Html.BeginForm("UpdateHtml", "Campanha", FormMethod.Post, new { id = "formUpdateHtml", style = "display:flex; flex-direction:column; flex:1; min-height:0; margin:0;" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="idCampanha" id="modalCampanhaId" />
+
+            <div style="padding:15px 20px; border-bottom:1px solid #ddd;
+                        display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                <h4 style="margin:0;">Editar HTML — <span id="modalCampanhaTitulo"></span></h4>
+                <button type="button" id="btnCloseModalHtml"
+                        style="background:none; border:none; font-size:24px; cursor:pointer;">
+                    &times;
+                </button>
+            </div>
+
+            <div style="padding:20px; flex:1; overflow:auto; min-height:0;">
+                <label for="modalHtmlContent"><strong>HTML da campanha:</strong></label>
+                <textarea name="html" id="modalHtmlContent"
+                          style="width:100%; height:100%; min-height:300px; font-family:monospace; font-size:13px; resize:none;"
+                          class="form-control"></textarea>
+            </div>
+
+            <div style="padding:15px 20px; border-top:1px solid #ddd; text-align:right; flex-shrink:0; background:#fff;">
+                <button type="button" id="btnCancelModalHtml" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" class="btn btn-dark">Salvar</button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .ddi {
+        display: block;
+        width: 100%;
+        padding: 6px 16px;
+        clear: both;
+        font-weight: 400;
+        color: #212529;
+        text-align: left;
+        background: none;
+        border: 0;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .ddi:hover, .ddi:focus {
+            background-color: #f8f9fa;
+            color: #16181b;
+            text-decoration: none;
+        }
+
+    .ddi-danger {
+        color: #dc3545;
+    }
+
+        .ddi-danger:hover {
+            background-color: #f8f9fa;
+            color: #a71d2a;
+        }
+</style>
+
+<script>
+    (function () {
+        // ===== Dropdown customizado =====
+        document.querySelectorAll('.dropdown-toggle-custom').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var menu = this.closest('.custom-dropdown').querySelector('.dropdown-menu-custom');
+                var isOpen = menu.style.display === 'block';
+
+                // Fecha todos os outros
+                document.querySelectorAll('.dropdown-menu-custom').forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+                // Alterna o atual
+                menu.style.display = isOpen ? 'none' : 'block';
+            });
+        });
+
+        // Fechar ao clicar fora
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.dropdown-menu-custom').forEach(function (m) {
+                m.style.display = 'none';
+            });
+        });
+
+        // Impede fechar ao clicar dentro do menu
+        document.querySelectorAll('.dropdown-menu-custom').forEach(function (m) {
+            m.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+
+        // ===== Modal Editar HTML =====
+        var modal = document.getElementById('modalEditHtml');
+        var inputId = document.getElementById('modalCampanhaId');
+        var spanTitulo = document.getElementById('modalCampanhaTitulo');
+        var textarea = document.getElementById('modalHtmlContent');
+
+        function openModal(id, titulo, html) {
+            inputId.value = id;
+            spanTitulo.textContent = titulo || '';
+            textarea.value = html || '';
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        document.querySelectorAll('.btn-edit-html').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                openModal(
+                    this.getAttribute('data-campanha-id'),
+                    this.getAttribute('data-campanha-titulo'),
+                    this.getAttribute('data-campanha-html')
+                );
+            });
+        });
+
+        document.getElementById('btnCloseModalHtml').addEventListener('click', closeModal);
+        document.getElementById('btnCancelModalHtml').addEventListener('click', closeModal);
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
+        });
+    })();
+</script>

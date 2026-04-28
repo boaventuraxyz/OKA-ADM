@@ -1,0 +1,234 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - ADM</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <link href="@Url.Content("~/Content/formulario.css")" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8f8f8;
+        }
+
+        .sidebar {
+            width: 220px;
+            min-width: 220px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .sidebar-logo {
+            padding: 20px 18px 16px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+            .sidebar-logo .brand {
+                font-size: 16px;
+                font-weight: 600;
+                color: #111;
+            }
+
+            .sidebar-logo .sub {
+                font-size: 11px;
+                color: #999;
+                margin-top: 2px;
+            }
+
+        .nav-section {
+            padding: 14px 14px 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #bbb;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 2px 8px;
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+            .nav-item:hover {
+                background: #f5f5f5;
+                color: #111;
+                text-decoration: none;
+            }
+
+            .nav-item.active {
+                background: #f0f0f0;
+                color: #111;
+                font-weight: 500;
+            }
+
+            .nav-item svg {
+                width: 15px;
+                height: 15px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                flex-shrink: 0;
+            }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 14px 12px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #CECBF6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #3C3489;
+        }
+
+        .user-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #111;
+        }
+
+        .user-role {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    @{
+        var controller = ViewContext.RouteData.Values["controller"].ToString();
+    }
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand">ADM</div>
+            <div class="sub">Painel administrativo</div>
+        </div>
+
+        <div class="nav-section">Geral</div>
+        <a href="@Url.Action("Index", "Home")"
+           class="nav-item @(controller == "Home" ? "active" : "")">
+            <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+            </svg>
+            Dashboard
+        </a>
+
+        <div class="nav-section">Eleitoral</div>
+        <a href="@Url.Action("Index", "Campanha")"
+           class="nav-item @(controller == "Campanha" ? "active" : "")">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 11l19-9-9 19-2-8-8-2z" />
+            </svg>
+            Campanhas
+        </a>
+        <a href="@Url.Action("Index", "Candidato")"
+           class="nav-item @(controller == "Candidato" ? "active" : "")">
+            <svg viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Candidatos
+        </a>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">AD</div>
+                <div style="flex:1;">
+                    <div class="user-name">Administrador</div>
+                </div>
+                @using (Html.BeginForm("Sair", "Login", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" title="Sair"
+                            style="background:none; border:none; cursor:pointer; color:#aaa; font-size:13px; padding:0;">
+                        Sair
+                    </button>
+                }
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <div class="topbar">
+            <span class="topbar-title">@ViewBag.Title</span>
+        </div>
+        <div class="page-content">
+            @RenderBody()
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,28 @@
+﻿@using adm.Models
+@model Assinatura
+
+@{ ViewBag.Title = "Detalhe da Assinatura"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Detalhe da assinatura</h2>
+    <a href="@Url.Action("Index", "Assinatura", new { campanhaId = Model.CampanhaId })"
+       class="btn btn-outline-secondary">Voltar</a>
+</div>
+
+<div class="card p-4">
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>Nome:</strong> @Model.NomeAssinante</p>
+            <p><strong>E-mail:</strong> @(Model.EmailAssinante ?? "-")</p>
+            <p><strong>Telefone:</strong> @(Model.NumeroAssinante ?? "-")</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Endereço:</strong> @(Model.EnderecoAssinante ?? "-"), @(Model.NAssinante?.ToString() ?? "s/n") @(Model.ComplementoAssinante ?? "")</p>
+            <p><strong>CEP:</strong> @(Model.CepAssinante ?? "-")</p>
+            <p><strong>Cidade:</strong> @(Model.CidadeAssinante ?? "-") / @(Model.EstadoAssinante ?? "-")</p>
+        </div>
+    </div>
+    <hr />
+    <p><strong>IP de origem:</strong> @(Model.IpOrigem ?? "-")</p>
+    <p><strong>Assinado em:</strong> @(Model.AssinadoEm?.ToString("dd/MM/yyyy HH:mm") ?? "-")</p>
+</div>

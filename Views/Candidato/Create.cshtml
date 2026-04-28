@@ -1,0 +1,63 @@
+﻿@using adm.Models
+@model Candidato
+
+@{ ViewBag.Title = "Novo Candidato"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Novo candidato</h2>
+    <a href="@Url.Action("Index", "Candidato")" class="btn btn-outline-secondary">Voltar</a>
+</div>
+
+@using (Html.BeginForm("Create", "Candidato", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="card p-4 mb-3">
+        <h6 class="text-muted text-uppercase mb-3" style="font-size:11px; letter-spacing:.05em;">
+            Dados do candidato
+        </h6>
+
+        <div class="form-group">
+            <label>Nome *</label>
+            <input name="Nome" class="form-control" placeholder="Nome completo" required />
+        </div>
+
+        <div class="form-group">
+            <label>Partido</label>
+            <input name="Partido" class="form-control" placeholder="Ex: PT, PL, MDB..." />
+        </div>
+
+        <div class="form-group">
+            <label>Cargo</label>
+            <input name="Cargo" class="form-control" placeholder="Ex: Vereador, Prefeito, Deputado..." />
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select name="Estado" class="form-control">
+                        <option value="">-- Selecione --</option>
+                        @foreach (var uf in new[] { "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA",
+                            "MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN",
+                            "RO","RR","RS","SC","SE","SP","TO" })
+                        {
+                            <option value="@uf">@uf</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="form-group">
+                    <label>Município</label>
+                    <input name="Municipio" class="form-control" placeholder="Cidade" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <a href="@Url.Action("Index", "Candidato")" class="btn btn-outline-secondary mr-2">Cancelar</a>
+        <button type="submit" class="btn btn-dark">Salvar candidato</button>
+    </div>
+}

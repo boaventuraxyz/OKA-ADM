@@ -1,0 +1,100 @@
+﻿@using adm.Models
+@model Campanha
+
+@{
+    ViewBag.Title = "Nova Campanha";
+    var candidatos = ViewBag.Candidatos as List<Candidato>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Nova campanha</h2>
+    <a href="@Url.Action("Index", "Campanha")" class="btn btn-outline-secondary">Voltar</a>
+</div>
+
+@using (Html.BeginForm("Create", "Campanha", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+<div class="card p-4 mb-3">
+    <h6 class="text-muted text-uppercase mb-3" style="font-size:11px; letter-spacing:.05em;">
+        Informações gerais
+    </h6>
+
+    <div class="form-group">
+        <label>Título *</label>
+        <input name="Titulo" class="form-control" placeholder="Ex: Campanha Verão 2025" required />
+    </div>
+
+    <div class="form-group">
+        <label>Descrição</label>
+        <textarea name="Descricao" class="form-control" rows="3"
+                  placeholder="Descreva o objetivo da campanha..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Candidato *</label>
+        <select name="CandidatoId" class="form-control" required>
+            <option value="">-- Selecione um candidato --</option>
+            @if (candidatos != null)
+            {
+                foreach (var c in candidatos)
+                {
+                    <option value="@c.Id">
+                        @c.Nome @(!string.IsNullOrEmpty(c.Partido) ? "(" + c.Partido + ")" : "")
+                    </option>
+                }
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label>ID da planilha</label>
+        <input name="IdPlanilha" class="form-control"
+               placeholder="ID da planilha Google Sheets" />
+    </div>
+    <div class="form-group">
+        <label>Metas de Assinatura</label>
+        <input name="AssinaturaMeta" class="form-control"
+               placeholder="Metas de assinatura da campanha." />
+    </div>
+    <div class="form-group">
+        <label>Texto Apoio Contador</label>
+        <input name="TextoForm" class="form-control"
+               placeholder="Texto de apoio do contador" />
+    </div>
+</div>
+
+    <div class="card p-4 mb-3">
+        <h6 class="text-muted text-uppercase mb-3" style="font-size:11px; letter-spacing:.05em;">
+            Período
+        </h6>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Início</label>
+                    <input name="InicioEm" type="datetime-local" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Fim</label>
+                    <input name="FimEm" type="datetime-local" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h6 class="text-muted text-uppercase mb-3" style="font-size:11px; letter-spacing:.05em;">
+            Configurações
+        </h6>
+        <div class="form-check">
+            <input name="Ativa" type="checkbox" class="form-check-input" value="true" checked />
+            <label class="form-check-label">Campanha ativa</label>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <a href="@Url.Action("Index", "Campanha")" class="btn btn-outline-secondary mr-2">Cancelar</a>
+        <button type="submit" class="btn btn-dark">Salvar campanha</button>
+    </div>
+}
