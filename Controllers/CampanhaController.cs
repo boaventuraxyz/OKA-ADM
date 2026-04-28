@@ -57,7 +57,6 @@ namespace adm.Controllers
                 ativa = campanha.Ativa ?? true,
                 inicio_em = campanha.InicioEm,
                 fim_em = campanha.FimEm,
-                id_planilha = campanha.IdPlanilha,
                 assinaturas_meta = campanha.AssinaturaMeta,
                 texto_form = campanha.TextoForm
             };
@@ -158,7 +157,6 @@ namespace adm.Controllers
                 ativa = campanha.Ativa,
                 inicio_em = campanha.InicioEm,
                 fim_em = campanha.FimEm,
-                id_planilha = campanha.IdPlanilha,
                 assinaturas_meta = campanha.AssinaturaMeta,
                 texto_form = campanha.TextoForm
 
