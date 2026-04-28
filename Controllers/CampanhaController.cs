@@ -55,7 +55,6 @@ namespace adm.Controllers
                 inicio_em = campanha.InicioEm,
                 fim_em = campanha.FimEm,
                 id_planilha = campanha.IdPlanilha,
-                html = Convert.ToBase64String(Encoding.UTF8.GetBytes(campanha.html)),
                 assinaturas_meta = campanha.AssinaturaMeta,
                 texto_form = campanha.TextoForm
             };
