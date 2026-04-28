@@ -112,6 +112,7 @@
         }
 
     /* MOBILE — empilha tudo */
+    /* MOBILE — empilha tudo */
     @@media (max-width: 900px) {
         .pagina-campanha {
             min-height: auto;
@@ -123,8 +124,16 @@
         }
 
             .conteudo-campanha > * {
-                min-height: auto;
+                min-height: auto !important; /* força sobrescrever o 100vh do filho */
+                height: auto !important;
                 flex: none;
+            }
+
+            /* Se o HTML injetado tiver imagem/banner, garante que não estique */
+            .conteudo-campanha img {
+                max-width: 100%;
+                height: auto;
+                display: block;
             }
 
         .formulario-lateral {
@@ -133,8 +142,9 @@
             height: auto;
             min-height: auto;
             pointer-events: all;
-            padding: 20px;
+            padding: 0 16px 24px; /* removido o padding-top grande */
             top: 0;
+            margin-top: -20px; /* puxa o card pra cima, encostando no fundo */
         }
 
             .formulario-lateral > .form-card {
