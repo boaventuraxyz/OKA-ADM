@@ -38,15 +38,7 @@
                 <td>
                     <a href="@Url.Action("Details", "Assinatura", new { id = a.Id })"
                        class="btn btn-sm btn-outline-secondary">Ver</a>
-                    @using (Html.BeginForm("Delete", "Assinatura",
-                        new { id = a.Id, campanhaId = ViewBag.CampanhaId }, FormMethod.Post))
-                    {
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="return confirm('Excluir esta assinatura?')">
-                            Excluir
-                        </button>
-                    }
+                    
                 </td>
             </tr>
         }
