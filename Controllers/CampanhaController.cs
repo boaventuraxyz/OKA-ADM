@@ -1,11 +1,13 @@
-﻿using System;
+﻿using adm.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using adm.Models;
-using Newtonsoft.Json;
 
 namespace adm.Controllers
 {
@@ -14,6 +16,7 @@ namespace adm.Controllers
         private readonly HttpClient _http = SupabaseConfig.Cliente;
         private readonly string _url = SupabaseConfig.BaseUrl + "/rest/v1/campanhas";
         private readonly string _urlCand = SupabaseConfig.BaseUrl + "/rest/v1/candidatos";
+        private readonly string _urlAssinaturas = SupabaseConfig.BaseUrl + "/rest/v1/assinaturas";
 
         private async Task CarregarCandidatos()
         {
@@ -66,7 +69,69 @@ namespace adm.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: /Campanha/Edit/id
+        [HttpGet]
+        public async Task<ActionResult> BaixarAssinaturas(Guid id)
+        {
+            try
+            {
+                var campanhaResponse = await _http.GetStringAsync($"{_url}?id=eq.{id}&select=*");
+                var campanha = JsonConvert.DeserializeObject<List<Campanha>>(campanhaResponse).FirstOrDefault();
+
+                if (campanha == null)
+                    return new HttpStatusCodeResult(404, "Campanha não encontrada.");
+
+                var responseAssinatura = await _http.GetStringAsync($"{_urlAssinaturas}?campanha_id=eq.{campanha.Id}&select=*&order=assinado_em.desc");
+                var assinaturas = JsonConvert.DeserializeObject<List<Assinatura>>(responseAssinatura);
+
+                if (assinaturas == null || !assinaturas.Any())
+                    return new HttpStatusCodeResult(404, "Nenhuma assinatura encontrada.");
+
+                var sb = new StringBuilder();
+                sb.AppendLine("Nome;Numero;Email;Endereco;Numero End.;Complemento;Cidade;CEP;Estado;IP Origem;Data");
+
+                foreach (var a in assinaturas)
+                {
+                    sb.AppendLine(string.Join(";", new[]
+                    {
+                EscaparCsv(a.NomeAssinante),
+                EscaparCsv(a.NumeroAssinante),
+                EscaparCsv(a.EmailAssinante),
+                EscaparCsv(a.EnderecoAssinante),
+                a.NAssinante.HasValue ? a.NAssinante.Value.ToString() : "",
+                EscaparCsv(a.ComplementoAssinante),
+                EscaparCsv(a.CidadeAssinante),
+                EscaparCsv(a.CepAssinante),
+                EscaparCsv(a.EstadoAssinante),
+                EscaparCsv(a.IpOrigem),
+                a.AssinadoEm.HasValue
+                    ? a.AssinadoEm.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+                    : ""
+            }));
+                }
+
+                var preamble = Encoding.UTF8.GetPreamble();
+                var conteudo = Encoding.UTF8.GetBytes(sb.ToString());
+                var bytes = preamble.Concat(conteudo).ToArray();
+
+                // Sanitiza o título para nome de arquivo
+                var tituloSanitizado = string.Concat(campanha.Titulo
+                    .Where(ch => !Path.GetInvalidFileNameChars().Contains(ch)));
+
+                return File(bytes, "text/csv; charset=utf-8", $"Resultado_{tituloSanitizado}.csv");
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, "Erro ao gerar arquivo: " + ex.Message);
+            }
+        }
+        private string EscaparCsv(string valor)
+        {
+            if (string.IsNullOrEmpty(valor)) return "";
+            if (valor.Contains(";") || valor.Contains("\"") || valor.Contains("\n") || valor.Contains("\r"))
+                return "\"" + valor.Replace("\"", "\"\"") + "\"";
+            return valor;
+        }
+
         public async Task<ActionResult> Edit(Guid id)
         {
             var response = await _http.GetStringAsync($"{_url}?id=eq.{id}&select=*");

@@ -19,32 +19,27 @@
     .pagina-campanha {
         position: relative;
         width: 100%;
-        /* deixa o wrapper crescer conforme o conteúdo (form ou fundo) */
         min-height: 100vh;
         overflow: hidden;
     }
 
-    /* FUNDO — agora estica conforme o formulário cresce */
+    /* FUNDO — estica conforme o formulário cresce */
     .conteudo-campanha {
         position: relative;
         width: 100%;
         min-height: 100vh;
         background: #0D111A;
-        /* IMPORTANTE: removido o overflow:hidden para permitir que o conteúdo
-           interno seja "esticado" via flex e que filhos cresçam */
         display: flex;
         flex-direction: column;
     }
 
-        /* Faz o conteúdo HTML interno esticar verticalmente
-           para acompanhar a altura do .pagina-campanha (que cresce com o form) */
         .conteudo-campanha > * {
             width: 100%;
-            flex: 1 0 auto; /* estica para baixo se sobrar espaço */
-            min-height: 100vh; /* nunca menor que a viewport */
+            flex: 1 0 auto;
+            min-height: 100vh;
         }
 
-    /* FORM SOBREPOSTO — exatamente na metade direita */
+    /* FORM SOBREPOSTO — metade direita */
     .formulario-lateral {
         position: absolute;
         top: 10%;
@@ -76,6 +71,45 @@
         justify-content: center;
         color: #fff;
     }
+
+    /* ===== TOAST — ID único toastApp para evitar conflito ===== */
+    #toastApp.meutoast {
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        left: auto !important;
+        top: auto !important;
+        width: auto !important;
+        min-width: 250px !important;
+        max-width: 400px !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 14px 20px !important;
+        background-color: #28a745;
+        color: #fff;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        font-size: 14px;
+        line-height: 1.4;
+        z-index: 99999 !important;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+        word-wrap: break-word;
+        box-sizing: border-box !important;
+        display: block !important;
+    }
+
+        #toastApp.meutoast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        #toastApp.meutoast.error {
+            background-color: #dc3545;
+        }
 
     /* MOBILE — empilha tudo */
     @@media (max-width: 900px) {
@@ -132,14 +166,15 @@
 
 </div>
 
+<!-- Toast FORA do .pagina-campanha + ID único toastApp -->
+<div id="toastApp" class="meutoast"></div>
+
 <script src="~/Scripts/forms.js?dc=@this.Request.QueryString["_dc"]"></script>
 @Html.AntiForgeryToken()
 
-<!-- Script que mede o formulário e estica o fundo se necessário -->
 <script>
     (function () {
         function ajustarAlturaFundo() {
-            // Só ajusta no desktop
             if (window.innerWidth <= 900) {
                 document.querySelector('.pagina-campanha').style.minHeight = '';
                 document.querySelector('.conteudo-campanha').style.minHeight = '';
@@ -153,27 +188,22 @@
 
             if (!pagina || !fundo || !formLateral) return;
 
-            // Altura real necessária pelo formulário:
-            // offsetTop do .formulario-lateral (10%) + altura do card + folga de padding
             var alturaCard = formCard ? formCard.offsetHeight : formLateral.offsetHeight;
             var topo = formLateral.offsetTop;
-            var paddingExtra = 80; // respiro top/bottom
+            var paddingExtra = 80;
 
             var alturaNecessaria = topo + alturaCard + paddingExtra;
             var alturaViewport = window.innerHeight;
 
-            // Usa o maior entre viewport e o que o form precisa
             var alturaFinal = Math.max(alturaViewport, alturaNecessaria);
 
             pagina.style.minHeight = alturaFinal + 'px';
             fundo.style.minHeight = alturaFinal + 'px';
         }
 
-        // Executa na carga, após imagens, e em resize
         window.addEventListener('load', ajustarAlturaFundo);
         window.addEventListener('resize', ajustarAlturaFundo);
 
-        // Observa mudanças no formulário (campos dinâmicos, validações, etc.)
         document.addEventListener('DOMContentLoaded', function () {
             ajustarAlturaFundo();
 

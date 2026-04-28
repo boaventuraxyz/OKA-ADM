@@ -1,10 +1,20 @@
 ﻿function mostrarToast(mensagem, tipo) {
-    tipo = tipo == 's' ? 'success' : 'error';
-    const toast = document.getElementById('toast');
-    toast.textContent = mensagem;
-    toast.className = 'toast show ' + (tipo === 'error' ? 'error' : '');
+    var toast = document.getElementById('toastApp');
+    if (!toast) return;
 
-    setTimeout(() => {
+    var ehErro = tipo !== 's';
+    toast.textContent = mensagem;
+
+    // Reseta estados preservando a classe base 'meutoast'
+    toast.classList.remove('show', 'error');
+    if (ehErro) toast.classList.add('error');
+
+    // Força reflow para reiniciar a animação em chamadas seguidas
+    void toast.offsetWidth;
+    toast.classList.add('show');
+
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function () {
         toast.classList.remove('show');
     }, 3000);
 }

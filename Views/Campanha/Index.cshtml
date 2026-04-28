@@ -87,8 +87,13 @@
                                 Editar HTML
                             </button>
 
+                            <button type="button"
+                                    class="ddi"
+                                    onclick="baixarAssinaturas('@c.Id')">
+                                Baixar Assinaturas
+                            </button>
+                            
                             <div style="height:1px; background:#e9ecef; margin:6px 0;"></div>
-
                             @using (Html.BeginForm("ToggleAtiva", "Campanha", new { id = c.Id }, FormMethod.Post, new { style = "margin:0;" }))
                             {
                                 @Html.AntiForgeryToken()
@@ -182,6 +187,45 @@
 </style>
 
 <script>
+    async function baixarAssinaturas(campanhaId) {
+        try {
+            var response = await fetch('/Campanha/BaixarAssinaturas?id=' + encodeURIComponent(campanhaId), {
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                alert('Erro ao baixar assinaturas. Verifique se existem assinaturas para esta campanha.');
+                return;
+            }
+
+            // Tenta extrair o nome do arquivo do header Content-Disposition
+            var nomeArquivo = 'assinaturas.csv';
+            var disposition = response.headers.get('Content-Disposition');
+            if (disposition) {
+                var match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+                if (match && match[1]) {
+                    nomeArquivo = decodeURIComponent(match[1]);
+                }
+            }
+
+            // Converte resposta em blob e dispara o download
+            var blob = await response.blob();
+            var url = window.URL.createObjectURL(blob);
+
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = nomeArquivo;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Libera a memória
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao baixar assinaturas: ' + err.message);
+        }
+    }
     (function () {
         // ===== Dropdown customizado =====
         document.querySelectorAll('.dropdown-toggle-custom').forEach(function (btn) {
