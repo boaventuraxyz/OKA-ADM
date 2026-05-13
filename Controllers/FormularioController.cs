@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
 namespace adm.Controllers
 {
+    [RateLimit(maxRequests: 10, windowSeconds: 60)]
     public class FormularioController : Controller
     {
         private readonly HttpClient _http = SupabaseConfig.Cliente;
@@ -30,7 +32,20 @@ namespace adm.Controllers
             var assinaturas = JsonConvert.DeserializeObject<List<Assinatura>>(campRespAss);
             ViewBag.Campanha = campanhas;
             ViewBag.Assinaturas = assinaturas;
-            ViewData["htmlDecod"] = Encoding.UTF8.GetString(Convert.FromBase64String(campanhas.html));
+
+            var htmlOriginal= Encoding.UTF8.GetString(Convert.FromBase64String(campanhas.html));
+            // pega todos os <script>
+            var scripts = Regex.Matches(htmlOriginal, @"<script[\s\S]*?</script>", RegexOptions.IgnoreCase)
+                               .Cast<Match>()
+                               .Select(m => m.Value)
+                               .ToList();
+
+            // remove os scripts do HTML
+            var htmlSemScript = Regex.Replace(htmlOriginal, @"<script[\s\S]*?</script>", "", RegexOptions.IgnoreCase);
+
+            // joga pro View
+            ViewData["htmlDecod"] = htmlSemScript;
+            ViewBag.ScriptsExtra = scripts;
             return View();
         }
 

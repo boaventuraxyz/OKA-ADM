@@ -4,6 +4,7 @@ using System.Web.Security;
 
 namespace adm.Controllers
 {
+    [RateLimit(maxRequests: 2, windowSeconds: 120)]
     public class LoginController : Controller
     {
         // GET: /Login

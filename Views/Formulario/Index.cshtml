@@ -225,3 +225,10 @@
         });
     })();
 </script>
+@if (ViewBag.ScriptsExtra != null)
+{
+    foreach (var script in ViewBag.ScriptsExtra)
+    {
+        @Html.Raw(script)
+    }
+}
