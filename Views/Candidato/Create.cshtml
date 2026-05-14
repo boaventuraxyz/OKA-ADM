@@ -1,18 +1,20 @@
-﻿@using adm.Models
+@using adm.Models
 @model Candidato
 
 @{ ViewBag.Title = "Novo Candidato"; }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-toolbar">
     <h2>Novo candidato</h2>
-    <a href="@Url.Action("Index", "Candidato")" class="btn btn-outline-secondary">Voltar</a>
+    <div class="page-actions">
+        <a href="@Url.Action("Index", "Candidato")" class="btn btn-outline-secondary">Voltar</a>
+    </div>
 </div>
 
 @using (Html.BeginForm("Create", "Candidato", FormMethod.Post))
 {
     @Html.AntiForgeryToken()
 
-    <div class="card p-4 mb-3">
+    <div class="card p-4 mb-3 section-card">
         <h6 class="text-muted text-uppercase mb-3" style="font-size:11px; letter-spacing:.05em;">
             Dados do candidato
         </h6>
@@ -33,8 +35,8 @@
         </div>
 
         <div class="row">
-            <div class="col-md-4">
-                <div class="form-group">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="form-group mb-0">
                     <label>Estado</label>
                     <select name="Estado" class="form-control">
                         <option value="">-- Selecione --</option>
@@ -48,7 +50,7 @@
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="form-group">
+                <div class="form-group mb-0">
                     <label>Município</label>
                     <input name="Municipio" class="form-control" placeholder="Cidade" />
                 </div>
@@ -56,8 +58,8 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-end">
-        <a href="@Url.Action("Index", "Candidato")" class="btn btn-outline-secondary mr-2">Cancelar</a>
+    <div class="responsive-actions">
+        <a href="@Url.Action("Index", "Candidato")" class="btn btn-outline-secondary">Cancelar</a>
         <button type="submit" class="btn btn-dark">Salvar candidato</button>
     </div>
 }

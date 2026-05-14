@@ -1,17 +1,19 @@
-﻿@using adm.Models
+@using adm.Models
 @model Assinatura
 
 @{ ViewBag.Title = "Detalhe da Assinatura"; }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-toolbar">
     <h2>Detalhe da assinatura</h2>
-    <a href="@Url.Action("Index", "Assinatura", new { campanhaId = Model.CampanhaId })"
-       class="btn btn-outline-secondary">Voltar</a>
+    <div class="page-actions">
+        <a href="@Url.Action("Index", "Assinatura", new { campanhaId = Model.CampanhaId })"
+           class="btn btn-outline-secondary">Voltar</a>
+    </div>
 </div>
 
-<div class="card p-4">
+<div class="card p-4 section-card detail-stack">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6 mb-3 mb-md-0">
             <p><strong>Nome:</strong> @Model.NomeAssinante</p>
             <p><strong>E-mail:</strong> @(Model.EmailAssinante ?? "-")</p>
             <p><strong>Telefone:</strong> @(Model.NumeroAssinante ?? "-")</p>

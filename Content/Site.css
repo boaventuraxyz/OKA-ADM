@@ -1,20 +1,268 @@
-﻿/* Set padding to keep content from hitting the edges */
+html,
+body {
+    min-height: 100%;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
 .body-content {
     margin-top: 15px;
     padding-left: 15px;
     padding-right: 15px;
 }
 
-/* Override the default bootstrap behavior where horizontal description lists 
-   will truncate terms that are too long to fit in the left column 
-*/
 .dl-horizontal dt {
     white-space: normal;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
 input,
 select,
 textarea {
-    max-width: 280px;
+    max-width: 100%;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.page-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.page-toolbar h1,
+.page-toolbar h2,
+.page-toolbar h5,
+.page-toolbar p {
+    margin-bottom: 0;
+}
+
+.page-toolbar-subtitle {
+    display: block;
+    margin-top: 4px;
+}
+
+.page-actions,
+.responsive-actions,
+.row-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.responsive-actions {
+    justify-content: flex-end;
+}
+
+.row-actions form {
+    margin: 0;
+}
+
+.section-card {
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.04);
+}
+
+.table-card {
+    overflow: hidden;
+}
+
+.table-card .table {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.admin-table td.table-actions {
+    width: 1%;
+}
+
+.table-card .table th,
+.table-card .table td {
+    vertical-align: middle;
+}
+
+.detail-stack p,
+.detail-stack strong,
+.readonly-url {
+    overflow-wrap: anywhere;
+}
+
+.readonly-url {
+    font-family: Consolas, "Courier New", monospace;
+}
+
+@media (max-width: 767.98px) {
+    .page-toolbar {
+        align-items: stretch;
+    }
+
+    .page-actions,
+    .responsive-actions {
+        width: 100%;
+    }
+
+    .page-actions > *,
+    .responsive-actions > * {
+        flex: 1 1 100%;
+    }
+
+    .page-actions .btn,
+    .responsive-actions .btn {
+        width: 100%;
+    }
+
+    .row-actions {
+        align-items: stretch;
+    }
+
+    .table-card .table {
+        font-size: 0.92rem;
+    }
+
+    .table-card {
+        overflow: visible;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .table-card .table-responsive {
+        overflow: visible;
+    }
+
+    .admin-table {
+        min-width: 0 !important;
+        white-space: normal !important;
+        background: transparent;
+    }
+
+    .admin-table thead {
+        display: none;
+    }
+
+    .admin-table,
+    .admin-table tbody,
+    .admin-table tr,
+    .admin-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .admin-table tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    .admin-table tr {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 8px 24px rgba(17, 17, 17, 0.06);
+    }
+
+    .admin-table td {
+        border: 0 !important;
+        padding: 0 0 12px !important;
+        white-space: normal !important;
+    }
+
+    .admin-table td:last-child {
+        padding-bottom: 0 !important;
+    }
+
+    .admin-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #8b8b8b;
+    }
+
+    .admin-table td.table-actions {
+        width: 100%;
+        min-width: 0;
+        margin-top: 4px;
+        padding-top: 12px !important;
+        border-top: 1px solid #ececec !important;
+    }
+
+    .admin-table td.table-actions::before {
+        margin-bottom: 8px;
+    }
+
+    .admin-table td.table-actions .row-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .admin-table td.table-actions .row-actions > *,
+    .admin-table td.table-actions .btn,
+    .admin-table td.table-actions .custom-dropdown {
+        width: 100%;
+    }
+
+    .admin-table td.table-actions .custom-dropdown {
+        display: block !important;
+    }
+
+    .admin-table td.table-actions .btn,
+    .admin-table td.table-actions .ddi {
+        font-size: 12px;
+        line-height: 1.2;
+        white-space: normal;
+        word-break: normal;
+    }
+
+    .admin-table td.table-actions .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 8px 12px;
+    }
+
+    .admin-table td.table-actions .ddi {
+        padding: 8px 12px;
+    }
+
+    .admin-table td.table-actions .btn-group {
+        display: flex;
+        width: 100%;
+    }
+
+    .admin-table td.table-actions .btn-group .btn:first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .admin-table td.table-actions .btn-group .dropdown-toggle-custom {
+        flex: 0 0 42px;
+        width: 42px;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .admin-table td.table-actions .dropdown-menu-custom {
+        left: 0;
+        right: 0;
+        min-width: 0;
+        margin-top: 8px;
+    }
 }

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -6,19 +6,23 @@
     <title>@ViewBag.Title - ADM</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-    <link href="@Url.Content("~/Content/formulario.css")" rel="stylesheet" />
     <style>
         * {
             box-sizing: border-box;
         }
 
-        body {
+        body.admin-shell {
             margin: 0;
             display: flex;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
             font-family: 'Segoe UI', sans-serif;
             background: #f8f8f8;
+            color: #111;
+        }
+
+        .sidebar-backdrop {
+            display: none;
         }
 
         .sidebar {
@@ -28,7 +32,9 @@
             border-right: 1px solid #e8e8e8;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            max-height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
         }
 
         .sidebar-logo {
@@ -96,6 +102,7 @@
             margin-top: auto;
             padding: 14px 12px;
             border-top: 1px solid #e8e8e8;
+            background: #fff;
         }
 
         .user-info {
@@ -115,6 +122,7 @@
             font-size: 12px;
             font-weight: 600;
             color: #3C3489;
+            flex-shrink: 0;
         }
 
         .user-name {
@@ -123,47 +131,167 @@
             color: #111;
         }
 
-        .user-role {
-            font-size: 10px;
+        .logout-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
             color: #aaa;
+            font-size: 13px;
+            padding: 0;
+            flex-shrink: 0;
         }
+
+            .logout-btn:hover {
+                color: #111;
+            }
 
         .main-wrapper {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            min-width: 0;
+            min-height: 100vh;
         }
 
         .topbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 16px;
             padding: 14px 24px;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.96);
             border-bottom: 1px solid #e8e8e8;
+            backdrop-filter: blur(14px);
+        }
+
+        .topbar-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
 
         .topbar-title {
             font-size: 15px;
             font-weight: 600;
             color: #111;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
+
+        .sidebar-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            background: #fff;
+            color: #111;
+            flex-shrink: 0;
+        }
+
+            .sidebar-toggle span {
+                display: block;
+                width: 18px;
+                height: 2px;
+                background: currentColor;
+                border-radius: 999px;
+                position: relative;
+            }
+
+                .sidebar-toggle span::before,
+                .sidebar-toggle span::after {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    width: 18px;
+                    height: 2px;
+                    background: currentColor;
+                    border-radius: 999px;
+                }
+
+                .sidebar-toggle span::before {
+                    top: -6px;
+                }
+
+                .sidebar-toggle span::after {
+                    top: 6px;
+                }
 
         .page-content {
             flex: 1;
             overflow-y: auto;
             padding: 24px;
         }
+
+        @@media (max-width: 991.98px) {
+            body.admin-shell {
+                display: block;
+            }
+
+            .sidebar-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(13, 17, 26, 0.5);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity .2s ease;
+                z-index: 1040;
+            }
+
+            .sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                width: min(82vw, 280px);
+                min-width: 0;
+                max-height: none;
+                z-index: 1050;
+                transform: translateX(-100%);
+                transition: transform .25s ease;
+                box-shadow: 18px 0 48px rgba(0, 0, 0, 0.18);
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            body.sidebar-open .sidebar-backdrop {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .sidebar-toggle {
+                display: inline-flex;
+            }
+
+            .topbar {
+                position: sticky;
+                top: 0;
+                z-index: 1030;
+                padding: 14px 16px;
+            }
+
+            .page-content {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="admin-shell">
 
     @{
         var controller = ViewContext.RouteData.Values["controller"].ToString();
     }
 
-    <aside class="sidebar">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
+    <aside class="sidebar" id="appSidebar">
         <div class="sidebar-logo">
             <div class="brand">ADM</div>
             <div class="sub">Painel administrativo</div>
@@ -171,7 +299,8 @@
 
         <div class="nav-section">Geral</div>
         <a href="@Url.Action("Index", "Home")"
-           class="nav-item @(controller == "Home" ? "active" : "")">
+           class="nav-item @(controller == "Home" ? "active" : "")"
+           data-sidebar-close>
             <svg viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" />
                 <rect x="14" y="3" width="7" height="7" />
@@ -183,14 +312,16 @@
 
         <div class="nav-section">Eleitoral</div>
         <a href="@Url.Action("Index", "Campanha")"
-           class="nav-item @(controller == "Campanha" ? "active" : "")">
+           class="nav-item @(controller == "Campanha" ? "active" : "")"
+           data-sidebar-close>
             <svg viewBox="0 0 24 24">
                 <path d="M3 11l19-9-9 19-2-8-8-2z" />
             </svg>
             Campanhas
         </a>
         <a href="@Url.Action("Index", "Candidato")"
-           class="nav-item @(controller == "Candidato" ? "active" : "")">
+           class="nav-item @(controller == "Candidato" ? "active" : "")"
+           data-sidebar-close>
             <svg viewBox="0 0 24 24">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
@@ -203,14 +334,13 @@
         <div class="sidebar-footer">
             <div class="user-info">
                 <div class="user-avatar">AD</div>
-                <div style="flex:1;">
+                <div style="flex:1; min-width:0;">
                     <div class="user-name">Administrador</div>
                 </div>
                 @using (Html.BeginForm("Sair", "Login", FormMethod.Post))
                 {
                     @Html.AntiForgeryToken()
-                    <button type="submit" title="Sair"
-                            style="background:none; border:none; cursor:pointer; color:#aaa; font-size:13px; padding:0;">
+                    <button type="submit" title="Sair" class="logout-btn">
                         Sair
                     </button>
                 }
@@ -220,7 +350,17 @@
 
     <div class="main-wrapper">
         <div class="topbar">
-            <span class="topbar-title">@ViewBag.Title</span>
+            <div class="topbar-heading">
+                <button type="button"
+                        class="sidebar-toggle"
+                        id="sidebarToggle"
+                        aria-controls="appSidebar"
+                        aria-expanded="false"
+                        aria-label="Abrir menu de navegação">
+                    <span></span>
+                </button>
+                <span class="topbar-title">@ViewBag.Title</span>
+            </div>
         </div>
         <div class="page-content">
             @RenderBody()
@@ -229,6 +369,46 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script>
+        (function () {
+            var body = document.body;
+            var sidebarToggle = document.getElementById('sidebarToggle');
+            var closeTriggers = document.querySelectorAll('[data-sidebar-close]');
+
+            if (!sidebarToggle) {
+                return;
+            }
+
+            function closeSidebar() {
+                body.classList.remove('sidebar-open');
+                sidebarToggle.setAttribute('aria-expanded', 'false');
+            }
+
+            function openSidebar() {
+                body.classList.add('sidebar-open');
+                sidebarToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            sidebarToggle.addEventListener('click', function () {
+                if (body.classList.contains('sidebar-open')) {
+                    closeSidebar();
+                    return;
+                }
+
+                openSidebar();
+            });
+
+            closeTriggers.forEach(function (item) {
+                item.addEventListener('click', closeSidebar);
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 992) {
+                    closeSidebar();
+                }
+            });
+        })();
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>
