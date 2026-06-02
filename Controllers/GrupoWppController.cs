@@ -6,6 +6,7 @@ using System.Web.Mvc;
 
 namespace adm.Controllers
 {
+    [RateLimit(maxRequests: 10, windowSeconds: 60)]
     public class GrupoWppController : Controller
     {
         // GET: Grupo
