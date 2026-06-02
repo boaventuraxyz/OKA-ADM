@@ -140,6 +140,7 @@
     <Compile Include="Controllers\CandidatoController.cs" />
     <Compile Include="Controllers\ErroController.cs" />
     <Compile Include="Controllers\FormularioController.cs" />
+    <Compile Include="Controllers\GrupoWppController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Global.asax.cs">
@@ -179,8 +180,12 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\oka-admpainel - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\oka-admpainel - ReadOnly - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\oka-admpainel - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\oka-admpainel - Web Deploy1.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="Scripts\cidades.js" />
     <Content Include="Scripts\forms.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -216,6 +221,7 @@
     <Content Include="Views\Shared\_formulario.cshtml" />
     <Content Include="Views\Formulario\Index.cshtml" />
     <Content Include="Views\Erro\TooManyRequests.cshtml" />
+    <Content Include="Views\GrupoWpp\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
