@@ -180,10 +180,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <None Include="Properties\PublishProfiles\oka-admpainel - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\oka-admpainel - ReadOnly - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\oka-admpainel - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\oka-admpainel - Web Deploy1.pubxml" />
+    <None Include="Properties\PublishProfiles\okaservices - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\cidades.js" />
     <Content Include="Scripts\forms.js" />
