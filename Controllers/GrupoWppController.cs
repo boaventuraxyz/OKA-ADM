@@ -14,5 +14,10 @@ namespace adm.Controllers
         {
             return View();
         }
+        public ActionResult Tias()
+        {
+            // retorna a view que não tem controller próprio
+            return View("~/Views/GrupoWpp/Tias.cshtml");
+        }
     }
 }

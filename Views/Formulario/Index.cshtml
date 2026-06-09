@@ -128,7 +128,6 @@
                 height: auto !important;
                 flex: none;
             }
-
             /* Se o HTML injetado tiver imagem/banner, garante que não estique */
             .conteudo-campanha img {
                 max-width: 100%;
@@ -149,6 +148,45 @@
 
             .formulario-lateral > .form-card {
                 max-width: 100%;
+            }
+    }
+    /* POLÍTICAS — discretas */
+    footer {
+        width: 100%;
+        text-align: center;
+        padding: 16px 12px;
+        background: transparent;
+    }
+
+        footer a,
+        footer .politicas,
+        footer .politicas a {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.45);
+            text-decoration: none;
+            letter-spacing: 0.2px;
+            transition: color 0.2s ease;
+        }
+
+            footer a:hover,
+            footer .politicas a:hover {
+                color: rgba(255, 255, 255, 0.75);
+                text-decoration: underline;
+            }
+
+            /* separador discreto entre links, se houver vários */
+            footer .politicas a + a {
+                margin-left: 12px;
+            }
+
+    @@media (max-width: 900px) {
+        footer {
+            padding: 12px 10px;
+        }
+
+            footer a,
+            footer .politicas a {
+                font-size: 10px;
             }
     }
 </style>
@@ -175,7 +213,10 @@
     </div>
 
 </div>
-
+<!-- FORM SOBREPOSTO NA METADE DIREITA -->
+<footer class="">
+    @Html.Partial("_politicas")
+</footer>
 <!-- Toast FORA do .pagina-campanha + ID único toastApp -->
 <div id="toastApp" class="meutoast"></div>
 

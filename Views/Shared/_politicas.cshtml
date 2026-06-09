@@ -1,0 +1,191 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    /* ===== POLÍTICAS — RODAPÉ DISCRETO (tema escuro/dourado) ===== */
+    .politicas-rodape {
+        width: 100%;
+        text-align: center;
+        padding: 22px 16px 32px;
+        background: transparent;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+        .politicas-rodape .pol-toggle {
+            list-style: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+            color: rgba(232, 200, 74, 0.7); /* dourado suave */
+            text-decoration: none;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+            .politicas-rodape .pol-toggle::-webkit-details-marker {
+                display: none;
+            }
+
+            .politicas-rodape .pol-toggle::before {
+                content: "\01F512";
+                font-size: 11px;
+                opacity: 0.85;
+            }
+
+            .politicas-rodape .pol-toggle:hover {
+                color: #e8c84a;
+            }
+
+        .politicas-rodape[open] .pol-toggle {
+            margin-bottom: 16px;
+            color: #e8c84a;
+        }
+
+        /* caixa expandida — mesmo estilo dos cards "POR QUE IMPORTA" */
+        .politicas-rodape .pol-conteudo {
+            max-width: 760px;
+            margin: 0 auto;
+            text-align: left;
+            background: #0a1628;
+            border: 1px solid rgba(143, 163, 192, 0.18);
+            border-radius: 10px;
+            padding: 28px 32px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+            .politicas-rodape .pol-conteudo::-webkit-scrollbar {
+                width: 5px;
+            }
+
+            .politicas-rodape .pol-conteudo::-webkit-scrollbar-thumb {
+                background: rgba(143, 163, 192, 0.25);
+                border-radius: 4px;
+            }
+
+        .politicas-rodape h1.pol-titulo {
+            font-size: 1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #e8c84a;
+            margin-bottom: 2px;
+        }
+
+        .politicas-rodape .pol-updated {
+            font-size: 0.68rem;
+            color: rgba(244, 242, 236, 0.35);
+            margin-bottom: 18px;
+        }
+
+        .politicas-rodape h2 {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: #e8c84a;
+            margin: 18px 0 6px;
+        }
+
+            .politicas-rodape h2:first-of-type {
+                margin-top: 0;
+            }
+
+        .politicas-rodape p,
+        .politicas-rodape li {
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: rgba(244, 242, 236, 0.62);
+        }
+
+        .politicas-rodape ul {
+            padding-left: 18px;
+            margin-top: 4px;
+        }
+
+        .politicas-rodape li {
+            margin-bottom: 3px;
+        }
+
+        .politicas-rodape hr {
+            border: none;
+            border-top: 1px solid rgba(143, 163, 192, 0.12);
+            margin: 16px 0;
+        }
+
+    @@media (max-width: 600px) {
+        .politicas-rodape .pol-conteudo {
+            padding: 20px 18px;
+            max-height: 320px;
+        }
+    }
+</style>
+
+<details class="politicas-rodape">
+    <summary class="pol-toggle">Seus dados são protegidos pela LGPD &middot; Ler Política de Privacidade</summary>
+
+    <div class="pol-conteudo">
+        <h1 class="pol-titulo">Política de Privacidade</h1>
+        <p class="pol-updated">Última atualização: junho de 2026</p>
+
+        <p>Esta Política de Privacidade descreve como os dados pessoais coletados por meio deste abaixo-assinado são tratados, armazenados e utilizados, em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD – Lei nº 13.709/2018).</p>
+
+        <h2>1. Responsável pelo Tratamento</h2>
+        <p>Os dados coletados neste formulário são de responsabilidade de Felipe Sertenjo e Ben Pontes, que atuam como controladores dos dados pessoais fornecidos pelos participantes.</p>
+
+        <h2>2. Dados Coletados</h2>
+        <p>Durante o preenchimento do formulário, os seguintes dados poderão ser coletados:</p>
+        <ul>
+            <li>Nome completo</li>
+            <li>Endereço de e-mail</li>
+            <li>Telefone / WhatsApp</li>
+            <li>Endereço (CEP, rua, número, complemento, bairro, cidade e estado)</li>
+        </ul>
+
+        <h2>3. Finalidade do Tratamento</h2>
+        <p>Os dados coletados serão utilizados exclusivamente para as seguintes finalidades:</p>
+        <ul>
+            <li>Registro e controle das assinaturas do abaixo-assinado;</li>
+            <li>Envio de comunicados, atualizações e informações relacionadas à iniciativa;</li>
+            <li>Encaminhamento de materiais informativos, convites para eventos e atualizações de mandato;</li>
+            <li>Comunicação futura por e-mail, telefone, WhatsApp ou correspondência.</li>
+        </ul>
+
+        <h2>4. Base Legal</h2>
+        <p>O tratamento dos dados é realizado com base no consentimento expresso do titular, conforme previsto no art. 7º, inciso I, da LGPD.</p>
+
+        <h2>5. Compartilhamento de Dados</h2>
+        <p>Os dados pessoais dos participantes não serão vendidos, cedidos ou compartilhados com terceiros para fins comerciais. Poderão ser compartilhados apenas com ferramentas de gestão e comunicação utilizadas internamente pela iniciativa, sempre respeitando os princípios da LGPD.</p>
+
+        <h2>6. Armazenamento e Segurança</h2>
+        <p>Os dados são armazenados em ambiente seguro e protegido. Adotamos medidas técnicas e administrativas para proteger as informações contra acessos não autorizados, alteração, divulgação ou destruição indevida.</p>
+
+        <h2>7. Prazo de Retenção</h2>
+        <p>Os dados serão mantidos pelo período necessário para o cumprimento das finalidades descritas nesta política ou até que o titular solicite a sua exclusão.</p>
+
+        <h2>8. Direitos do Titular</h2>
+        <p>Nos termos da LGPD, o titular dos dados tem direito a:</p>
+        <ul>
+            <li>Confirmar a existência de tratamento de seus dados;</li>
+            <li>Acessar seus dados pessoais;</li>
+            <li>Corrigir dados incompletos, inexatos ou desatualizados;</li>
+            <li>Solicitar a anonimização, bloqueio ou eliminação de dados desnecessários;</li>
+            <li>Revogar o consentimento a qualquer momento;</li>
+            <li>Solicitar a exclusão de seus dados.</li>
+        </ul>
+        <p>Para exercer qualquer um desses direitos, entre em contato pelos canais oficiais da iniciativa.</p>
+
+        <h2>9. Cookies</h2>
+        <p>Este site não utiliza cookies de rastreamento ou ferramentas de análise de comportamento do usuário.</p>
+
+        <h2>10. Alterações nesta Política</h2>
+        <p>Esta Política de Privacidade pode ser atualizada periodicamente. Em caso de alterações relevantes, os participantes serão notificados pelos canais de comunicação disponíveis.</p>
+
+        <hr>
+        <p>Ao assinar o abaixo-assinado, o participante declara ter lido e compreendido esta Política de Privacidade e consente com o tratamento de seus dados nos termos aqui descritos.</p>
+    </div>
+</details>

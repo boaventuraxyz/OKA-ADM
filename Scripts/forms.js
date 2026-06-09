@@ -180,7 +180,7 @@ function handleSign() {
         .then(data => {
             mostrarToast('Assinatura realizada com sucesso!', 's');
             setTimeout(() => {
-                location.reload(); // 🔥 recarrega a página
+                window.location.href = "https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1";
             }, 1500); // espera o toast aparecer
         })
         .catch(err => {

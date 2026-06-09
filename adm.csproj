@@ -219,6 +219,8 @@
     <Content Include="Views\Formulario\Index.cshtml" />
     <Content Include="Views\Erro\TooManyRequests.cshtml" />
     <Content Include="Views\GrupoWpp\Index.cshtml" />
+    <Content Include="Views\Shared\_politicas.cshtml" />
+    <Content Include="Views\GrupoWpp\Tias.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
