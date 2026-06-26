@@ -20,6 +20,7 @@
 }
 const form = document.getElementById('formAssinar');
 const campanhaID = document.getElementById('campanhaID');
+const campanhaCandidatoID = document.getElementById('campanhaCandidatoID');
     const nome = document.getElementById('nome');
 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
     const tel = document.getElementById('tel');
@@ -33,6 +34,7 @@ const token = document.querySelector('input[name="__RequestVerificationToken"]')
     const erroMail = document.getElementById('erroMail');
     const erroRua = document.getElementById('erroRua');
     const erroCep = document.getElementById('erroCep');
+    const rua = document.getElementById('complemento');
 
     function apenasNumeros(valor) {
         return valor.replace(/\D/g, '');
@@ -180,7 +182,10 @@ function handleSign() {
         .then(data => {
             mostrarToast('Assinatura realizada com sucesso!', 's');
             setTimeout(() => {
-                window.location.href = "https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1";
+
+                if (campanhaCandidatoID == "f037f25c-cdef-403a-a578-24e4fa863a3d")
+                     window.location.href = "https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1";
+
             }, 1500); // espera o toast aparecer
         })
         .catch(err => {

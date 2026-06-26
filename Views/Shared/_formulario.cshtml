@@ -397,6 +397,8 @@
 </style>
 <div class="form-card">
     <input hidden="hidden" value="@(campannha.Id)" id="campanhaID" />
+    <input hidden="hidden" value="@(campannha.CandidatoId)" id="campanhaCandidatoID" />
+
     <div class="card-header">
         <div class="card-live">
             <span class="card-live-dot"></span>
@@ -460,7 +462,7 @@
         <span class="field-error" id="erroRua">Informe o endereço e o número</span>
 
         <input id="complemento" class="form-input" type="text"
-               placeholder="Apartamento, bloco, casa (opcional)" />
+               placeholder="Apartamento, bloco, casa" />
 
         <button class="btn-sign" type="submit">
             Assinar agora
