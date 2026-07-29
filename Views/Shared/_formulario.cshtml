@@ -364,7 +364,7 @@
                 font-size: 10px;
             }
 
-    
+
         .progress-bar-track {
             width: 100%;
             height: 10px;
@@ -379,20 +379,19 @@
             background: linear-gradient(90deg, #22c55e, #4ade80);
             transition: width 0.6s ease;
         }
-
-/* Mobile: ocupa quase a largura toda, fica embaixo e centralizado */
-@@media (max-width: 600px) {
-    .toast {
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        max-width: none;
-        min-width: 0;
-        font-size: 13px;
-        padding: 12px 16px;
-        text-align: center;
-    }
-}
+        /* Mobile: ocupa quase a largura toda, fica embaixo e centralizado */
+        @@media (max-width: 600px) {
+            .toast {
+                left: 12px;
+                right: 12px;
+                bottom: 12px;
+                max-width: none;
+                min-width: 0;
+                font-size: 13px;
+                padding: 12px 16px;
+                text-align: center;
+            }
+        }
     }
 </style>
 <div class="form-card">
@@ -433,49 +432,58 @@
           onsubmit="event.preventDefault(); handleSign();">
 
         <input id="nome" class="form-input" type="text"
-               placeholder="Seu nome completo" name="name" />
+               placeholder="Seu nome completo" name="name"
+               autocomplete="name" />
         <span class="field-error" id="erroNome">Informe seu nome completo</span>
 
         <input id="tel" class="form-input" type="tel"
-               placeholder="WhatsApp com DDD" name="phone" />
+               placeholder="WhatsApp com DDD" name="phone"
+               autocomplete="tel" />
         <span class="field-error" id="erroTel">Informe um telefone válido</span>
 
         <input id="mail" class="form-input" type="email"
-               placeholder="Seu melhor e-mail" name="email" />
+               placeholder="Seu melhor e-mail" name="email"
+               autocomplete="email" />
         <span class="field-error" id="erroMail">
             Informe um e-mail válido (ex: nome@@email.com)
         </span>
         <input id="cep" class="form-input" type="text"
-               placeholder="CEP (00000-000)" maxlength="9" />
+               placeholder="CEP (00000-000)" maxlength="9" name="postal-code"
+               autocomplete="postal-code" />
         <span class="field-error" id="erroCep">
             Informe um CEP válido (00000-000)
         </span>
         <div class="endereco-row">
-            <input id="cidade" hidden type="text" />
-            <input id="estado" hidden type="text" />
+            <input id="cidade" hidden type="text" name="city"
+                   autocomplete="address-level2" />
+            <input id="estado" hidden type="text" name="state"
+                   autocomplete="address-level1" />
             <input id="rua" readonly="readonly" class="form-input" type="text"
-                   placeholder="Rua / Av. / Travessa..." />
+                   placeholder="Rua / Av. / Travessa..." name="address-line1"
+                   autocomplete="address-line1" />
 
             <input id="numero" class="form-input" type="text"
-                   placeholder="Nº" />
+                   placeholder="Nº" name="address-line2"
+                   autocomplete="address-line2" />
         </div>
         <span class="field-error" id="erroRua">Informe o endereço e o número</span>
 
         <input id="complemento" class="form-input" type="text"
-               placeholder="Apartamento, bloco, casa" />
+               placeholder="Apartamento, bloco, casa" name="address-line3"
+               autocomplete="address-line3" />
+        <span class="field-error" id="erroComplemento">Informe o complemento</span>
 
         <button class="btn-sign" type="submit">
             Assinar agora
         </button>
     </form>
-
     <div class="form-footer">
         <span>Leva menos de 1 minuto</span>
         <span>Seus dados estão protegidos conforme a LGPD</span>
     </div>
 </div>
 
-<script src="~/Scripts/forms.js?dc=@this.Request.QueryString["_dc"]"></script>
+<script src="~/Scripts/forms.js?dc=@DateTime.Now.Ticks"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const total = @assinaturaCampanha;

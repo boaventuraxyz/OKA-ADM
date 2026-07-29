@@ -28,13 +28,14 @@ const token = document.querySelector('input[name="__RequestVerificationToken"]')
     const rua = document.getElementById('rua');
     const numero = document.getElementById('numero');
     const cep = document.getElementById('cep');
+const complemento = document.getElementById('complemento');
 
     const erroNome = document.getElementById('erroNome');
     const erroTel = document.getElementById('erroTel');
     const erroMail = document.getElementById('erroMail');
     const erroRua = document.getElementById('erroRua');
     const erroCep = document.getElementById('erroCep');
-    const rua = document.getElementById('complemento');
+const erroComplemento = document.getElementById('erroComplemento');
 
     function apenasNumeros(valor) {
         return valor.replace(/\D/g, '');
@@ -133,12 +134,17 @@ function validarEmail(valor) {
         numero.classList.toggle('error', invalido);
     });
 
+complemento.addEventListener('input', function () {
+    mostrarErro(complemento, erroComplemento, complemento.value.trim() == '');
+});
+
 function handleSign() {
     const nomeInvalido = !validarNome(nome.value);
     const telInvalido = !validarTelefoneBR(tel.value);
     const mailInvalido = !validarEmail(mail.value);
     const ruaNumeroInvalido = !validarRuaNumero();
     const cepInvalido = !validarCep(cep.value);
+    const complementoInvalido = complemento.value.trim() == "";
 
     mostrarErro(nome, erroNome, nomeInvalido);
     mostrarErro(tel, erroTel, telInvalido);
@@ -146,8 +152,9 @@ function handleSign() {
     mostrarErro(rua, erroRua, ruaNumeroInvalido);
     numero.classList.toggle('error', ruaNumeroInvalido);
     mostrarErro(cep, erroCep, cepInvalido);
+    mostrarErro(complemento, erroComplemento, complementoInvalido)
 
-    if (nomeInvalido || telInvalido || mailInvalido || ruaNumeroInvalido || cepInvalido) {
+    if (nomeInvalido || telInvalido || mailInvalido || ruaNumeroInvalido || cepInvalido || complementoInvalido) {
         return;
     }
 
@@ -163,6 +170,7 @@ function handleSign() {
     formData.append("CidadeAssinante", cidade.value);
     formData.append("EstadoAssinante", estado.value);
     formData.append("CampanhaId", campanhaID.value);
+    formData.append("ComplementoAssinante", complemento.value);
 
     // 🔥 token (pegando direto do input real)
     formData.append(
@@ -183,9 +191,10 @@ function handleSign() {
             mostrarToast('Assinatura realizada com sucesso!', 's');
             setTimeout(() => {
 
-                if (campanhaCandidatoID == "f037f25c-cdef-403a-a578-24e4fa863a3d")
-                     window.location.href = "https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1";
+                if (campanhaCandidatoID.value == "f037f25c-cdef-403a-a578-24e4fa863a3d")
+                    window.open("https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1", "_blank");
 
+                window.location.reload();
             }, 1500); // espera o toast aparecer
         })
         .catch(err => {
