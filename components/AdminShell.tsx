@@ -19,16 +19,13 @@ function navClass(pathname: string, href: string) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [menu, setMenu] = useState({ pathname, open: false });
+  const open = menu.pathname === pathname ? menu.open : false;
 
   useEffect(() => {
     document.body.classList.toggle("sidebar-open", open);
     return () => document.body.classList.remove("sidebar-open");
   }, [open]);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   const title =
     pathname === "/"
@@ -85,7 +82,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <button
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             className="button icon sidebar-toggle"
-            onClick={() => setOpen((value) => !value)}
+            onClick={() =>
+              setMenu((value) => ({
+                pathname,
+                open: value.pathname === pathname ? !value.open : true
+              }))
+            }
             type="button"
           >
             {open ? <X size={18} /> : <Menu size={18} />}

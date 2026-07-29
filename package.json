@@ -9,6 +9,7 @@
     "lint": "eslint app components lib"
   },
   "overrides": {
+    "minimatch": "10.2.6",
     "postcss": "^8.5.25",
     "sharp": "^0.35.3"
   },
@@ -24,7 +25,7 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.18.0",
-    "eslint-config-next": "^15.1.6",
+    "eslint-config-next": "^16.2.12",
     "typescript": "^5.7.3"
   }
 }

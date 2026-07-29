@@ -22,8 +22,24 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const exact = exactRedirects[pathname];
 
+  if (request.method === "POST" && pathname === "/Formulario/Create") {
+    return NextResponse.rewrite(new URL("/api/assinaturas", request.url));
+  }
+
   if (exact) {
     return NextResponse.redirect(new URL(exact + request.nextUrl.search, request.url));
+  }
+
+  if (pathname === "/grupo-wpp" || pathname === "/grupo-wpp/") {
+    return NextResponse.rewrite(new URL("/legacy/grupo-wpp.html" + request.nextUrl.search, request.url));
+  }
+
+  if (pathname === "/grupo-wpp/tias" || pathname === "/grupo-wpp/tias/") {
+    return NextResponse.rewrite(new URL("/legacy/tias-do-zap.html" + request.nextUrl.search, request.url));
+  }
+
+  if (pathname === "/Scripts/cidades.js") {
+    return NextResponse.rewrite(new URL("/legacy/cidades.js" + request.nextUrl.search, request.url));
   }
 
   const campanhaEdit = pathname.match(/^\/Campanha\/Edit\/([^/]+)$/);

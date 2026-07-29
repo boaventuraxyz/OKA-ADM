@@ -1,14 +1,10 @@
 # Deploy na Vercel
 
-Este repositorio agora tem uma versao Next.js na raiz, compatível com a Vercel.
-Os arquivos ASP.NET MVC 5 antigos continuam no projeto como referencia de
-migracao, mas a Vercel vai detectar e buildar o app Next.js por causa do
-`package.json`.
+Este repositorio agora esta em Next.js na raiz e pode ser importado direto pela Vercel. O ASP.NET MVC 5 legado foi removido do projeto ativo; as paginas publicas que precisavam manter visual identico foram preservadas como arquivos estaticos em `public/legacy`.
 
 ## Variaveis obrigatorias
 
-Configure estas variaveis em Vercel > Project > Settings > Environment
-Variables:
+Configure estas variaveis em Vercel > Project > Settings > Environment Variables:
 
 ```text
 SUPABASE_URL=https://seu-projeto.supabase.co
@@ -17,9 +13,7 @@ SENHA_ADMIN=sua-senha-admin
 SESSION_SECRET=uma-chave-grande-e-aleatoria
 ```
 
-Use a mesma `SUPABASE_URL` e a mesma chave que o projeto antigo usava. A
-`SENHA_ADMIN` substitui a senha que antes ficava no `Web.config`. A
-`SESSION_SECRET` assina o cookie de login; use qualquer valor longo e aleatorio.
+Use a mesma `SUPABASE_URL` e a mesma chave que o projeto antigo usava. A `SENHA_ADMIN` define a senha do painel administrativo. A `SESSION_SECRET` assina o cookie de login; use qualquer valor longo e aleatorio.
 
 ## Deploy
 
@@ -48,5 +42,4 @@ Use a mesma `SUPABASE_URL` e a mesma chave que o projeto antigo usava. A
 - `/grupo-wpp`
 - `/grupo-wpp/tias`
 
-As URLs antigas com letras maiusculas, como `/Formulario` e `/Campanha`, foram
-redirecionadas para as novas rotas.
+As URLs antigas com letras maiusculas, como `/Formulario` e `/Campanha`, foram redirecionadas para as novas rotas. O POST antigo `/Formulario/Create` tambem funciona e aponta para `/api/assinaturas`.
