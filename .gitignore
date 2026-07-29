@@ -285,6 +285,15 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+# Next.js / Vercel
+.next/
+out/
+.vercel/
+
+# Local environment files
+.env
+.env*.local
+
 # Visual Studio 6 build log
 *.plg
 

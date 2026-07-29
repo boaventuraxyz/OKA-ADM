@@ -21,7 +21,14 @@ namespace adm.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Index(string senha)
         {
-            var senhaCorreta = ConfigurationManager.AppSettings["SenhaAdmin"];
+            var senhaCorreta = System.Environment.GetEnvironmentVariable("SENHA_ADMIN")
+                               ?? ConfigurationManager.AppSettings["SenhaAdmin"];
+
+            if (string.IsNullOrWhiteSpace(senhaCorreta))
+            {
+                ViewBag.Erro = "Senha de admin não configurada.";
+                return View();
+            }
 
             if (senha == senhaCorreta)
             {

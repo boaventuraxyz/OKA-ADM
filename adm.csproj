@@ -180,7 +180,11 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Properties\PublishProfiles\okaservices - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\site82128-WebDeploy.pubxml" />
+    <None Include="Properties\PublishProfiles\site82128-WebDeploy1.pubxml" />
+    <None Include="Properties\PublishProfiles\site82141-WebDeploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\cidades.js" />
     <Content Include="Scripts\forms.js" />
