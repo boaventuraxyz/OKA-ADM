@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app components lib"
+    "lint": "eslint app components lib scripts",
+    "test:security": "node scripts/security-smoke.mjs"
   },
   "overrides": {
     "minimatch": "10.2.6",
@@ -17,13 +18,15 @@
     "lucide-react": "^0.468.0",
     "next": "^16.2.12",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "sanitize-html": "^2.17.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^22.10.6",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@types/sanitize-html": "^2.16.1",
     "eslint": "^9.18.0",
     "eslint-config-next": "^16.2.12",
     "typescript": "^5.7.3"

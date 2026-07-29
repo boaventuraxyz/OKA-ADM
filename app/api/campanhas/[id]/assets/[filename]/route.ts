@@ -1,6 +1,7 @@
 import { findCampaignAsset } from "@/lib/campaign-document";
 import { decodeCampaignHtml } from "@/lib/format";
 import { getCampanhaHtml } from "@/lib/supabase";
+import { isUuid } from "@/lib/validation";
 
 export async function GET(
   _request: Request,
@@ -11,6 +12,8 @@ export async function GET(
   }
 ) {
   const { id, filename } = await params;
+  if (!isUuid(id)) return new Response("Imagem não encontrada.", { status: 404 });
+
   const campanha = await getCampanhaHtml(id);
   if (!campanha) return new Response("Imagem não encontrada.", { status: 404 });
 
@@ -21,8 +24,11 @@ export async function GET(
     headers: {
       "Cache-Control": "public, max-age=31536000, immutable",
       "CDN-Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Security-Policy": "default-src 'none'; sandbox",
       "Content-Type": asset.contentType,
-      ETag: `"${filename}"`
+      "Cross-Origin-Resource-Policy": "same-origin",
+      ETag: `"${filename}"`,
+      "X-Content-Type-Options": "nosniff"
     }
   });
 }

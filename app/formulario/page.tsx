@@ -1,8 +1,9 @@
-import { LegacyScripts } from "@/components/LegacyScripts";
+import { CampaignInteractions } from "@/components/CampaignInteractions";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import { getPublicCampaignView } from "@/lib/public-campaign";
 import { countAssinaturasByCampanha } from "@/lib/supabase";
+import { isUuid } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,17 @@ export default async function FormularioPage({
 }
 
 export async function FormularioContent({ idCampanha }: { idCampanha: string }) {
+  if (!isUuid(idCampanha)) {
+    return (
+      <main className="formulario-page-legacy">
+        <div className="login-card">
+          <h1>Campanha não encontrada</h1>
+          <p>Confira o link e tente novamente.</p>
+        </div>
+      </main>
+    );
+  }
+
   const [campanha, assinaturas] = await Promise.all([
     getPublicCampaignView(idCampanha),
     countAssinaturasByCampanha(idCampanha)
@@ -44,7 +56,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
     );
   }
 
-  const { css, imagePreloads, markup, scripts, stylesheets } = campanha.document;
+  const { css, imagePreloads, markup, stylesheets } = campanha.document;
 
   return (
     <>
@@ -83,7 +95,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <PoliticasRodape />
         </footer>
 
-        <LegacyScripts scripts={scripts} />
+        <CampaignInteractions />
       </main>
     </>
   );

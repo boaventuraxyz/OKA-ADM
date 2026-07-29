@@ -1,13 +1,15 @@
 import "server-only";
 
 import crypto from "node:crypto";
+import sanitizeHtml from "sanitize-html";
 import { FONT_STYLESHEETS } from "@/lib/fonts";
 
 const SCRIPT_PATTERN = /<script\b[\s\S]*?<\/script>/gi;
+const NOSCRIPT_PATTERN = /<noscript\b[\s\S]*?<\/noscript>/gi;
 const STYLE_PATTERN = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
 const LINK_PATTERN = /<link\b[^>]*>/gi;
 const DATA_IMAGE_PATTERN =
-  /data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,([a-z0-9+/=\s]+)/gi;
+  /data:image\/(png|jpe?g|webp|gif);base64,([a-z0-9+/=\s]+)/gi;
 const IMPORT_PATTERN =
   /@import\s+(?:url\(\s*)?["']?([^"')\s;]+)["']?\s*\)?[^;]*;/gi;
 
@@ -15,13 +17,11 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   gif: "image/gif",
   jpg: "image/jpeg",
   png: "image/png",
-  svg: "image/svg+xml",
   webp: "image/webp"
 };
 
 function extensionForMimeSubtype(subtype: string) {
   if (subtype === "jpeg" || subtype === "jpg") return "jpg";
-  if (subtype === "svg+xml") return "svg";
   return subtype;
 }
 
@@ -47,10 +47,22 @@ function stylesheetLinks(html: string) {
     const tag = match[0];
     const rel = attribute(tag, "rel").toLowerCase().split(/\s+/);
     const href = attribute(tag, "href");
-    if (href && rel.includes("stylesheet")) links.add(href);
+    if (href && rel.includes("stylesheet") && safeStylesheetUrl(href)) {
+      links.add(href);
+    }
   }
 
   return links;
+}
+
+function safeStylesheetUrl(href: string) {
+  if (href.startsWith("/") && !href.startsWith("//")) return true;
+  try {
+    const url = new URL(href);
+    return url.protocol === "https:" && url.hostname === "fonts.googleapis.com";
+  } catch {
+    return false;
+  }
 }
 
 function rewriteDataImageAssets(content: string, campanhaId: string) {
@@ -67,7 +79,7 @@ function extractStyles(html: string, campanhaId: string) {
 
   for (const match of html.matchAll(STYLE_PATTERN)) {
     const withoutImports = match[1].replace(IMPORT_PATTERN, (_, href: string) => {
-      stylesheets.add(href);
+      if (safeStylesheetUrl(href)) stylesheets.add(href);
       return "";
     });
     styles.push(rewriteDataImageAssets(withoutImports, campanhaId));
@@ -95,10 +107,10 @@ function extractStyles(html: string, campanhaId: string) {
 
 function extractBody(html: string, campanhaId: string) {
   const body = html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? html;
-
-  return rewriteDataImageAssets(
+  const rewritten = rewriteDataImageAssets(
     body
       .replace(SCRIPT_PATTERN, "")
+      .replace(NOSCRIPT_PATTERN, "")
       .replace(STYLE_PATTERN, "")
       .replace(LINK_PATTERN, "")
       .replace(/<!doctype[^>]*>/gi, "")
@@ -106,25 +118,90 @@ function extractBody(html: string, campanhaId: string) {
       .trim(),
     campanhaId
   );
+
+  return sanitizeHtml(rewritten, {
+    allowProtocolRelative: false,
+    allowedAttributes: {
+      "*": ["aria-*", "class", "data-*", "id", "role", "style", "title"],
+      a: ["href", "rel", "target"],
+      button: ["disabled", "type"],
+      img: ["alt", "decoding", "height", "loading", "sizes", "src", "srcset", "width"],
+      source: ["media", "sizes", "src", "srcset", "type"]
+    },
+    allowedSchemes: ["https", "mailto", "tel"],
+    allowedTags: [
+      "a",
+      "article",
+      "aside",
+      "b",
+      "blockquote",
+      "br",
+      "button",
+      "code",
+      "div",
+      "em",
+      "footer",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "header",
+      "hr",
+      "i",
+      "img",
+      "li",
+      "main",
+      "nav",
+      "ol",
+      "p",
+      "picture",
+      "section",
+      "small",
+      "source",
+      "span",
+      "strong",
+      "sub",
+      "sup",
+      "ul"
+    ],
+    enforceHtmlBoundary: true,
+    transformTags: {
+      a(tagName, attributes) {
+        const transformed = { ...attributes };
+        if (transformed.target === "_blank") {
+          transformed.rel = "noopener noreferrer";
+        }
+        return { tagName, attribs: transformed };
+      },
+      button(tagName, attributes) {
+        const { onclick, ...transformed } = attributes;
+        if (
+          onclick?.includes(".form-card") &&
+          onclick.includes("scrollIntoView")
+        ) {
+          transformed["data-scroll-to-form"] = "true";
+        }
+        return { tagName, attribs: transformed };
+      }
+    }
+  });
 }
 
 export function parseCampaignDocument(html: string, campanhaId: string) {
-  const scripts = (html.match(SCRIPT_PATTERN) ?? []).map((script) =>
-    rewriteDataImageAssets(script, campanhaId)
-  );
   const { css, imagePreloads, stylesheets } = extractStyles(html, campanhaId);
 
   return {
     css,
     imagePreloads,
     markup: extractBody(html, campanhaId),
-    scripts,
     stylesheets
   };
 }
 
 export function findCampaignAsset(html: string, filename: string) {
-  const requested = filename.match(/^([a-f0-9]{24})\.(gif|jpg|png|svg|webp)$/);
+  const requested = filename.match(/^([a-f0-9]{24})\.(gif|jpg|png|webp)$/);
   if (!requested) return null;
 
   for (const match of html.matchAll(DATA_IMAGE_PATTERN)) {

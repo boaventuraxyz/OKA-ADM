@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { deleteCampanhaAction, toggleCampanhaAction } from "@/app/actions";
+import { DownloadLink } from "@/components/DownloadLink";
 import { PendingLink } from "@/components/PendingLink";
 import { PendingSubmitButton } from "@/components/PendingSubmitButton";
 import { listCampanhas, listCandidatosForSelect } from "@/lib/supabase";
@@ -85,14 +86,15 @@ export default async function CampanhasPage() {
                     >
                       <ExternalLink size={15} />
                     </Link>
-                    <Link
-                      aria-label="Baixar assinaturas em CSV"
+                    <DownloadLink
+                      ariaLabel="Baixar assinaturas em CSV"
                       className="button icon"
+                      fallbackFilename={`assinaturas-${campanha.id}.csv`}
                       href={`/api/campanhas/${campanha.id}/assinaturas`}
                       title="Baixar assinaturas em CSV"
                     >
                       <Download size={15} />
-                    </Link>
+                    </DownloadLink>
                     <PendingLink
                       aria-label="Editar HTML"
                       className="button icon"
@@ -101,14 +103,15 @@ export default async function CampanhasPage() {
                     >
                       <FileCode2 size={15} />
                     </PendingLink>
-                    <Link
-                      aria-label="Baixar HTML"
+                    <DownloadLink
+                      ariaLabel="Baixar HTML"
                       className="button icon"
+                      fallbackFilename={`campanha-${campanha.id}.html`}
                       href={`/api/campanhas/${campanha.id}/html`}
                       title="Baixar HTML"
                     >
                       <FileDown size={15} />
-                    </Link>
+                    </DownloadLink>
                     <form action={toggleCampanhaAction}>
                       <input name="id" type="hidden" value={campanha.id} />
                       <PendingSubmitButton

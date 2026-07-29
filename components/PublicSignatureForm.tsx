@@ -169,6 +169,7 @@ export function PublicSignatureForm({
     formData.set("cidade_assinante", cidade);
     formData.set("estado_assinante", estado);
     formData.set("complemento_assinante", complemento);
+    formData.set("website", "");
 
     try {
       const response = await fetch("/api/assinaturas", {
@@ -241,6 +242,14 @@ export function PublicSignatureForm({
         </div>
 
         <form className="form-fields" id="formAssinar" autoComplete="on" onSubmit={handleSign}>
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            name="website"
+            style={{ display: "none" }}
+            tabIndex={-1}
+            type="text"
+          />
           <input
             aria-describedby="erroNome"
             aria-invalid={errors.nome || undefined}

@@ -8,12 +8,30 @@ Configure estas variaveis em Vercel > Project > Settings > Environment Variables
 
 ```text
 SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_KEY=sua-chave-do-supabase
-SENHA_ADMIN=sua-senha-admin
-SESSION_SECRET=uma-chave-grande-e-aleatoria
+SUPABASE_SECRET_KEY=sb_secret_sua-chave-secreta
+SENHA_ADMIN=uma-senha-forte-com-12-ou-mais-caracteres
+SESSION_SECRET=uma-chave-aleatoria-com-pelo-menos-32-bytes
 ```
 
-Use a mesma `SUPABASE_URL` e a mesma chave que o projeto antigo usava. A `SENHA_ADMIN` define a senha do painel administrativo. A `SESSION_SECRET` assina o cookie de login; use qualquer valor longo e aleatorio.
+Crie uma Secret key exclusiva para o backend em Supabase > Settings > API Keys. Nao
+use a chave `anon`/publishable e nunca exponha `SUPABASE_SECRET_KEY` no navegador.
+A `SENHA_ADMIN` define a senha do painel. Gere `SESSION_SECRET` com um gerador
+criptografico, por exemplo `openssl rand -base64 48`.
+
+Depois de configurar a Secret key, execute
+[`supabase/security-hardening.sql`](supabase/security-hardening.sql) no SQL Editor
+do Supabase. O script remove o acesso direto de `anon` e `authenticated` aos dados;
+o navegador passa a acessar o banco somente pelas rotas validadas deste projeto.
+
+## Firewall
+
+No Vercel Firewall, configure rate limiting por IP:
+
+- `/api/login`: 5 requisicoes a cada 10 minutos.
+- `/api/assinaturas`: 10 requisicoes por minuto.
+
+O codigo possui uma segunda camada local de limite, mas o Firewall e necessario
+para aplicar a regra globalmente entre todas as funcoes serverless.
 
 ## Deploy
 

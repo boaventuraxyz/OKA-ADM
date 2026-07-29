@@ -1,56 +1,191 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
-import { createAssinatura } from "@/lib/supabase";
+import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
+import { consumeRateLimit } from "@/lib/rate-limit";
+import {
+  isSameOrigin,
+  readFormDataWithinLimit,
+  requestBodyWithinLimit
+} from "@/lib/request-security";
+import {
+  createAssinatura,
+  getCampanhaSubmissionConfig,
+  SupabaseRequestError
+} from "@/lib/supabase";
+import { formText, isUuid, singleLine } from "@/lib/validation";
 
-function text(formData: FormData, ...names: string[]) {
-  for (const name of names) {
-    const value = formData.get(name);
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
+const MAX_BODY_BYTES = 32 * 1024;
+
+function jsonError(message: string, status: number, extraHeaders?: HeadersInit) {
+  return NextResponse.json(
+    { erro: message, sucesso: false },
+    {
+      status,
+      headers: {
+        "Cache-Control": "no-store",
+        ...extraHeaders
+      }
     }
-  }
-
-  return "";
+  );
 }
 
-function nullableText(formData: FormData, ...names: string[]) {
-  const value = text(formData, ...names);
-  return value || null;
+function validPhone(value: string) {
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length < 10 || numbers.length > 11 || /^(\d)\1+$/.test(numbers)) {
+    return false;
+  }
+  const ddd = Number(numbers.slice(0, 2));
+  return ddd >= 11 && ddd <= 99 && (numbers.length === 10 || numbers[2] === "9");
+}
+
+function campaignAcceptsSignatures(campaign: {
+  ativa: boolean | null;
+  inicio_em: string | null;
+  fim_em: string | null;
+}) {
+  if (!campaign.ativa) return false;
+  const now = Date.now();
+  const startsAt = campaign.inicio_em ? Date.parse(campaign.inicio_em) : null;
+  const endsAt = campaign.fim_em ? Date.parse(campaign.fim_em) : null;
+  return (
+    (startsAt === null || (Number.isFinite(startsAt) && startsAt <= now)) &&
+    (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now))
+  );
 }
 
 export async function POST(request: Request) {
-  let formData: FormData;
-  try {
-    formData = await request.formData();
-  } catch {
-    return NextResponse.json(
-      { sucesso: false, erro: "Dados do formulário inválidos." },
-      { status: 400 }
-    );
+  if (!isSameOrigin(request)) {
+    return jsonError("Origem da requisicao nao permitida.", 403);
   }
 
-  const campanhaId = text(formData, "campanha_id", "CampanhaId");
+  const contentType = request.headers.get("content-type") || "";
+  if (
+    !contentType.toLowerCase().startsWith("multipart/form-data") ||
+    !requestBodyWithinLimit(request, MAX_BODY_BYTES)
+  ) {
+    return jsonError("Formato ou tamanho de requisicao invalido.", 413);
+  }
 
-  if (!campanhaId) {
-    return NextResponse.json({ sucesso: false, erro: "campanha_id obrigatorio" }, { status: 400 });
+  const rateLimit = consumeRateLimit("assinatura", request.headers, {
+    limit: 10,
+    windowMs: 60 * 1000
+  });
+  if (!rateLimit.allowed) {
+    return jsonError("Muitas tentativas. Aguarde um minuto.", 429, {
+      "Retry-After": String(rateLimit.retryAfterSeconds)
+    });
+  }
+
+  const formData = await readFormDataWithinLimit(request, MAX_BODY_BYTES);
+  if (!formData) {
+    return jsonError("Dados do formulario invalidos.", 400);
+  }
+
+  if (formText(formData, "website")) {
+    return NextResponse.json({ sucesso: true }, { headers: { "Cache-Control": "no-store" } });
+  }
+
+  const campanhaId = singleLine(
+    formText(formData, "campanha_id", "CampanhaId"),
+    36
+  );
+  const nome = singleLine(
+    formText(formData, "nome_assinante", "NomeAssinante"),
+    120
+  );
+  const telefone = singleLine(
+    formText(formData, "numero_assinante", "NumeroAssinante"),
+    24
+  );
+  const email = singleLine(
+    formText(formData, "email_assinante", "EmailAssinante"),
+    254
+  )?.toLowerCase();
+  const endereco = singleLine(
+    formText(formData, "endereco_assinante", "EnderecoAssinante"),
+    160
+  );
+  const numeroTexto = singleLine(
+    formText(formData, "n_assinante", "NAssinante"),
+    8
+  );
+  const complemento = singleLine(
+    formText(formData, "complemento_assinante", "ComplementoAssinante"),
+    120
+  );
+  const cidade = singleLine(
+    formText(formData, "cidade_assinante", "CidadeAssinante"),
+    100
+  );
+  const cep = singleLine(
+    formText(formData, "cep_assinante", "CepAssinante"),
+    9
+  );
+  const estado = singleLine(
+    formText(formData, "estado_assinante", "EstadoAssinante"),
+    2
+  )?.toUpperCase();
+  const numero = Number(numeroTexto);
+
+  if (
+    !campanhaId ||
+    !isUuid(campanhaId) ||
+    !nome ||
+    nome.length < 5 ||
+    nome.split(" ").length < 2 ||
+    !telefone ||
+    !validPhone(telefone) ||
+    !email ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+    !endereco ||
+    endereco.length < 3 ||
+    !Number.isSafeInteger(numero) ||
+    numero < 1 ||
+    numero > 99_999_999 ||
+    !complemento ||
+    !cidade ||
+    cidade.length < 2 ||
+    !cep ||
+    !/^\d{5}-?\d{3}$/.test(cep) ||
+    !estado ||
+    !/^[A-Z]{2}$/.test(estado)
+  ) {
+    return jsonError("Confira os dados informados.", 400);
+  }
+
+  const campanha = await getCampanhaSubmissionConfig(campanhaId);
+  if (!campanha || !campaignAcceptsSignatures(campanha)) {
+    return jsonError("Esta campanha nao esta recebendo assinaturas.", 409);
   }
 
   const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const realIp = request.headers.get("x-real-ip");
 
-  await createAssinatura({
-    campanha_id: campanhaId,
-    nome_assinante: nullableText(formData, "nome_assinante", "NomeAssinante"),
-    numero_assinante: nullableText(formData, "numero_assinante", "NumeroAssinante"),
-    email_assinante: nullableText(formData, "email_assinante", "EmailAssinante"),
-    endereco_assinante: nullableText(formData, "endereco_assinante", "EnderecoAssinante"),
-    n_assinante: Number(text(formData, "n_assinante", "NAssinante")) || null,
-    complemento_assinante: nullableText(formData, "complemento_assinante", "ComplementoAssinante"),
-    cidade_assinante: nullableText(formData, "cidade_assinante", "CidadeAssinante"),
-    cep_assinante: nullableText(formData, "cep_assinante", "CepAssinante"),
-    estado_assinante: nullableText(formData, "estado_assinante", "EstadoAssinante"),
-    ip_origem: forwardedFor || realIp || null,
-    assinado_em: new Date().toISOString()
-  });
+  try {
+    await createAssinatura({
+      campanha_id: campanhaId,
+      nome_assinante: nome,
+      numero_assinante: telefone,
+      email_assinante: email,
+      endereco_assinante: endereco,
+      n_assinante: numero,
+      complemento_assinante: complemento,
+      cidade_assinante: cidade,
+      cep_assinante: cep,
+      estado_assinante: estado,
+      ip_origem: (forwardedFor || realIp || null)?.slice(0, 64) || null,
+      assinado_em: new Date().toISOString()
+    });
+  } catch (error) {
+    if (error instanceof SupabaseRequestError && error.status === 409) {
+      return jsonError("Esta assinatura ja foi registrada.", 409);
+    }
+    throw error;
+  }
+  revalidateTag(campaignSignaturesCacheTag(campanhaId), { expire: 0 });
 
-  return NextResponse.json({ sucesso: true });
+  return NextResponse.json(
+    { sucesso: true },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

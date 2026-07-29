@@ -2,7 +2,8 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { createAdminSession, getAdminPassword, requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
+import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
 import { campaignCacheTag } from "@/lib/public-campaign";
 import {
   createCampanha,
@@ -10,10 +11,12 @@ import {
   deleteAssinatura,
   deleteCampanha,
   deleteCandidato,
+  getAssinatura,
   getCampanha,
   updateCampanha,
   updateCandidato
 } from "@/lib/supabase";
+import { isUuid, multiline, singleLine } from "@/lib/validation";
 
 function text(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -21,52 +24,62 @@ function text(formData: FormData, name: string) {
   return value.trim();
 }
 
-function rawText(formData: FormData, name: string) {
-  const value = formData.get(name);
-  return typeof value === "string" ? value : "";
-}
-
-function nullableText(formData: FormData, name: string) {
+function nullableText(formData: FormData, name: string, maxLength: number) {
   const value = text(formData, name);
-  return value.length ? value : null;
+  if (!value) return null;
+  const normalized = singleLine(value, maxLength);
+  if (normalized === null) throw new Error("Campo invalido.");
+  return normalized || null;
 }
 
-function nullableNumber(formData: FormData, name: string) {
+function nullableLongText(formData: FormData, name: string, maxLength: number) {
+  const value = text(formData, name);
+  if (!value) return null;
+  const normalized = multiline(value, maxLength);
+  if (normalized === null) throw new Error("Campo invalido.");
+  return normalized || null;
+}
+
+function nullableNumber(formData: FormData, name: string, max: number) {
   const value = text(formData, name);
   if (!value) return null;
   const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+  if (!Number.isSafeInteger(number) || number < 0 || number > max) {
+    throw new Error("Numero invalido.");
+  }
+  return number;
 }
 
 function nullableDate(formData: FormData, name: string) {
   const value = text(formData, name);
-  return value.length ? value : null;
+  if (!value) return null;
+  if (value.length > 32 || !Number.isFinite(Date.parse(value))) {
+    throw new Error("Data invalida.");
+  }
+  return value;
 }
 
-export async function loginAction(formData: FormData) {
-  const password = getAdminPassword();
-  const senha = text(formData, "senha");
+function requiredUuid(formData: FormData, name = "id") {
+  const value = text(formData, name);
+  if (!isUuid(value)) throw new Error("Identificador invalido.");
+  return value;
+}
 
-  if (!password) {
-    redirect("/login?erro=config");
-  }
-
-  if (senha !== password) {
-    redirect("/login?erro=senha");
-  }
-
-  await createAdminSession();
-  redirect("/");
+function nullableUuid(formData: FormData, name: string) {
+  const value = text(formData, name);
+  if (!value) return null;
+  if (!isUuid(value)) throw new Error("Identificador invalido.");
+  return value;
 }
 
 export async function createCandidatoAction(formData: FormData) {
   await requireAdmin();
   await createCandidato({
-    nome: nullableText(formData, "nome"),
-    partido: nullableText(formData, "partido"),
-    cargo: nullableText(formData, "cargo"),
-    estado: nullableText(formData, "estado"),
-    municipio: nullableText(formData, "municipio")
+    nome: nullableText(formData, "nome", 120),
+    partido: nullableText(formData, "partido", 80),
+    cargo: nullableText(formData, "cargo", 100),
+    estado: nullableText(formData, "estado", 60),
+    municipio: nullableText(formData, "municipio", 120)
   });
   revalidatePath("/candidatos");
   redirect("/candidatos");
@@ -74,13 +87,13 @@ export async function createCandidatoAction(formData: FormData) {
 
 export async function updateCandidatoAction(formData: FormData) {
   await requireAdmin();
-  const id = text(formData, "id");
+  const id = requiredUuid(formData);
   await updateCandidato(id, {
-    nome: nullableText(formData, "nome"),
-    partido: nullableText(formData, "partido"),
-    cargo: nullableText(formData, "cargo"),
-    estado: nullableText(formData, "estado"),
-    municipio: nullableText(formData, "municipio")
+    nome: nullableText(formData, "nome", 120),
+    partido: nullableText(formData, "partido", 80),
+    cargo: nullableText(formData, "cargo", 100),
+    estado: nullableText(formData, "estado", 60),
+    municipio: nullableText(formData, "municipio", 120)
   });
   revalidatePath("/candidatos");
   redirect("/candidatos");
@@ -88,21 +101,21 @@ export async function updateCandidatoAction(formData: FormData) {
 
 export async function deleteCandidatoAction(formData: FormData) {
   await requireAdmin();
-  await deleteCandidato(text(formData, "id"));
+  await deleteCandidato(requiredUuid(formData));
   revalidatePath("/candidatos");
 }
 
 export async function createCampanhaAction(formData: FormData) {
   await requireAdmin();
   await createCampanha({
-    titulo: nullableText(formData, "titulo"),
-    descricao: nullableText(formData, "descricao"),
-    candidato_id: nullableText(formData, "candidato_id"),
+    titulo: nullableText(formData, "titulo", 200),
+    descricao: nullableLongText(formData, "descricao", 5000),
+    candidato_id: nullableUuid(formData, "candidato_id"),
     ativa: formData.get("ativa") === "on",
     inicio_em: nullableDate(formData, "inicio_em"),
     fim_em: nullableDate(formData, "fim_em"),
-    assinaturas_meta: nullableNumber(formData, "assinaturas_meta"),
-    texto_form: nullableText(formData, "texto_form")
+    assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
+    texto_form: nullableText(formData, "texto_form", 200)
   });
   revalidatePath("/campanhas");
   redirect("/campanhas");
@@ -110,16 +123,16 @@ export async function createCampanhaAction(formData: FormData) {
 
 export async function updateCampanhaAction(formData: FormData) {
   await requireAdmin();
-  const id = text(formData, "id");
+  const id = requiredUuid(formData);
   await updateCampanha(id, {
-    titulo: nullableText(formData, "titulo"),
-    descricao: nullableText(formData, "descricao"),
-    candidato_id: nullableText(formData, "candidato_id"),
+    titulo: nullableText(formData, "titulo", 200),
+    descricao: nullableLongText(formData, "descricao", 5000),
+    candidato_id: nullableUuid(formData, "candidato_id"),
     ativa: formData.get("ativa") === "on",
     inicio_em: nullableDate(formData, "inicio_em"),
     fim_em: nullableDate(formData, "fim_em"),
-    assinaturas_meta: nullableNumber(formData, "assinaturas_meta"),
-    texto_form: nullableText(formData, "texto_form")
+    assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
+    texto_form: nullableText(formData, "texto_form", 200)
   });
   updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");
@@ -128,7 +141,7 @@ export async function updateCampanhaAction(formData: FormData) {
 
 export async function toggleCampanhaAction(formData: FormData) {
   await requireAdmin();
-  const id = text(formData, "id");
+  const id = requiredUuid(formData);
   const campanha = await getCampanha(id);
   if (campanha) {
     await updateCampanha(id, { ativa: !(campanha.ativa ?? false) });
@@ -139,27 +152,21 @@ export async function toggleCampanhaAction(formData: FormData) {
 
 export async function deleteCampanhaAction(formData: FormData) {
   await requireAdmin();
-  const id = text(formData, "id");
+  const id = requiredUuid(formData);
   await deleteCampanha(id);
   updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");
 }
 
-export async function updateCampanhaHtmlAction(formData: FormData) {
-  await requireAdmin();
-  const id = text(formData, "id");
-  const html = rawText(formData, "html");
-  const encoded = Buffer.from(html, "utf8").toString("base64");
-  await updateCampanha(id, { html: encoded });
-  updateTag(campaignCacheTag(id));
-  revalidatePath("/campanhas");
-  redirect("/campanhas");
-}
-
 export async function deleteAssinaturaAction(formData: FormData) {
   await requireAdmin();
-  const campanhaId = text(formData, "campanha_id");
-  await deleteAssinatura(text(formData, "id"));
+  const id = requiredUuid(formData);
+  const assinatura = await getAssinatura(id);
+  if (!assinatura || !isUuid(assinatura.campanha_id)) return;
+
+  await deleteAssinatura(id);
+  const campanhaId = assinatura.campanha_id;
+  updateTag(campaignSignaturesCacheTag(campanhaId));
   revalidatePath(`/assinaturas?campanhaId=${campanhaId}`);
   redirect(`/assinaturas?campanhaId=${campanhaId}`);
 }

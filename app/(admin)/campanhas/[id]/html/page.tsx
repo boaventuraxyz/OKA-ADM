@@ -1,6 +1,5 @@
 import { ArrowLeft, Save } from "lucide-react";
 import { notFound } from "next/navigation";
-import { updateCampanhaHtmlAction } from "@/app/actions";
 import { PendingLink } from "@/components/PendingLink";
 import { PendingSubmitButton } from "@/components/PendingSubmitButton";
 import { decodeCampaignHtml } from "@/lib/format";
@@ -31,7 +30,12 @@ export default async function EditarHtmlCampanhaPage({
         </PendingLink>
       </div>
 
-      <form action={updateCampanhaHtmlAction} className="panel panel-padding form-grid">
+      <form
+        action={`/api/campanhas/${campanha.id}/html`}
+        className="panel panel-padding form-grid"
+        encType="multipart/form-data"
+        method="post"
+      >
         <input name="id" type="hidden" value={campanha.id} />
         <div className="field">
           <label htmlFor="html">HTML do formulário</label>

@@ -2,16 +2,64 @@ import "server-only";
 
 import type { Assinatura, Campanha, Candidato } from "@/lib/types";
 
+type AssinaturaExport = Pick<
+  Assinatura,
+  | "nome_assinante"
+  | "numero_assinante"
+  | "email_assinante"
+  | "endereco_assinante"
+  | "n_assinante"
+  | "complemento_assinante"
+  | "cidade_assinante"
+  | "cep_assinante"
+  | "estado_assinante"
+  | "ip_origem"
+  | "assinado_em"
+>;
+
 type SupabaseInit = RequestInit & {
   preferRepresentation?: boolean;
 };
 
+export class SupabaseRequestError extends Error {
+  constructor(public readonly status: number) {
+    super(`Falha na comunicacao com o Supabase (${status}).`);
+    this.name = "SupabaseRequestError";
+  }
+}
+
 function getSupabaseConfig() {
   const baseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
-  const key = process.env.SUPABASE_KEY;
+  const configuredSecret = process.env.SUPABASE_SECRET_KEY;
+  const developmentFallback =
+    process.env.NODE_ENV !== "production" ? process.env.SUPABASE_KEY : undefined;
+  const key = configuredSecret || developmentFallback;
+  const usingDevelopmentFallback = !configuredSecret && Boolean(developmentFallback);
 
   if (!baseUrl || !key) {
-    throw new Error("Configure SUPABASE_URL e SUPABASE_KEY nas variaveis de ambiente.");
+    throw new Error(
+      "Configure SUPABASE_URL e SUPABASE_SECRET_KEY nas variaveis de ambiente."
+    );
+  }
+
+  const legacyRole = (() => {
+    if (key.startsWith("sb_")) return null;
+    try {
+      return JSON.parse(Buffer.from(key.split(".")[1], "base64url").toString("utf8"))
+        .role as string | undefined;
+    } catch {
+      return null;
+    }
+  })();
+
+  if (
+    !usingDevelopmentFallback &&
+    !key.startsWith("sb_secret_") &&
+    legacyRole !== "service_role"
+  ) {
+    throw new Error(
+      "SUPABASE_SECRET_KEY deve ser uma Secret key ou uma chave service_role."
+    );
   }
 
   return { baseUrl, key };
@@ -34,10 +82,11 @@ async function supabaseRequest(path: string, init: SupabaseInit = {}) {
   const response = await fetch(`${baseUrl}/rest/v1${path}`, {
     ...rest,
     cache: "no-store",
+    signal: rest.signal || AbortSignal.timeout(15_000),
     headers: {
       apikey: key,
-      Authorization: `Bearer ${key}`,
       Accept: "application/json",
+      ...(key.startsWith("sb_") ? {} : { Authorization: `Bearer ${key}` }),
       ...(rest.body ? { "Content-Type": "application/json" } : {}),
       ...(preferRepresentation ? { Prefer: "return=representation" } : {}),
       ...headers
@@ -45,8 +94,7 @@ async function supabaseRequest(path: string, init: SupabaseInit = {}) {
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Supabase ${response.status}: ${text || response.statusText}`);
+    throw new SupabaseRequestError(response.status);
   }
 
   return response;
@@ -83,6 +131,22 @@ export async function getCampanha(id: string) {
 export async function getCampanhaHtml(id: string) {
   const rows = await supabaseFetch<Pick<Campanha, "html" | "titulo">[]>(
     `/campanhas?id=eq.${qs(id)}&select=html,titulo`
+  );
+  return rows[0] ?? null;
+}
+
+export async function getCampanhaTitle(id: string) {
+  const rows = await supabaseFetch<Pick<Campanha, "id" | "titulo">[]>(
+    `/campanhas?id=eq.${qs(id)}&select=id,titulo`
+  );
+  return rows[0] ?? null;
+}
+
+export async function getCampanhaSubmissionConfig(id: string) {
+  const rows = await supabaseFetch<
+    Pick<Campanha, "ativa" | "fim_em" | "id" | "inicio_em">[]
+  >(
+    `/campanhas?id=eq.${qs(id)}&select=id,ativa,inicio_em,fim_em`
   );
   return rows[0] ?? null;
 }
@@ -151,6 +215,12 @@ export function countAssinaturas() {
 export function listAssinaturasByCampanha(campanhaId: string) {
   return supabaseFetch<Assinatura[]>(
     `/assinaturas?campanha_id=eq.${qs(campanhaId)}&select=*&order=assinado_em.desc`
+  );
+}
+
+export function listAssinaturasExportByCampanha(campanhaId: string) {
+  return supabaseFetch<AssinaturaExport[]>(
+    `/assinaturas?campanha_id=eq.${qs(campanhaId)}&select=nome_assinante,numero_assinante,email_assinante,endereco_assinante,n_assinante,complemento_assinante,cidade_assinante,cep_assinante,estado_assinante,ip_origem,assinado_em&order=assinado_em.desc`
   );
 }
 

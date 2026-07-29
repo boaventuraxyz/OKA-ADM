@@ -1,6 +1,5 @@
 import { LockKeyhole } from "lucide-react";
 import { redirect } from "next/navigation";
-import { loginAction } from "@/app/actions";
 import { isAuthenticated } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +17,7 @@ export default async function LoginPage({
 
   return (
     <main className="login-page">
-      <form action={loginAction} className="login-card">
+      <form action="/api/login" className="login-card" method="post">
         <div className="avatar" style={{ marginBottom: 16 }}>
           <LockKeyhole size={18} />
         </div>
@@ -27,8 +26,10 @@ export default async function LoginPage({
 
         {erro === "senha" ? (
           <div className="alert error">Senha incorreta.</div>
+        ) : erro === "limite" ? (
+          <div className="alert error">Muitas tentativas. Aguarde 15 minutos.</div>
         ) : erro === "config" ? (
-          <div className="alert error">SENHA_ADMIN não foi configurada.</div>
+          <div className="alert error">Configuração de autenticação inválida.</div>
         ) : null}
 
         <div className="field">

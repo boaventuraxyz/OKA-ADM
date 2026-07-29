@@ -1,9 +1,7 @@
 export function PoliticasRodape() {
   return (
     <details className="politicas-rodape">
-      <summary className="pol-toggle">
-        Seus dados são protegidos pela LGPD &middot; Ler Política de Privacidade
-      </summary>
+      <summary className="pol-toggle">Seus dados são protegidos pela LGPD &middot; Ler Política de Privacidade</summary>
 
       <div className="pol-conteudo">
         <h1 className="pol-titulo">Política de Privacidade</h1>
