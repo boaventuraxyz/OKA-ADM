@@ -921,7 +921,7 @@ html.route-loading .route-progress {
 
   .campaign-actions {
     display: grid;
-    grid-template-columns: repeat(7, 36px);
+    grid-template-columns: repeat(8, 36px);
     justify-content: start;
     overflow-x: auto;
     padding-bottom: 2px;

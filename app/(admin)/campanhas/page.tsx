@@ -2,6 +2,7 @@ import {
   Download,
   ExternalLink,
   FileCode2,
+  FileDown,
   Pencil,
   Plus,
   Power,
@@ -100,6 +101,14 @@ export default async function CampanhasPage() {
                     >
                       <FileCode2 size={15} />
                     </PendingLink>
+                    <Link
+                      aria-label="Baixar HTML"
+                      className="button icon"
+                      href={`/api/campanhas/${campanha.id}/html`}
+                      title="Baixar HTML"
+                    >
+                      <FileDown size={15} />
+                    </Link>
                     <form action={toggleCampanhaAction}>
                       <input name="id" type="hidden" value={campanha.id} />
                       <PendingSubmitButton

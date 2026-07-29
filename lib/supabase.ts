@@ -81,8 +81,8 @@ export async function getCampanha(id: string) {
 }
 
 export async function getCampanhaHtml(id: string) {
-  const rows = await supabaseFetch<Pick<Campanha, "html">[]>(
-    `/campanhas?id=eq.${qs(id)}&select=html`
+  const rows = await supabaseFetch<Pick<Campanha, "html" | "titulo">[]>(
+    `/campanhas?id=eq.${qs(id)}&select=html,titulo`
   );
   return rows[0] ?? null;
 }
