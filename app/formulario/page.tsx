@@ -1,9 +1,8 @@
-import { FormAutoHeight } from "@/components/FormAutoHeight";
 import { LegacyScripts } from "@/components/LegacyScripts";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
-import { decodeCampaignHtml, splitScripts } from "@/lib/format";
-import { getCampanha, listAssinaturasByCampanha } from "@/lib/supabase";
+import { getPublicCampaignView } from "@/lib/public-campaign";
+import { countAssinaturasByCampanha } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -30,8 +29,8 @@ export default async function FormularioPage({
 
 export async function FormularioContent({ idCampanha }: { idCampanha: string }) {
   const [campanha, assinaturas] = await Promise.all([
-    getCampanha(idCampanha),
-    listAssinaturasByCampanha(idCampanha)
+    getPublicCampaignView(idCampanha),
+    countAssinaturasByCampanha(idCampanha)
   ]);
 
   if (!campanha) {
@@ -45,38 +44,47 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
     );
   }
 
-  const { markup, scripts } = splitScripts(decodeCampaignHtml(campanha.html));
+  const { css, imagePreloads, markup, scripts, stylesheets } = campanha.document;
 
   return (
-    <main className="formulario-page-legacy">
-      <div className="pagina-campanha">
-        {markup ? (
-          <div className="conteudo-campanha" dangerouslySetInnerHTML={{ __html: markup }} />
-        ) : (
-          <div className="conteudo-campanha">
-            <div className="fallback-campanha">
-              <strong>Sem conteúdo HTML</strong>
+    <>
+      {imagePreloads.map(({ href, media }) => (
+        <link as="image" href={href} key={href} media={media} rel="preload" />
+      ))}
+      {stylesheets.map((href) => (
+        <link href={href} key={href} precedence="campaign" rel="stylesheet" />
+      ))}
+      {css ? <style dangerouslySetInnerHTML={{ __html: css }} precedence="campaign" /> : null}
+
+      <main className="formulario-page-legacy">
+        <div className="pagina-campanha">
+          {markup ? (
+            <div className="conteudo-campanha" dangerouslySetInnerHTML={{ __html: markup }} />
+          ) : (
+            <div className="conteudo-campanha">
+              <div className="fallback-campanha">
+                <strong>Sem conteúdo HTML</strong>
+              </div>
             </div>
+          )}
+
+          <div className="formulario-lateral">
+            <PublicSignatureForm
+              campanhaId={campanha.id}
+              candidatoId={campanha.candidatoId}
+              meta={campanha.assinaturasMeta}
+              textoBotao={campanha.textoBotao}
+              totalAssinaturas={assinaturas}
+            />
           </div>
-        )}
-
-        <div className="formulario-lateral">
-          <PublicSignatureForm
-            campanhaId={campanha.id}
-            candidatoId={campanha.candidato_id}
-            meta={campanha.assinaturas_meta}
-            textoBotao={campanha.texto_form}
-            totalAssinaturas={assinaturas.length}
-          />
         </div>
-      </div>
 
-      <footer className="formulario-footer">
-        <PoliticasRodape />
-      </footer>
+        <footer className="formulario-footer">
+          <PoliticasRodape />
+        </footer>
 
-      <FormAutoHeight />
-      <LegacyScripts scripts={scripts} />
-    </main>
+        <LegacyScripts scripts={scripts} />
+      </main>
+    </>
   );
 }

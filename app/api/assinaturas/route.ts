@@ -18,7 +18,16 @@ function nullableText(formData: FormData, ...names: string[]) {
 }
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json(
+      { sucesso: false, erro: "Dados do formulário inválidos." },
+      { status: 400 }
+    );
+  }
+
   const campanhaId = text(formData, "campanha_id", "CampanhaId");
 
   if (!campanhaId) {

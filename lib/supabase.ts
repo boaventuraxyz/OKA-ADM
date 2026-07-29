@@ -18,6 +18,16 @@ function getSupabaseConfig() {
 }
 
 async function supabaseFetch<T>(path: string, init: SupabaseInit = {}): Promise<T> {
+  const response = await supabaseRequest(path, init);
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return (await response.json()) as T;
+}
+
+async function supabaseRequest(path: string, init: SupabaseInit = {}) {
   const { baseUrl, key } = getSupabaseConfig();
   const { preferRepresentation, headers, ...rest } = init;
 
@@ -39,25 +49,41 @@ async function supabaseFetch<T>(path: string, init: SupabaseInit = {}): Promise<
     throw new Error(`Supabase ${response.status}: ${text || response.statusText}`);
   }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return (await response.json()) as T;
+  return response;
 }
 
 const qs = (value: string) => encodeURIComponent(value);
 
+async function supabaseCount(path: string) {
+  const response = await supabaseRequest(path, {
+    method: "HEAD",
+    headers: { Prefer: "count=exact" }
+  });
+  const total = response.headers.get("content-range")?.split("/").at(-1);
+  return total && total !== "*" ? Number(total) : 0;
+}
+
 export function listCampanhas() {
-  return supabaseFetch<Campanha[]>("/campanhas?select=*&order=criado_em.desc");
+  return supabaseFetch<Campanha[]>(
+    "/campanhas?select=id,titulo,candidato_id,ativa,criado_em&order=criado_em.desc"
+  );
 }
 
 export function listCampanhasDashboard() {
-  return supabaseFetch<Campanha[]>("/campanhas?select=*&order=criado_em.desc");
+  return supabaseFetch<Campanha[]>(
+    "/campanhas?select=id,titulo,ativa,inicio_em,fim_em,criado_em&order=criado_em.desc"
+  );
 }
 
 export async function getCampanha(id: string) {
   const rows = await supabaseFetch<Campanha[]>(`/campanhas?id=eq.${qs(id)}&select=*`);
+  return rows[0] ?? null;
+}
+
+export async function getCampanhaHtml(id: string) {
+  const rows = await supabaseFetch<Pick<Campanha, "html">[]>(
+    `/campanhas?id=eq.${qs(id)}&select=html`
+  );
   return rows[0] ?? null;
 }
 
@@ -83,6 +109,10 @@ export async function deleteCampanha(id: string) {
 
 export function listCandidatos() {
   return supabaseFetch<Candidato[]>("/candidatos?select=*&order=criado_em.desc");
+}
+
+export function countCandidatos() {
+  return supabaseCount("/candidatos?select=id");
 }
 
 export function listCandidatosForSelect() {
@@ -114,13 +144,19 @@ export async function deleteCandidato(id: string) {
   await supabaseFetch<void>(`/candidatos?id=eq.${qs(id)}`, { method: "DELETE" });
 }
 
-export function listAssinaturas() {
-  return supabaseFetch<Assinatura[]>("/assinaturas?select=*&order=assinado_em.desc");
+export function countAssinaturas() {
+  return supabaseCount("/assinaturas?select=id");
 }
 
 export function listAssinaturasByCampanha(campanhaId: string) {
   return supabaseFetch<Assinatura[]>(
     `/assinaturas?campanha_id=eq.${qs(campanhaId)}&select=*&order=assinado_em.desc`
+  );
+}
+
+export async function countAssinaturasByCampanha(campanhaId: string) {
+  return supabaseCount(
+    `/assinaturas?campanha_id=eq.${qs(campanhaId)}&select=id`
   );
 }
 

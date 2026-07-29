@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminSession, getAdminPassword, requireAdmin } from "@/lib/auth";
+import { campaignCacheTag } from "@/lib/public-campaign";
 import {
   createCampanha,
   createCandidato,
@@ -120,6 +121,7 @@ export async function updateCampanhaAction(formData: FormData) {
     assinaturas_meta: nullableNumber(formData, "assinaturas_meta"),
     texto_form: nullableText(formData, "texto_form")
   });
+  updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");
   redirect("/campanhas");
 }
@@ -130,13 +132,16 @@ export async function toggleCampanhaAction(formData: FormData) {
   const campanha = await getCampanha(id);
   if (campanha) {
     await updateCampanha(id, { ativa: !(campanha.ativa ?? false) });
+    updateTag(campaignCacheTag(id));
     revalidatePath("/campanhas");
   }
 }
 
 export async function deleteCampanhaAction(formData: FormData) {
   await requireAdmin();
-  await deleteCampanha(text(formData, "id"));
+  const id = text(formData, "id");
+  await deleteCampanha(id);
+  updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");
 }
 
@@ -146,7 +151,9 @@ export async function updateCampanhaHtmlAction(formData: FormData) {
   const html = rawText(formData, "html");
   const encoded = Buffer.from(html, "utf8").toString("base64");
   await updateCampanha(id, { html: encoded });
+  updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");
+  redirect("/campanhas");
 }
 
 export async function deleteAssinaturaAction(formData: FormData) {

@@ -2,9 +2,9 @@ import { Edit3 } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import {
-  listAssinaturas,
+  countAssinaturas,
+  countCandidatos,
   listCampanhasDashboard,
-  listCandidatos
 } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const [campanhas, candidatos, assinaturas] = await Promise.all([
     listCampanhasDashboard(),
-    listCandidatos(),
-    listAssinaturas()
+    countCandidatos(),
+    countAssinaturas()
   ]);
 
   const campanhasAtivas = campanhas.filter((campanha) => campanha.ativa).length;
@@ -28,12 +28,12 @@ export default async function DashboardPage() {
         </div>
         <div className="stat-card">
           <div className="stat-label">Candidatos</div>
-          <div className="stat-value">{candidatos.length}</div>
+          <div className="stat-value">{candidatos}</div>
           <div className="stat-note">cadastrados</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Assinaturas</div>
-          <div className="stat-value">{assinaturas.length}</div>
+          <div className="stat-value">{assinaturas}</div>
           <div className="stat-note">respostas coletadas</div>
         </div>
       </div>

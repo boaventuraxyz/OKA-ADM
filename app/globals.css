@@ -303,6 +303,154 @@ textarea {
   width: 1%;
 }
 
+.campaign-list {
+  display: grid;
+}
+
+.campaign-row {
+  display: grid;
+  min-height: 70px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  padding: 14px;
+}
+
+.campaign-row:last-child {
+  border-bottom: 0;
+}
+
+.campaign-summary {
+  min-width: 0;
+}
+
+.campaign-summary strong,
+.campaign-summary span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campaign-summary strong {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.campaign-summary span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.campaign-actions {
+  flex-wrap: nowrap;
+}
+
+.button.status-active {
+  border-color: #a7d7bb;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+
+.route-progress {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  height: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--primary);
+}
+
+html.route-loading .route-progress {
+  opacity: 1;
+  transform: scaleX(0.86);
+  transition: transform 8s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+.campaign-html-textarea {
+  min-height: min(62vh, 720px);
+}
+
+.page-loading {
+  display: grid;
+  gap: 16px;
+}
+
+.loading-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.loading-block {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e9edf1 25%, #f7f8fa 50%, #e9edf1 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.15s ease-in-out infinite;
+}
+
+.loading-title {
+  width: 180px;
+  height: 32px;
+}
+
+.loading-button {
+  width: 132px;
+  height: 36px;
+}
+
+.loading-panel {
+  display: grid;
+  gap: 1px;
+  padding: 14px;
+}
+
+.loading-row {
+  width: 100%;
+  height: 42px;
+  margin: 7px 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -491,11 +639,6 @@ textarea {
   color: var(--danger);
 }
 
-.public-form-page {
-  min-height: 100vh;
-  background: #09120d;
-}
-
 .formulario-page-legacy {
   min-height: 100vh;
   margin: 0;
@@ -506,14 +649,17 @@ textarea {
 
 .formulario-page-legacy .pagina-campanha {
   position: relative;
+  display: grid;
   width: 100%;
   min-height: 100vh;
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
 }
 
 .formulario-page-legacy .conteudo-campanha {
   position: relative;
   display: flex;
+  grid-area: 1 / 1;
   width: 100%;
   min-height: 100vh;
   flex-direction: column;
@@ -527,15 +673,17 @@ textarea {
 }
 
 .formulario-page-legacy .formulario-lateral {
-  position: absolute;
-  top: 10%;
-  right: 0;
+  position: relative;
   z-index: 999;
   display: flex;
+  grid-area: 1 / 1;
   width: 40%;
+  align-self: start;
+  justify-self: end;
   justify-content: center;
   align-items: flex-start;
   box-sizing: border-box;
+  margin-top: 10vh;
   padding: 40px 30px;
   pointer-events: none;
 }
@@ -677,104 +825,9 @@ textarea {
   border-top: 1px solid rgba(143, 163, 192, 0.12);
 }
 
-.petition-shell {
-  position: relative;
-  display: grid;
-  min-height: 100vh;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
-  gap: 28px;
-  padding: 28px;
-}
-
-.petition-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.petition-bg > * {
-  min-height: 100%;
-}
-
-.petition-form-wrap {
-  position: relative;
-  z-index: 1;
-  align-self: center;
-}
-
-.signature-card {
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
-  padding: 22px;
-}
-
-.signature-card h1 {
-  margin: 0;
-  font-size: 24px;
-}
-
-.signature-card .desc {
-  margin: 8px 0 16px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.progress-track {
-  height: 9px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e7edf1;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--primary);
-}
-
-.signature-grid {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.signature-grid .input {
-  min-height: 42px;
-}
-
-.toast {
-  display: none;
-  margin-top: 12px;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.toast.show {
-  display: block;
-}
-
-.toast.success {
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.toast.error {
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
-.policy-text {
-  color: #586271;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
 @media (max-width: 900px) {
   .formulario-page-legacy .pagina-campanha {
+    display: block;
     min-height: auto;
   }
 
@@ -797,7 +850,6 @@ textarea {
 
   .formulario-page-legacy .formulario-lateral {
     position: relative;
-    top: 0;
     width: 100%;
     height: auto;
     min-height: auto;
@@ -835,17 +887,8 @@ textarea {
   }
 
   .stats-grid,
-  .two-cols,
-  .petition-shell {
+  .two-cols {
     grid-template-columns: 1fr;
-  }
-
-  .petition-shell {
-    padding: 16px;
-  }
-
-  .petition-form-wrap {
-    align-self: end;
   }
 }
 
@@ -861,16 +904,32 @@ textarea {
     display: grid;
   }
 
-  .page-actions,
-  .row-actions {
+  .page-actions {
     align-items: stretch;
     flex-direction: column;
   }
 
   .page-actions > *,
-  .row-actions > *,
   .button {
     width: 100%;
+  }
+
+  .campaign-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .campaign-actions {
+    display: grid;
+    grid-template-columns: repeat(7, 36px);
+    justify-content: start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .campaign-actions > *,
+  .campaign-actions .button {
+    width: 36px;
   }
 
   .admin-table {

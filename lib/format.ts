@@ -44,9 +44,3 @@ export function decodeCampaignHtml(value?: string | null) {
     return "";
   }
 }
-
-export function splitScripts(html: string) {
-  const scripts = html.match(/<script[\s\S]*?<\/script>/gi) ?? [];
-  const markup = html.replace(/<script[\s\S]*?<\/script>/gi, "");
-  return { markup, scripts };
-}

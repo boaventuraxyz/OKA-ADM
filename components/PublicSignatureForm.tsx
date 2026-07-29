@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   campanhaId: string;
@@ -8,6 +8,13 @@ type Props = {
   textoBotao?: string | null;
   totalAssinaturas: number;
   meta?: number | null;
+};
+
+type ViaCepResponse = {
+  erro?: boolean;
+  localidade?: string;
+  logradouro?: string;
+  uf?: string;
 };
 
 function onlyNumbers(value: string) {
@@ -82,35 +89,53 @@ export function PublicSignatureForm({
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ type: "s" | "e"; text: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const cepRequest = useRef<AbortController | null>(null);
+  const toastTimer = useRef<number | null>(null);
+  const reloadTimer = useRef<number | null>(null);
 
   const metaValue = meta ?? 0;
   const restante = Math.max(metaValue - totalAssinaturas, 0);
-  const progresso = useMemo(() => {
-    if (!metaValue || metaValue <= 0) return 0;
-    return Math.min((totalAssinaturas / metaValue) * 100, 100);
-  }, [metaValue, totalAssinaturas]);
+  const progresso =
+    metaValue > 0 ? Math.min((totalAssinaturas / metaValue) * 100, 100) : 0;
+
+  useEffect(() => {
+    return () => {
+      cepRequest.current?.abort();
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+      if (reloadTimer.current) window.clearTimeout(reloadTimer.current);
+    };
+  }, []);
 
   async function lookupCep(nextCep: string) {
     const clean = onlyNumbers(nextCep);
     if (clean.length !== 8) return;
 
+    cepRequest.current?.abort();
+    const controller = new AbortController();
+    cepRequest.current = controller;
+
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-      const data = await response.json();
+      const response = await fetch(`https://viacep.com.br/ws/${clean}/json/`, {
+        signal: controller.signal
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as ViaCepResponse;
 
       if (!data.erro) {
         setRua(data.logradouro || "");
         setCidade(data.localidade || "");
         setEstado(data.uf || "");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
       // A busca de CEP e apenas uma conveniencia; o envio continua disponivel.
     }
   }
 
   function showToast(text: string, type: "s" | "e") {
     setToast({ text, type });
-    window.setTimeout(() => setToast(null), 3000);
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 3000);
   }
 
   function validate() {
@@ -154,415 +179,25 @@ export function PublicSignatureForm({
       if (!response.ok) throw new Error("Erro ao salvar");
 
       showToast("Assinatura realizada com sucesso!", "s");
-      window.setTimeout(() => {
+      reloadTimer.current = window.setTimeout(() => {
         if (candidatoId === "f037f25c-cdef-403a-a578-24e4fa863a3d") {
-          window.open("https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1", "_blank");
+          window.open(
+            "https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1",
+            "_blank",
+            "noopener,noreferrer"
+          );
         }
 
         window.location.reload();
       }, 1500);
     } catch {
-      showToast("Erro ao enviar formulario", "e");
+      showToast("Erro ao enviar formulário", "e");
       setBusy(false);
     }
   }
 
   return (
     <>
-      <style jsx global>{`
-        @import url("https://api.fontshare.com/v2/css?f[]=clash-display@400,500,700&display=swap");
-
-        .form-card {
-          font-family: "Montserrat", sans-serif;
-          background: #1a2338;
-          border: 1px solid #2a3a58;
-          border-radius: 16px;
-          padding: 30px 26px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-          color: #e8eaf0;
-        }
-
-        .form-card h1,
-        .form-card h2,
-        .form-card .card-title {
-          font-family: "Clash Display", sans-serif;
-        }
-
-        .form-card .card-header {
-          text-align: center;
-        }
-
-        .form-card .card-live {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #e05a5a;
-          margin-bottom: 10px;
-        }
-
-        .form-card .card-live-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #e05a5a;
-          animation: pulseFc 1.4s ease-in-out infinite;
-        }
-
-        @keyframes pulseFc {
-          0%,
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-
-          50% {
-            opacity: 0.5;
-            transform: scale(0.75);
-          }
-        }
-
-        .form-card .card-title {
-          font-size: 20px;
-          font-weight: 600;
-          color: #ffffff;
-          line-height: 1.2;
-          margin-bottom: 6px;
-        }
-
-        .form-card .card-desc {
-          font-size: 13px;
-          color: #7a8baa;
-          line-height: 1.5;
-        }
-
-        .form-card .card-desc strong {
-          color: #e8c84a;
-        }
-
-        .form-card .live-count-display {
-          background: rgba(232, 200, 74, 0.06);
-          border: 1px solid rgba(232, 200, 74, 0.18);
-          border-radius: 10px;
-          padding: 20px 16px;
-          text-align: center;
-        }
-
-        .form-card .live-num {
-          font-size: 52px;
-          font-weight: 800;
-          color: #e8c84a;
-          line-height: 1;
-          letter-spacing: -1px;
-        }
-
-        .form-card .live-pessoas {
-          font-size: 15px;
-          color: #e8eaf0;
-          font-weight: 600;
-          margin-top: 6px;
-        }
-
-        .form-card .remaining-text {
-          font-size: 13px;
-          color: #e05a5a;
-          font-weight: 700;
-          margin-top: 10px;
-          padding-top: 10px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .form-card .progress-bar-track {
-          width: 100%;
-          height: 10px;
-          background: rgba(255, 255, 255, 0.08);
-          border-radius: 999px;
-          overflow: hidden;
-        }
-
-        .form-card .progress-bar-fill {
-          height: 100%;
-          width: 0%;
-          background: linear-gradient(90deg, #e8c84a 0%, #f5df7f 100%);
-          border-radius: 999px;
-          transition: width 0.6s ease;
-        }
-
-        .form-card .progress-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 8px;
-        }
-
-        .form-card .progress-pct {
-          font-size: 11px;
-          font-weight: 700;
-          color: #e8c84a;
-          background: rgba(232, 200, 74, 0.12);
-          padding: 2px 7px;
-          border-radius: 4px;
-        }
-
-        .form-card .progress-count {
-          font-size: 13px;
-          color: #e8eaf0;
-          font-weight: 600;
-        }
-
-        .form-card .progress-count span {
-          color: #7a8baa;
-          font-weight: 400;
-        }
-
-        .form-card .form-fields {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .form-card .form-input {
-          width: 100%;
-          background: #1e2c44;
-          border: 1px solid #2a3a58;
-          border-radius: 8px;
-          padding: 13px 16px;
-          font-family: "Montserrat", sans-serif;
-          font-size: 14px;
-          color: #e8eaf0;
-          outline: none;
-          transition: border-color 0.2s ease;
-        }
-
-        .form-card .form-input::placeholder {
-          color: #7a8baa;
-        }
-
-        .form-card .form-input:focus {
-          border-color: #e8c84a;
-        }
-
-        .form-card .form-input.error {
-          border-color: #e05a5a;
-        }
-
-        .form-card .field-error {
-          font-size: 11px;
-          color: #e05a5a;
-          font-weight: 600;
-          margin-top: -6px;
-          display: none;
-        }
-
-        .form-card .field-error.show {
-          display: block;
-        }
-
-        .form-card .endereco-row {
-          display: grid;
-          grid-template-columns: 1fr 100px;
-          gap: 10px;
-        }
-
-        .form-card .btn-sign {
-          width: 100%;
-          background: #e8c84a;
-          color: #0d111a;
-          border: none;
-          border-radius: 8px;
-          padding: 15px;
-          font-family: "Montserrat", sans-serif;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          transition:
-            opacity 0.2s ease,
-            transform 0.2s ease;
-        }
-
-        .form-card .btn-sign:hover:not(:disabled) {
-          transform: translateY(-1px);
-        }
-
-        .form-card .btn-sign:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .form-card .form-footer {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          align-items: center;
-          font-size: 12px;
-          color: #7a8baa;
-          text-align: center;
-        }
-
-        #toastApp.meutoast {
-          position: fixed !important;
-          bottom: 24px !important;
-          right: 24px !important;
-          left: auto !important;
-          top: auto !important;
-          width: auto !important;
-          min-width: 250px !important;
-          max-width: 400px !important;
-          height: auto !important;
-          margin: 0 !important;
-          padding: 14px 20px !important;
-          background-color: #28a745;
-          color: #fff;
-          border-radius: 6px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          font-size: 14px;
-          line-height: 1.4;
-          z-index: 99999 !important;
-          opacity: 0;
-          transform: translateY(20px);
-          transition:
-            opacity 0.3s ease,
-            transform 0.3s ease;
-          pointer-events: none;
-          word-wrap: break-word;
-          box-sizing: border-box !important;
-          display: block !important;
-        }
-
-        #toastApp.meutoast.show {
-          opacity: 1;
-          transform: translateY(0);
-          pointer-events: auto;
-        }
-
-        #toastApp.meutoast.error {
-          background-color: #dc3545;
-        }
-
-        @media (max-width: 900px) {
-          .form-card {
-            padding: 22px 20px;
-            gap: 14px;
-          }
-
-          .form-card .card-title {
-            font-size: 16px;
-          }
-
-          .form-card .card-desc {
-            font-size: 12px;
-          }
-
-          .form-card .live-num {
-            font-size: 36px;
-          }
-
-          .form-card .live-pessoas {
-            font-size: 13px;
-          }
-
-          .form-card .remaining-text {
-            font-size: 11px;
-          }
-
-          .form-card .live-count-display {
-            padding: 14px 12px;
-          }
-
-          .form-card .form-input {
-            padding: 11px 12px;
-            font-size: 13px;
-          }
-
-          .form-card .btn-sign {
-            padding: 13px;
-            font-size: 14px;
-          }
-
-          .form-card .progress-pct {
-            font-size: 10px;
-          }
-
-          .form-card .progress-count {
-            font-size: 11px;
-          }
-
-          .form-card .form-footer {
-            font-size: 11px;
-          }
-
-          .form-card .endereco-row {
-            grid-template-columns: 1fr 80px;
-            gap: 8px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .form-card {
-            padding: 18px 16px;
-            border-radius: 12px;
-            gap: 12px;
-          }
-
-          .form-card .card-title {
-            font-size: 15px;
-          }
-
-          .form-card .card-desc {
-            font-size: 11px;
-          }
-
-          .form-card .live-num {
-            font-size: 30px;
-          }
-
-          .form-card .form-input {
-            padding: 10px;
-            font-size: 12px;
-          }
-
-          .form-card .btn-sign {
-            padding: 12px;
-            font-size: 13px;
-          }
-
-          .form-card .endereco-row {
-            grid-template-columns: 1fr 70px;
-            gap: 6px;
-          }
-
-          .form-card .field-error,
-          .form-card .remaining-text,
-          .form-card .progress-count,
-          .form-card .form-footer {
-            font-size: 10px;
-          }
-
-          .form-card .progress-pct {
-            font-size: 9px;
-          }
-        }
-
-        @media (max-width: 600px) {
-          #toastApp.meutoast {
-            left: 12px !important;
-            right: 12px !important;
-            bottom: 12px !important;
-            max-width: none !important;
-            min-width: 0 !important;
-            font-size: 13px;
-            padding: 12px 16px !important;
-            text-align: center;
-          }
-        }
-      `}</style>
-
       <div className="form-card">
         <input id="campanhaID" type="hidden" value={campanhaId} />
         <input id="campanhaCandidatoID" type="hidden" value={candidatoId ?? ""} />
@@ -607,6 +242,8 @@ export function PublicSignatureForm({
 
         <form className="form-fields" id="formAssinar" autoComplete="on" onSubmit={handleSign}>
           <input
+            aria-describedby="erroNome"
+            aria-invalid={errors.nome || undefined}
             autoComplete="name"
             className={`form-input ${errors.nome ? "error" : ""}`}
             id="nome"
@@ -622,6 +259,8 @@ export function PublicSignatureForm({
           </span>
 
           <input
+            aria-describedby="erroTel"
+            aria-invalid={errors.tel || undefined}
             autoComplete="tel"
             className={`form-input ${errors.tel ? "error" : ""}`}
             id="tel"
@@ -640,6 +279,8 @@ export function PublicSignatureForm({
           </span>
 
           <input
+            aria-describedby="erroMail"
+            aria-invalid={errors.mail || undefined}
             autoComplete="email"
             className={`form-input ${errors.mail ? "error" : ""}`}
             id="mail"
@@ -655,9 +296,12 @@ export function PublicSignatureForm({
           </span>
 
           <input
+            aria-describedby="erroCep"
+            aria-invalid={errors.cep || undefined}
             autoComplete="postal-code"
             className={`form-input ${errors.cep ? "error" : ""}`}
             id="cep"
+            inputMode="numeric"
             maxLength={9}
             name="postal-code"
             onChange={(event) => {
@@ -678,6 +322,8 @@ export function PublicSignatureForm({
             <input id="cidade" name="city" type="hidden" value={cidade} />
             <input id="estado" name="state" type="hidden" value={estado} />
             <input
+              aria-describedby="erroRua"
+              aria-invalid={errors.rua || undefined}
               autoComplete="address-line1"
               className={`form-input ${errors.rua ? "error" : ""}`}
               id="rua"
@@ -696,9 +342,12 @@ export function PublicSignatureForm({
             />
 
             <input
+              aria-describedby="erroRua"
+              aria-invalid={errors.rua || undefined}
               autoComplete="address-line2"
               className={`form-input ${errors.rua ? "error" : ""}`}
               id="numero"
+              inputMode="numeric"
               name="address-line2"
               onBlur={() =>
                 setErrors((value) => ({
@@ -717,6 +366,8 @@ export function PublicSignatureForm({
           </span>
 
           <input
+            aria-describedby="erroComplemento"
+            aria-invalid={errors.complemento || undefined}
             autoComplete="address-line3"
             className={`form-input ${errors.complemento ? "error" : ""}`}
             id="complemento"
@@ -736,7 +387,7 @@ export function PublicSignatureForm({
             Informe o complemento
           </span>
 
-          <button className="btn-sign" disabled={busy} type="submit">
+          <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
             {busy ? "Enviando..." : "Assinar agora"}
           </button>
         </form>
@@ -747,7 +398,13 @@ export function PublicSignatureForm({
         </div>
       </div>
 
-      <div id="toastApp" className={`meutoast ${toast ? "show" : ""} ${toast?.type === "e" ? "error" : ""}`}>
+      <div
+        aria-atomic="true"
+        aria-live="polite"
+        className={`meutoast ${toast ? "show" : ""} ${toast?.type === "e" ? "error" : ""}`}
+        id="toastApp"
+        role={toast?.type === "e" ? "alert" : "status"}
+      >
         {toast?.text}
       </div>
     </>

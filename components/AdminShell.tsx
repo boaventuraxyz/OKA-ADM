@@ -8,9 +8,10 @@ import {
   UserRound,
   X
 } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { NavigationProgress } from "@/components/NavigationProgress";
+import { PendingLink } from "@/components/PendingLink";
 
 function navClass(pathname: string, href: string) {
   if (href === "/") return pathname === "/" ? "nav-item active" : "nav-item";
@@ -40,6 +41,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="admin-shell">
+      <NavigationProgress />
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="brand">ADM</div>
@@ -47,20 +49,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="nav-section">Geral</div>
-        <Link className={navClass(pathname, "/")} href="/">
+        <PendingLink className={navClass(pathname, "/")} href="/">
           <BarChart3 size={17} />
           Dashboard
-        </Link>
+        </PendingLink>
 
         <div className="nav-section">Eleitoral</div>
-        <Link className={navClass(pathname, "/campanhas")} href="/campanhas">
+        <PendingLink className={navClass(pathname, "/campanhas")} href="/campanhas">
           <Megaphone size={17} />
           Campanhas
-        </Link>
-        <Link className={navClass(pathname, "/candidatos")} href="/candidatos">
+        </PendingLink>
+        <PendingLink className={navClass(pathname, "/candidatos")} href="/candidatos">
           <UserRound size={17} />
           Candidatos
-        </Link>
+        </PendingLink>
 
         <div className="sidebar-footer">
           <div className="user-chip">

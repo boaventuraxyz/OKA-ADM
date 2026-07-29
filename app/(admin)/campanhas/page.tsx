@@ -9,12 +9,9 @@ import {
   UsersRound
 } from "lucide-react";
 import Link from "next/link";
-import {
-  deleteCampanhaAction,
-  toggleCampanhaAction,
-  updateCampanhaHtmlAction
-} from "@/app/actions";
-import { decodeCampaignHtml, formatDate } from "@/lib/format";
+import { deleteCampanhaAction, toggleCampanhaAction } from "@/app/actions";
+import { PendingLink } from "@/components/PendingLink";
+import { PendingSubmitButton } from "@/components/PendingSubmitButton";
 import { listCampanhas, listCandidatosForSelect } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -34,116 +31,100 @@ export default async function CampanhasPage() {
           <h1>Campanhas</h1>
           <p className="page-toolbar-subtitle">Gerencie abaixo-assinados e formulários públicos.</p>
         </div>
-        <Link className="button primary" href="/campanhas/novo">
+        <PendingLink
+          className="button primary"
+          href="/campanhas/novo"
+          pendingLabel="Abrindo..."
+        >
           <Plus size={16} />
           Nova campanha
-        </Link>
+        </PendingLink>
       </div>
 
       <div className="panel">
         {campanhas.length === 0 ? (
           <div className="empty-state">Nenhuma campanha cadastrada.</div>
         ) : (
-          <div className="table-scroll">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Título</th>
-                  <th>Candidato</th>
-                  <th>Status</th>
-                  <th>Período</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {campanhas.map((campanha) => {
-                  const candidato = campanha.candidato_id
-                    ? candidatoPorId.get(campanha.candidato_id)
-                    : null;
-                  const html = decodeCampaignHtml(campanha.html);
+          <div className="campaign-list">
+            {campanhas.map((campanha) => {
+              const candidato = campanha.candidato_id
+                ? candidatoPorId.get(campanha.candidato_id)
+                : null;
 
-                  return (
-                    <tr key={campanha.id}>
-                      <td>{campanha.titulo || "-"}</td>
-                      <td>{candidato?.nome || "-"}</td>
-                      <td>
-                        <span className={`badge ${campanha.ativa ? "ok" : "muted"}`}>
-                          {campanha.ativa ? "Ativa" : "Inativa"}
-                        </span>
-                      </td>
-                      <td>
-                        {formatDate(campanha.inicio_em)} até {formatDate(campanha.fim_em)}
-                      </td>
-                      <td className="table-actions">
-                        <div className="row-actions">
-                          <Link
-                            className="button icon"
-                            href={`/campanhas/${campanha.id}/editar`}
-                            title="Editar"
-                          >
-                            <Pencil size={15} />
-                          </Link>
-                          <Link
-                            className="button icon"
-                            href={`/assinaturas?campanhaId=${campanha.id}`}
-                            title="Assinaturas"
-                          >
-                            <UsersRound size={15} />
-                          </Link>
-                          <Link
-                            className="button icon"
-                            href={`/formulario?idCampanha=${campanha.id}`}
-                            target="_blank"
-                            title="Abrir formulário"
-                          >
-                            <ExternalLink size={15} />
-                          </Link>
-                          <Link
-                            className="button icon"
-                            href={`/api/campanhas/${campanha.id}/assinaturas`}
-                            title="Baixar CSV"
-                          >
-                            <Download size={15} />
-                          </Link>
-                          <details>
-                            <summary className="button icon" title="Editar HTML">
-                              <FileCode2 size={15} />
-                            </summary>
-                            <form action={updateCampanhaHtmlAction} className="panel panel-padding form-grid">
-                              <input name="id" type="hidden" value={campanha.id} />
-                              <div className="field">
-                                <label htmlFor={`html-${campanha.id}`}>HTML do formulário</label>
-                                <textarea
-                                  className="textarea code"
-                                  defaultValue={html}
-                                  id={`html-${campanha.id}`}
-                                  name="html"
-                                />
-                              </div>
-                              <button className="button primary" type="submit">
-                                Salvar HTML
-                              </button>
-                            </form>
-                          </details>
-                          <form action={toggleCampanhaAction}>
-                            <input name="id" type="hidden" value={campanha.id} />
-                            <button className="button icon" title="Alternar status" type="submit">
-                              <Power size={15} />
-                            </button>
-                          </form>
-                          <form action={deleteCampanhaAction}>
-                            <input name="id" type="hidden" value={campanha.id} />
-                            <button className="button icon danger" title="Excluir" type="submit">
-                              <Trash2 size={15} />
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+              return (
+                <div className="campaign-row" key={campanha.id}>
+                  <div className="campaign-summary">
+                    <strong>{campanha.titulo || "Campanha sem título"}</strong>
+                    <span>{candidato?.nome || "Sem candidato"}</span>
+                  </div>
+
+                  <div className="row-actions campaign-actions">
+                    <PendingLink
+                      aria-label="Editar campanha"
+                      className="button icon"
+                      href={`/campanhas/${campanha.id}/editar`}
+                      title="Editar campanha"
+                    >
+                      <Pencil size={15} />
+                    </PendingLink>
+                    <PendingLink
+                      aria-label="Ver assinaturas"
+                      className="button icon"
+                      href={`/assinaturas?campanhaId=${campanha.id}`}
+                      title="Ver assinaturas"
+                    >
+                      <UsersRound size={15} />
+                    </PendingLink>
+                    <Link
+                      aria-label="Abrir formulário público"
+                      className="button icon"
+                      href={`/formulario?idCampanha=${campanha.id}`}
+                      target="_blank"
+                      title="Abrir formulário público"
+                    >
+                      <ExternalLink size={15} />
+                    </Link>
+                    <Link
+                      aria-label="Baixar assinaturas em CSV"
+                      className="button icon"
+                      href={`/api/campanhas/${campanha.id}/assinaturas`}
+                      title="Baixar assinaturas em CSV"
+                    >
+                      <Download size={15} />
+                    </Link>
+                    <PendingLink
+                      aria-label="Editar HTML"
+                      className="button icon"
+                      href={`/campanhas/${campanha.id}/html`}
+                      title="Editar HTML"
+                    >
+                      <FileCode2 size={15} />
+                    </PendingLink>
+                    <form action={toggleCampanhaAction}>
+                      <input name="id" type="hidden" value={campanha.id} />
+                      <PendingSubmitButton
+                        aria-label={campanha.ativa ? "Desativar campanha" : "Ativar campanha"}
+                        className={`button icon ${campanha.ativa ? "status-active" : ""}`}
+                        title={campanha.ativa ? "Desativar campanha" : "Ativar campanha"}
+                      >
+                        <Power size={15} />
+                      </PendingSubmitButton>
+                    </form>
+                    <form action={deleteCampanhaAction}>
+                      <input name="id" type="hidden" value={campanha.id} />
+                      <PendingSubmitButton
+                        aria-label="Excluir campanha"
+                        className="button icon danger"
+                        confirmMessage="Excluir esta campanha? Esta ação não pode ser desfeita."
+                        title="Excluir campanha"
+                      >
+                        <Trash2 size={15} />
+                      </PendingSubmitButton>
+                    </form>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
