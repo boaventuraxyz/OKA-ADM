@@ -1,4 +1,4 @@
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { getCampaignHtmlDownload } from "@/lib/campaign-download";
 import { campaignCacheTag } from "@/lib/public-campaign";
@@ -75,7 +75,7 @@ export async function POST(
   await updateCampanha(id, {
     html: Buffer.from(html, "utf8").toString("base64")
   });
-  updateTag(campaignCacheTag(id));
+  revalidateTag(campaignCacheTag(id), { expire: 0 });
   revalidatePath("/campanhas");
 
   return Response.redirect(new URL("/campanhas", request.url), 303);
