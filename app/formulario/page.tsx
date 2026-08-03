@@ -53,13 +53,13 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
     return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
   }
 
-  const candidateName = campanha.candidato?.nome || campanha.titulo || "Campanha Cidadã";
+  const candidateName = campanha.candidato?.nome || "Campanha Cidadã";
   const [candidateFirstLine, candidateSecondLine] = splitCandidateName(candidateName);
   const accent = /^#[0-9A-F]{6}$/i.test(campanha.corDestaque || "")
     ? campanha.corDestaque
     : "#E05A5A";
-  const description =
-    campanha.descricao || campanha.titulo || "Participe deste abaixo-assinado";
+  const title = campanha.titulo || "Participe deste abaixo-assinado";
+  const description = campanha.descricao;
   const candidateMeta = [campanha.candidato?.cargo, campanha.candidato?.partido]
     .filter(Boolean)
     .join(" · ");
@@ -105,12 +105,12 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
               <CampaignHeadline
                 primary={campanha.destaquePrimario}
                 secondary={campanha.destaqueSecundario}
-                text={description}
+                text={title}
               />
             </h1>
 
-            {campanha.titulo && campanha.titulo !== description ? (
-              <p className="campaign-subtext">{campanha.titulo}</p>
+            {description && description !== title ? (
+              <p className="campaign-subtext">{description}</p>
             ) : null}
 
             {candidateMeta || location ? (

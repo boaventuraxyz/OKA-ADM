@@ -30,11 +30,11 @@ export default async function NovaCampanhaPage({
       <form action={createCampanhaAction} className="panel panel-padding form-grid">
         <CampaignSaveAlert error={erro} />
         <div className="field">
-          <label htmlFor="titulo">Título</label>
-          <input className="input" id="titulo" name="titulo" required />
+          <label htmlFor="titulo">Título principal (texto grande)</label>
+          <input className="input" id="titulo" maxLength={200} name="titulo" required />
         </div>
         <div className="field">
-          <label htmlFor="descricao">Descrição principal</label>
+          <label htmlFor="descricao">Descrição (texto abaixo do título)</label>
           <textarea
             className="textarea"
             id="descricao"
@@ -45,7 +45,7 @@ export default async function NovaCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="destaque_primario">Trecho da descrição em destaque</label>
+            <label htmlFor="destaque_primario">Trecho do título em destaque</label>
             <input
               className="input"
               id="destaque_primario"
@@ -54,7 +54,7 @@ export default async function NovaCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="destaque_secundario">Trecho da descrição em amarelo</label>
+            <label htmlFor="destaque_secundario">Trecho do título em amarelo</label>
             <input
               className="input"
               id="destaque_secundario"
@@ -82,7 +82,7 @@ export default async function NovaCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="texto_form">Texto de apoio do contador</label>
+            <label htmlFor="texto_form">Título do formulário</label>
             <input
               className="input"
               id="texto_form"
@@ -92,7 +92,7 @@ export default async function NovaCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="texto_dot">Texto ao lado do indicador</label>
+            <label htmlFor="texto_dot">Texto vermelho pulsante</label>
             <input
               className="input"
               defaultValue="Assine agora"

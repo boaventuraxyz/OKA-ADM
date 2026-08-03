@@ -48,17 +48,18 @@ export default async function EditarCampanhaPage({
         <CampaignSaveAlert error={erro || (!templateColumnsReady ? "estrutura" : undefined)} />
         <input name="id" type="hidden" value={campanha.id} />
         <div className="field">
-          <label htmlFor="titulo">Título</label>
+          <label htmlFor="titulo">Título principal (texto grande)</label>
           <input
             className="input"
             defaultValue={campanha.titulo ?? ""}
             id="titulo"
+            maxLength={200}
             name="titulo"
             required
           />
         </div>
         <div className="field">
-          <label htmlFor="descricao">Descrição principal</label>
+          <label htmlFor="descricao">Descrição (texto abaixo do título)</label>
           <textarea
             className="textarea"
             defaultValue={campanha.descricao ?? ""}
@@ -70,7 +71,7 @@ export default async function EditarCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="destaque_primario">Trecho da descrição em destaque</label>
+            <label htmlFor="destaque_primario">Trecho do título em destaque</label>
             <input
               className="input"
               defaultValue={campanha.destaque_primario ?? ""}
@@ -80,7 +81,7 @@ export default async function EditarCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="destaque_secundario">Trecho da descrição em amarelo</label>
+            <label htmlFor="destaque_secundario">Trecho do título em amarelo</label>
             <input
               className="input"
               defaultValue={campanha.destaque_secundario ?? ""}
@@ -121,7 +122,7 @@ export default async function EditarCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="texto_form">Texto de apoio do contador</label>
+            <label htmlFor="texto_form">Título do formulário</label>
             <input
               className="input"
               defaultValue={campanha.texto_form ?? ""}
@@ -131,7 +132,7 @@ export default async function EditarCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="texto_dot">Texto ao lado do indicador</label>
+            <label htmlFor="texto_dot">Texto vermelho pulsante</label>
             <input
               className="input"
               defaultValue={campanha.texto_dot ?? "Assine agora"}
