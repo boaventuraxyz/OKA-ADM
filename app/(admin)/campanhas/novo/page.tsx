@@ -1,11 +1,17 @@
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { createCampanhaAction } from "@/app/actions";
+import { CampaignSaveAlert } from "@/components/CampaignSaveAlert";
 import { listCandidatosForSelect } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-export default async function NovaCampanhaPage() {
+export default async function NovaCampanhaPage({
+  searchParams
+}: {
+  searchParams: Promise<{ erro?: string }>;
+}) {
+  const { erro } = await searchParams;
   const candidatos = await listCandidatosForSelect();
 
   return (
@@ -22,6 +28,7 @@ export default async function NovaCampanhaPage() {
       </div>
 
       <form action={createCampanhaAction} className="panel panel-padding form-grid">
+        <CampaignSaveAlert error={erro} />
         <div className="field">
           <label htmlFor="titulo">Título</label>
           <input className="input" id="titulo" name="titulo" required />

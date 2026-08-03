@@ -1,6 +1,8 @@
 begin;
 
 alter table public.campanhas
+  add column if not exists texto_form text,
+  add column if not exists texto_dot text,
   add column if not exists destaque_primario text,
   add column if not exists destaque_secundario text,
   add column if not exists cor_destaque text;

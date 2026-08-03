@@ -16,6 +16,7 @@ import {
   deleteCandidato,
   getAssinatura,
   getCampanha,
+  SupabaseRequestError,
   updateCampanha,
   updateCandidato
 } from "@/lib/supabase";
@@ -66,6 +67,14 @@ function campaignColor(formData: FormData) {
   const value = text(formData, "cor_destaque") || "#E05A5A";
   if (!/^#[0-9A-F]{6}$/i.test(value)) throw new Error("Cor invalida.");
   return value.toUpperCase();
+}
+
+function campaignSaveErrorPath(error: unknown, path: string) {
+  if (!(error instanceof SupabaseRequestError)) return null;
+  if (error.code === "PGRST204") return `${path}?erro=estrutura`;
+  if (error.status === 400 || error.status === 409) return `${path}?erro=dados`;
+  if (error.status === 401 || error.status === 403) return `${path}?erro=acesso`;
+  return null;
 }
 
 function requiredUuid(formData: FormData, name = "id") {
@@ -119,20 +128,26 @@ export async function deleteCandidatoAction(formData: FormData) {
 
 export async function createCampanhaAction(formData: FormData) {
   await requireAdmin();
-  await createCampanha({
-    titulo: nullableText(formData, "titulo", 200),
-    descricao: nullableLongText(formData, "descricao", 5000),
-    candidato_id: nullableUuid(formData, "candidato_id"),
-    ativa: formData.get("ativa") === "on",
-    inicio_em: nullableDate(formData, "inicio_em"),
-    fim_em: nullableDate(formData, "fim_em"),
-    assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
-    texto_form: nullableText(formData, "texto_form", 200),
-    texto_dot: nullableText(formData, "texto_dot", 80),
-    destaque_primario: nullableText(formData, "destaque_primario", 160),
-    destaque_secundario: nullableText(formData, "destaque_secundario", 160),
-    cor_destaque: campaignColor(formData)
-  });
+  try {
+    await createCampanha({
+      titulo: nullableText(formData, "titulo", 200),
+      descricao: nullableLongText(formData, "descricao", 5000),
+      candidato_id: nullableUuid(formData, "candidato_id"),
+      ativa: formData.get("ativa") === "on",
+      inicio_em: nullableDate(formData, "inicio_em"),
+      fim_em: nullableDate(formData, "fim_em"),
+      assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
+      texto_form: nullableText(formData, "texto_form", 200),
+      texto_dot: nullableText(formData, "texto_dot", 80),
+      destaque_primario: nullableText(formData, "destaque_primario", 160),
+      destaque_secundario: nullableText(formData, "destaque_secundario", 160),
+      cor_destaque: campaignColor(formData)
+    });
+  } catch (error) {
+    const errorPath = campaignSaveErrorPath(error, "/campanhas/novo");
+    if (errorPath) redirect(errorPath);
+    throw error;
+  }
   revalidatePath("/campanhas");
   redirect("/campanhas");
 }
@@ -140,20 +155,26 @@ export async function createCampanhaAction(formData: FormData) {
 export async function updateCampanhaAction(formData: FormData) {
   await requireAdmin();
   const id = requiredUuid(formData);
-  await updateCampanha(id, {
-    titulo: nullableText(formData, "titulo", 200),
-    descricao: nullableLongText(formData, "descricao", 5000),
-    candidato_id: nullableUuid(formData, "candidato_id"),
-    ativa: formData.get("ativa") === "on",
-    inicio_em: nullableDate(formData, "inicio_em"),
-    fim_em: nullableDate(formData, "fim_em"),
-    assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
-    texto_form: nullableText(formData, "texto_form", 200),
-    texto_dot: nullableText(formData, "texto_dot", 80),
-    destaque_primario: nullableText(formData, "destaque_primario", 160),
-    destaque_secundario: nullableText(formData, "destaque_secundario", 160),
-    cor_destaque: campaignColor(formData)
-  });
+  try {
+    await updateCampanha(id, {
+      titulo: nullableText(formData, "titulo", 200),
+      descricao: nullableLongText(formData, "descricao", 5000),
+      candidato_id: nullableUuid(formData, "candidato_id"),
+      ativa: formData.get("ativa") === "on",
+      inicio_em: nullableDate(formData, "inicio_em"),
+      fim_em: nullableDate(formData, "fim_em"),
+      assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
+      texto_form: nullableText(formData, "texto_form", 200),
+      texto_dot: nullableText(formData, "texto_dot", 80),
+      destaque_primario: nullableText(formData, "destaque_primario", 160),
+      destaque_secundario: nullableText(formData, "destaque_secundario", 160),
+      cor_destaque: campaignColor(formData)
+    });
+  } catch (error) {
+    const errorPath = campaignSaveErrorPath(error, `/campanhas/${id}/editar`);
+    if (errorPath) redirect(errorPath);
+    throw error;
+  }
   updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");
   redirect("/campanhas");

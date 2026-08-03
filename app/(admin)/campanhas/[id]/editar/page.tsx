@@ -2,23 +2,34 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { updateCampanhaAction } from "@/app/actions";
+import { CampaignSaveAlert } from "@/components/CampaignSaveAlert";
 import { toDateTimeLocal } from "@/lib/format";
 import { getCampanha, listCandidatosForSelect } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditarCampanhaPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ erro?: string }>;
 }) {
   const { id } = await params;
+  const { erro } = await searchParams;
   const [campanha, candidatos] = await Promise.all([
     getCampanha(id),
     listCandidatosForSelect()
   ]);
 
   if (!campanha) notFound();
+  const templateColumnsReady = [
+    "texto_form",
+    "texto_dot",
+    "destaque_primario",
+    "destaque_secundario",
+    "cor_destaque"
+  ].every((column) => Object.prototype.hasOwnProperty.call(campanha, column));
 
   return (
     <>
@@ -34,6 +45,7 @@ export default async function EditarCampanhaPage({
       </div>
 
       <form action={updateCampanhaAction} className="panel panel-padding form-grid">
+        <CampaignSaveAlert error={erro || (!templateColumnsReady ? "estrutura" : undefined)} />
         <input name="id" type="hidden" value={campanha.id} />
         <div className="field">
           <label htmlFor="titulo">Título</label>
@@ -175,7 +187,7 @@ export default async function EditarCampanhaPage({
           Campanha ativa
         </label>
         <div className="page-actions">
-          <button className="button primary" type="submit">
+          <button className="button primary" disabled={!templateColumnsReady} type="submit">
             <Save size={16} />
             Salvar
           </button>

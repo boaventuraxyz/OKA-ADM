@@ -22,7 +22,10 @@ type SupabaseInit = RequestInit & {
 };
 
 export class SupabaseRequestError extends Error {
-  constructor(public readonly status: number) {
+  constructor(
+    public readonly status: number,
+    public readonly code?: string
+  ) {
     super(`Falha na comunicacao com o Supabase (${status}).`);
     this.name = "SupabaseRequestError";
   }
@@ -94,7 +97,21 @@ async function supabaseRequest(path: string, init: SupabaseInit = {}) {
   });
 
   if (!response.ok) {
-    throw new SupabaseRequestError(response.status);
+    const contentType = response.headers.get("content-type") || "";
+    let code: string | undefined;
+
+    if (contentType.includes("application/json")) {
+      try {
+        const payload = (await response.json()) as { code?: unknown };
+        if (typeof payload.code === "string" && payload.code.length <= 32) {
+          code = payload.code;
+        }
+      } catch {
+        // Keep database details private and fall back to the HTTP status.
+      }
+    }
+
+    throw new SupabaseRequestError(response.status, code);
   }
 
   return response;
