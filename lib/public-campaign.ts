@@ -1,31 +1,46 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import { parseCampaignDocument } from "@/lib/campaign-document";
-import { decodeCampaignHtml } from "@/lib/format";
-import { getCampanha } from "@/lib/supabase";
+import { getCampanha, getCandidato } from "@/lib/supabase";
 
 export const campaignCacheTag = (id: string) => `campanha-publica:${id}`;
+export const publicCandidatesCacheTag = "candidatos-publicos";
 
 export function getPublicCampaignView(id: string) {
   return unstable_cache(
     async () => {
       const campanha = await getCampanha(id);
       if (!campanha) return null;
+      const candidato = campanha.candidato_id
+        ? await getCandidato(campanha.candidato_id)
+        : null;
 
       return {
         assinaturasMeta: campanha.assinaturas_meta,
         candidatoId: campanha.candidato_id,
-        document: parseCampaignDocument(decodeCampaignHtml(campanha.html), campanha.id),
+        candidato: candidato
+          ? {
+              cargo: candidato.cargo,
+              estado: candidato.estado,
+              municipio: candidato.municipio,
+              nome: candidato.nome,
+              partido: candidato.partido
+            }
+          : null,
+        corDestaque: campanha.cor_destaque,
+        descricao: campanha.descricao,
+        destaquePrimario: campanha.destaque_primario,
+        destaqueSecundario: campanha.destaque_secundario,
         id: campanha.id,
-        textoBotao: campanha.texto_form,
+        textoDot: campanha.texto_dot,
+        textoForm: campanha.texto_form,
         titulo: campanha.titulo
       };
     },
     ["campanha-publica", id],
     {
       revalidate: 300,
-      tags: [campaignCacheTag(id)]
+      tags: [campaignCacheTag(id), publicCandidatesCacheTag]
     }
   )();
 }

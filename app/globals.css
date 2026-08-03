@@ -383,10 +383,6 @@ html.route-loading .route-progress {
   transition: transform 8s cubic-bezier(0.1, 0.8, 0.2, 1);
 }
 
-.campaign-html-textarea {
-  min-height: min(62vh, 720px);
-}
-
 .page-loading {
   display: grid;
   gap: 16px;
@@ -564,6 +560,27 @@ html.route-loading .route-progress {
   background: #fff8f8;
 }
 
+.campaign-color-field {
+  width: fit-content;
+}
+
+.campaign-color-input {
+  display: block;
+  width: 56px;
+  height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  padding: 3px;
+}
+
+.campaign-color-input:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(20, 83, 45, 0.12);
+  outline: none;
+}
+
 .checkbox-row {
   display: flex;
   align-items: center;
@@ -637,80 +654,6 @@ html.route-loading .route-progress {
 .alert.error {
   background: var(--danger-soft);
   color: var(--danger);
-}
-
-.formulario-page-legacy {
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  background: #0d111a;
-}
-
-.formulario-page-legacy .pagina-campanha {
-  position: relative;
-  display: grid;
-  width: 100%;
-  min-height: 100vh;
-  grid-template-columns: minmax(0, 1fr);
-  overflow: hidden;
-}
-
-.formulario-page-legacy .conteudo-campanha {
-  position: relative;
-  display: flex;
-  grid-area: 1 / 1;
-  width: 100%;
-  min-height: 100vh;
-  flex-direction: column;
-  background: #0d111a;
-}
-
-.formulario-page-legacy .conteudo-campanha > * {
-  width: 100%;
-  min-height: 100vh;
-  flex: 1 0 auto;
-}
-
-.formulario-page-legacy .formulario-lateral {
-  position: relative;
-  z-index: 999;
-  display: flex;
-  grid-area: 1 / 1;
-  width: 40%;
-  align-self: start;
-  justify-self: end;
-  justify-content: center;
-  align-items: flex-start;
-  box-sizing: border-box;
-  margin-top: 10vh;
-  padding: 40px 30px;
-  pointer-events: none;
-}
-
-.formulario-page-legacy .formulario-lateral > .form-card {
-  position: static;
-  width: 100%;
-  max-width: 420px;
-  margin: 0;
-  pointer-events: all;
-}
-
-.formulario-page-legacy .fallback-campanha {
-  display: flex;
-  width: 100%;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  background-color: #3d3d3d;
-  color: #fff;
-}
-
-.formulario-page-legacy .formulario-footer {
-  width: 100%;
-  padding: 16px 12px;
-  background: transparent;
-  text-align: center;
 }
 
 .politicas-rodape {
@@ -826,42 +769,6 @@ html.route-loading .route-progress {
 }
 
 @media (max-width: 900px) {
-  .formulario-page-legacy .pagina-campanha {
-    display: block;
-    min-height: auto;
-  }
-
-  .formulario-page-legacy .conteudo-campanha {
-    display: block;
-    min-height: auto;
-  }
-
-  .formulario-page-legacy .conteudo-campanha > * {
-    height: auto !important;
-    min-height: auto !important;
-    flex: none;
-  }
-
-  .formulario-page-legacy .conteudo-campanha img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-  }
-
-  .formulario-page-legacy .formulario-lateral {
-    position: relative;
-    width: 100%;
-    height: auto;
-    min-height: auto;
-    margin-top: -20px;
-    padding: 0 16px 24px;
-    pointer-events: all;
-  }
-
-  .formulario-page-legacy .formulario-lateral > .form-card {
-    max-width: 100%;
-  }
-
   .admin-shell {
     display: block;
   }

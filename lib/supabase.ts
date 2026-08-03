@@ -128,13 +128,6 @@ export async function getCampanha(id: string) {
   return rows[0] ?? null;
 }
 
-export async function getCampanhaHtml(id: string) {
-  const rows = await supabaseFetch<Pick<Campanha, "html" | "titulo">[]>(
-    `/campanhas?id=eq.${qs(id)}&select=html,titulo`
-  );
-  return rows[0] ?? null;
-}
-
 export async function getCampanhaTitle(id: string) {
   const rows = await supabaseFetch<Pick<Campanha, "id" | "titulo">[]>(
     `/campanhas?id=eq.${qs(id)}&select=id,titulo`

@@ -1,9 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import { decodeCampaignHtml } from "@/lib/format";
 import {
-  getCampanhaHtml,
   getCampanhaTitle,
   listAssinaturasExportByCampanha
 } from "@/lib/supabase";
@@ -32,25 +30,6 @@ function escapeCsv(value?: string | number | null) {
     return `"${text.replace(/"/g, '""')}"`;
   }
   return text;
-}
-
-export function getCampaignHtmlDownload(id: string) {
-  return unstable_cache(
-    async () => {
-      const campanha = await getCampanhaHtml(id);
-      if (!campanha) return null;
-
-      return {
-        body: decodeCampaignHtml(campanha.html),
-        filename: downloadFilename("Campanha", campanha.titulo, "html")
-      };
-    },
-    ["campaign-html-download", id],
-    {
-      revalidate: 3600,
-      tags: [campaignCacheTag(id)]
-    }
-  )();
 }
 
 export function getCampaignCsvDownload(id: string) {

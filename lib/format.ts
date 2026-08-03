@@ -35,12 +35,3 @@ export function toDateTimeLocal(value?: string | null) {
     pad(date.getMinutes())
   ].join("");
 }
-
-export function decodeCampaignHtml(value?: string | null) {
-  if (!value) return "";
-  try {
-    return Buffer.from(value, "base64").toString("utf8");
-  } catch {
-    return "";
-  }
-}

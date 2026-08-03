@@ -1,6 +1,6 @@
 # Deploy na Vercel
 
-Este repositorio agora esta em Next.js na raiz e pode ser importado direto pela Vercel. O ASP.NET MVC 5 legado foi removido do projeto ativo; as paginas publicas que precisavam manter visual identico foram preservadas como arquivos estaticos em `public/legacy`.
+Este repositorio esta em Next.js na raiz e pode ser importado direto pela Vercel. O ASP.NET MVC 5 legado foi removido do projeto ativo e as campanhas publicas usam um template padrao sincronizado com os dados do Supabase.
 
 ## Variaveis obrigatorias
 
@@ -22,6 +22,10 @@ Depois de configurar a Secret key, execute
 [`supabase/security-hardening.sql`](supabase/security-hardening.sql) no SQL Editor
 do Supabase. O script remove o acesso direto de `anon` e `authenticated` aos dados;
 o navegador passa a acessar o banco somente pelas rotas validadas deste projeto.
+
+Para migrar campanhas que ainda possuem HTML em Base64, execute tambem
+[`supabase/campaign-template.sql`](supabase/campaign-template.sql). Ele adiciona
+os campos de destaque do template padrao e remove definitivamente a coluna `html`.
 
 ## Firewall
 

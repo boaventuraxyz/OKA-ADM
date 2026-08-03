@@ -1,8 +1,6 @@
 import {
   Download,
   ExternalLink,
-  FileCode2,
-  FileDown,
   Pencil,
   Plus,
   Power,
@@ -94,23 +92,6 @@ export default async function CampanhasPage() {
                       title="Baixar assinaturas em CSV"
                     >
                       <Download size={15} />
-                    </DownloadLink>
-                    <PendingLink
-                      aria-label="Editar HTML"
-                      className="button icon"
-                      href={`/campanhas/${campanha.id}/html`}
-                      title="Editar HTML"
-                    >
-                      <FileCode2 size={15} />
-                    </PendingLink>
-                    <DownloadLink
-                      ariaLabel="Baixar HTML"
-                      className="button icon"
-                      fallbackFilename={`campanha-${campanha.id}.html`}
-                      href={`/api/campanhas/${campanha.id}/html`}
-                      title="Baixar HTML"
-                    >
-                      <FileDown size={15} />
                     </DownloadLink>
                     <form action={toggleCampanhaAction}>
                       <input name="id" type="hidden" value={campanha.id} />

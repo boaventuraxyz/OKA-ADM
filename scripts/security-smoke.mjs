@@ -188,23 +188,6 @@ try {
     `Signature rate limit failed: ${signatureStatuses.join(",")}`
   );
 
-  const htmlBody = new FormData();
-  htmlBody.set("id", "00000000-0000-4000-8000-000000000000");
-  htmlBody.set("html", "<p>test</p>");
-  const crossOriginHtml = await fetch(
-    `${baseUrl}/api/campanhas/00000000-0000-4000-8000-000000000000/html`,
-    {
-      body: htmlBody,
-      headers: {
-        Cookie: sessionCookie,
-        Origin: "https://evil.example"
-      },
-      method: "POST",
-      redirect: "manual"
-    }
-  );
-  assert(crossOriginHtml.status === 400, "Cross-origin HTML update was accepted.");
-
   const crossOriginLogout = await fetch(`${baseUrl}/api/logout`, {
     headers: {
       Cookie: sessionCookie,
@@ -219,7 +202,7 @@ try {
   console.log("Login origin, body and rate-limit controls: OK");
   console.log("Signed session flags and tamper rejection: OK");
   console.log("Public submission origin and rate-limit controls: OK");
-  console.log("Admin HTML and logout origin controls: OK");
+  console.log("Admin logout origin controls: OK");
 } finally {
   server.kill();
 }

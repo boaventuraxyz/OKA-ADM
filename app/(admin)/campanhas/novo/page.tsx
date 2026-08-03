@@ -27,8 +27,34 @@ export default async function NovaCampanhaPage() {
           <input className="input" id="titulo" name="titulo" required />
         </div>
         <div className="field">
-          <label htmlFor="descricao">Descrição</label>
-          <textarea className="textarea" id="descricao" name="descricao" rows={3} />
+          <label htmlFor="descricao">Descrição principal</label>
+          <textarea
+            className="textarea"
+            id="descricao"
+            maxLength={5000}
+            name="descricao"
+            rows={4}
+          />
+        </div>
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="destaque_primario">Trecho da descrição em destaque</label>
+            <input
+              className="input"
+              id="destaque_primario"
+              maxLength={160}
+              name="destaque_primario"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="destaque_secundario">Trecho da descrição em amarelo</label>
+            <input
+              className="input"
+              id="destaque_secundario"
+              maxLength={160}
+              name="destaque_secundario"
+            />
+          </div>
         </div>
         <div className="two-cols">
           <div className="field">
@@ -47,9 +73,37 @@ export default async function NovaCampanhaPage() {
             <input className="input" id="assinaturas_meta" min="0" name="assinaturas_meta" type="number" />
           </div>
         </div>
-        <div className="field">
-          <label htmlFor="texto_form">Texto do botão do formulário</label>
-          <input className="input" defaultValue="Assinar agora" id="texto_form" name="texto_form" />
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="texto_form">Texto de apoio do contador</label>
+            <input
+              className="input"
+              id="texto_form"
+              maxLength={200}
+              name="texto_form"
+              placeholder="Ex.: Contra a máfia dos flanelinhas"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="texto_dot">Texto ao lado do indicador</label>
+            <input
+              className="input"
+              defaultValue="Assine agora"
+              id="texto_dot"
+              maxLength={80}
+              name="texto_dot"
+            />
+          </div>
+        </div>
+        <div className="field campaign-color-field">
+          <label htmlFor="cor_destaque">Cor do destaque principal</label>
+          <input
+            className="campaign-color-input"
+            defaultValue="#E05A5A"
+            id="cor_destaque"
+            name="cor_destaque"
+            type="color"
+          />
         </div>
         <div className="two-cols">
           <div className="field">

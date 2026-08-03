@@ -1,4 +1,10 @@
-import { CampaignInteractions } from "@/components/CampaignInteractions";
+import type { CSSProperties } from "react";
+import Image from "next/image";
+import { PenLine } from "lucide-react";
+import {
+  CampaignHeadline,
+  splitCandidateName
+} from "@/components/CampaignHeadline";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import { getPublicCampaignView } from "@/lib/public-campaign";
@@ -6,6 +12,18 @@ import { countAssinaturasByCampanha } from "@/lib/supabase";
 import { isUuid } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
+
+function CampaignUnavailable({ description, title }: { description: string; title: string }) {
+  return (
+    <main className="campaign-public-page">
+      <section className="campaign-unavailable">
+        <span>Abaixo-assinado</span>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </section>
+    </main>
+  );
+}
 
 export default async function FormularioPage({
   searchParams
@@ -15,14 +33,7 @@ export default async function FormularioPage({
   const { idCampanha } = await searchParams;
 
   if (!idCampanha) {
-    return (
-      <main className="formulario-page-legacy">
-        <div className="login-card">
-          <h1>Formulário indisponível</h1>
-          <p>O parâmetro idCampanha é obrigatório.</p>
-        </div>
-      </main>
-    );
+    return <CampaignUnavailable description="Confira o endereço recebido." title="Formulário indisponível" />;
   }
 
   return <FormularioContent idCampanha={idCampanha} />;
@@ -30,14 +41,7 @@ export default async function FormularioPage({
 
 export async function FormularioContent({ idCampanha }: { idCampanha: string }) {
   if (!isUuid(idCampanha)) {
-    return (
-      <main className="formulario-page-legacy">
-        <div className="login-card">
-          <h1>Campanha não encontrada</h1>
-          <p>Confira o link e tente novamente.</p>
-        </div>
-      </main>
-    );
+    return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
   }
 
   const [campanha, assinaturas] = await Promise.all([
@@ -46,57 +50,93 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
   ]);
 
   if (!campanha) {
-    return (
-      <main className="formulario-page-legacy">
-        <div className="login-card">
-          <h1>Campanha não encontrada</h1>
-          <p>Confira o link e tente novamente.</p>
-        </div>
-      </main>
-    );
+    return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
   }
 
-  const { css, imagePreloads, markup, stylesheets } = campanha.document;
+  const candidateName = campanha.candidato?.nome || campanha.titulo || "Campanha Cidadã";
+  const [candidateFirstLine, candidateSecondLine] = splitCandidateName(candidateName);
+  const accent = /^#[0-9A-F]{6}$/i.test(campanha.corDestaque || "")
+    ? campanha.corDestaque
+    : "#E05A5A";
+  const description =
+    campanha.descricao || campanha.titulo || "Participe deste abaixo-assinado";
+  const candidateMeta = [campanha.candidato?.cargo, campanha.candidato?.partido]
+    .filter(Boolean)
+    .join(" · ");
+  const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
+    .filter(Boolean)
+    .join(" / ");
 
   return (
-    <>
-      {imagePreloads.map(({ href, media }) => (
-        <link as="image" href={href} key={href} media={media} rel="preload" />
-      ))}
-      {stylesheets.map((href) => (
-        <link href={href} key={href} precedence="campaign" rel="stylesheet" />
-      ))}
-      {css ? <style dangerouslySetInnerHTML={{ __html: css }} precedence="campaign" /> : null}
+    <main
+      className="campaign-public-page"
+      style={{ "--campaign-accent": accent } as CSSProperties}
+    >
+      <section className="campaign-hero">
+        <Image
+          alt=""
+          className="campaign-hero-image"
+          fill
+          priority
+          sizes="100vw"
+          src="/images/petition-hero.webp"
+        />
+        <div className="campaign-hero-overlay" />
 
-      <main className="formulario-page-legacy">
-        <div className="pagina-campanha">
-          {markup ? (
-            <div className="conteudo-campanha" dangerouslySetInnerHTML={{ __html: markup }} />
-          ) : (
-            <div className="conteudo-campanha">
-              <div className="fallback-campanha">
-                <strong>Sem conteúdo HTML</strong>
-              </div>
+        <nav className="campaign-nav" aria-label="Campanha">
+          <div className="campaign-candidate-name">
+            <span>{candidateFirstLine}</span>
+            <strong>{candidateSecondLine}</strong>
+          </div>
+          <a className="campaign-nav-cta" href="#assinar">
+            <PenLine aria-hidden="true" size={17} />
+            Assinar
+          </a>
+        </nav>
+
+        <div className="campaign-hero-content">
+          <article className="campaign-copy">
+            <div className="campaign-badge">
+              <span aria-hidden="true" className="campaign-badge-dot" />
+              <span>{campanha.textoDot || "Assine agora"}</span>
             </div>
-          )}
 
-          <div className="formulario-lateral">
+            <h1 className="campaign-headline">
+              <CampaignHeadline
+                primary={campanha.destaquePrimario}
+                secondary={campanha.destaqueSecundario}
+                text={description}
+              />
+            </h1>
+
+            {campanha.titulo && campanha.titulo !== description ? (
+              <p className="campaign-subtext">{campanha.titulo}</p>
+            ) : null}
+
+            {candidateMeta || location ? (
+              <div className="campaign-candidate-meta">
+                {candidateMeta ? <strong>{candidateMeta}</strong> : null}
+                {location ? <span>{location}</span> : null}
+              </div>
+            ) : null}
+          </article>
+
+          <aside className="campaign-form-column" id="assinar">
             <PublicSignatureForm
               campanhaId={campanha.id}
               candidatoId={campanha.candidatoId}
               meta={campanha.assinaturasMeta}
-              textoBotao={campanha.textoBotao}
+              textoDot={campanha.textoDot}
+              textoForm={campanha.textoForm || campanha.titulo}
               totalAssinaturas={assinaturas}
             />
-          </div>
+          </aside>
         </div>
+      </section>
 
-        <footer className="formulario-footer">
-          <PoliticasRodape />
-        </footer>
-
-        <CampaignInteractions />
-      </main>
-    </>
+      <footer className="campaign-footer">
+        <PoliticasRodape />
+      </footer>
+    </main>
   );
 }

@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
   campanhaId: string;
   candidatoId?: string | null;
-  textoBotao?: string | null;
+  textoDot?: string | null;
+  textoForm?: string | null;
   totalAssinaturas: number;
   meta?: number | null;
 };
@@ -73,7 +74,8 @@ function validCep(value: string) {
 export function PublicSignatureForm({
   campanhaId,
   candidatoId,
-  textoBotao,
+  textoDot,
+  textoForm,
   totalAssinaturas,
   meta
 }: Props) {
@@ -206,10 +208,10 @@ export function PublicSignatureForm({
         <div className="card-header">
           <div className="card-live">
             <span className="card-live-dot" />
-            Assine agora
+            {textoDot || "Assine agora"}
           </div>
 
-          <div className="card-title">{textoBotao || "Texto Apoio"}</div>
+          <div className="card-title">{textoForm || "Texto Apoio"}</div>
 
           <div className="card-desc">
             Precisamos de <strong>{metaValue.toLocaleString("pt-BR")} assinaturas</strong> para

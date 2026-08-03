@@ -4,7 +4,10 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
-import { campaignCacheTag } from "@/lib/public-campaign";
+import {
+  campaignCacheTag,
+  publicCandidatesCacheTag
+} from "@/lib/public-campaign";
 import {
   createCampanha,
   createCandidato,
@@ -59,6 +62,12 @@ function nullableDate(formData: FormData, name: string) {
   return value;
 }
 
+function campaignColor(formData: FormData) {
+  const value = text(formData, "cor_destaque") || "#E05A5A";
+  if (!/^#[0-9A-F]{6}$/i.test(value)) throw new Error("Cor invalida.");
+  return value.toUpperCase();
+}
+
 function requiredUuid(formData: FormData, name = "id") {
   const value = text(formData, name);
   if (!isUuid(value)) throw new Error("Identificador invalido.");
@@ -81,6 +90,7 @@ export async function createCandidatoAction(formData: FormData) {
     estado: nullableText(formData, "estado", 60),
     municipio: nullableText(formData, "municipio", 120)
   });
+  updateTag(publicCandidatesCacheTag);
   revalidatePath("/candidatos");
   redirect("/candidatos");
 }
@@ -95,6 +105,7 @@ export async function updateCandidatoAction(formData: FormData) {
     estado: nullableText(formData, "estado", 60),
     municipio: nullableText(formData, "municipio", 120)
   });
+  updateTag(publicCandidatesCacheTag);
   revalidatePath("/candidatos");
   redirect("/candidatos");
 }
@@ -102,6 +113,7 @@ export async function updateCandidatoAction(formData: FormData) {
 export async function deleteCandidatoAction(formData: FormData) {
   await requireAdmin();
   await deleteCandidato(requiredUuid(formData));
+  updateTag(publicCandidatesCacheTag);
   revalidatePath("/candidatos");
 }
 
@@ -115,7 +127,11 @@ export async function createCampanhaAction(formData: FormData) {
     inicio_em: nullableDate(formData, "inicio_em"),
     fim_em: nullableDate(formData, "fim_em"),
     assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
-    texto_form: nullableText(formData, "texto_form", 200)
+    texto_form: nullableText(formData, "texto_form", 200),
+    texto_dot: nullableText(formData, "texto_dot", 80),
+    destaque_primario: nullableText(formData, "destaque_primario", 160),
+    destaque_secundario: nullableText(formData, "destaque_secundario", 160),
+    cor_destaque: campaignColor(formData)
   });
   revalidatePath("/campanhas");
   redirect("/campanhas");
@@ -132,7 +148,11 @@ export async function updateCampanhaAction(formData: FormData) {
     inicio_em: nullableDate(formData, "inicio_em"),
     fim_em: nullableDate(formData, "fim_em"),
     assinaturas_meta: nullableNumber(formData, "assinaturas_meta", 1_000_000_000),
-    texto_form: nullableText(formData, "texto_form", 200)
+    texto_form: nullableText(formData, "texto_form", 200),
+    texto_dot: nullableText(formData, "texto_dot", 80),
+    destaque_primario: nullableText(formData, "destaque_primario", 160),
+    destaque_secundario: nullableText(formData, "destaque_secundario", 160),
+    cor_destaque: campaignColor(formData)
   });
   updateTag(campaignCacheTag(id));
   revalidatePath("/campanhas");

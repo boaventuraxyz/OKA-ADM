@@ -46,14 +46,37 @@ export default async function EditarCampanhaPage({
           />
         </div>
         <div className="field">
-          <label htmlFor="descricao">Descrição</label>
+          <label htmlFor="descricao">Descrição principal</label>
           <textarea
             className="textarea"
             defaultValue={campanha.descricao ?? ""}
             id="descricao"
+            maxLength={5000}
             name="descricao"
-            rows={3}
+            rows={4}
           />
+        </div>
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="destaque_primario">Trecho da descrição em destaque</label>
+            <input
+              className="input"
+              defaultValue={campanha.destaque_primario ?? ""}
+              id="destaque_primario"
+              maxLength={160}
+              name="destaque_primario"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="destaque_secundario">Trecho da descrição em amarelo</label>
+            <input
+              className="input"
+              defaultValue={campanha.destaque_secundario ?? ""}
+              id="destaque_secundario"
+              maxLength={160}
+              name="destaque_secundario"
+            />
+          </div>
         </div>
         <div className="two-cols">
           <div className="field">
@@ -84,13 +107,36 @@ export default async function EditarCampanhaPage({
             />
           </div>
         </div>
-        <div className="field">
-          <label htmlFor="texto_form">Texto do botão do formulário</label>
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="texto_form">Texto de apoio do contador</label>
+            <input
+              className="input"
+              defaultValue={campanha.texto_form ?? ""}
+              id="texto_form"
+              maxLength={200}
+              name="texto_form"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="texto_dot">Texto ao lado do indicador</label>
+            <input
+              className="input"
+              defaultValue={campanha.texto_dot ?? "Assine agora"}
+              id="texto_dot"
+              maxLength={80}
+              name="texto_dot"
+            />
+          </div>
+        </div>
+        <div className="field campaign-color-field">
+          <label htmlFor="cor_destaque">Cor do destaque principal</label>
           <input
-            className="input"
-            defaultValue={campanha.texto_form ?? "Assinar agora"}
-            id="texto_form"
-            name="texto_form"
+            className="campaign-color-input"
+            defaultValue={campanha.cor_destaque ?? "#E05A5A"}
+            id="cor_destaque"
+            name="cor_destaque"
+            type="color"
           />
         </div>
         <div className="field">

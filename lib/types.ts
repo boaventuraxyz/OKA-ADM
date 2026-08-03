@@ -19,9 +19,12 @@ export type Campanha = {
   fim_em: string | null;
   criado_em: string | null;
   id_planilha: string | null;
-  html: string | null;
   assinaturas_meta: number | null;
   texto_form: string | null;
+  texto_dot: string | null;
+  destaque_primario: string | null;
+  destaque_secundario: string | null;
+  cor_destaque: string | null;
 };
 
 export type Assinatura = {
