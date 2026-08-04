@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { deleteCampanhaAction, toggleCampanhaAction } from "@/app/actions";
+import { CampaignImportDialog } from "@/components/CampaignImportDialog";
 import { DownloadLink } from "@/components/DownloadLink";
 import { PendingLink } from "@/components/PendingLink";
 import { PendingSubmitButton } from "@/components/PendingSubmitButton";
@@ -31,14 +32,17 @@ export default async function CampanhasPage() {
           <h1>Campanhas</h1>
           <p className="page-toolbar-subtitle">Gerencie abaixo-assinados e formulários públicos.</p>
         </div>
-        <PendingLink
-          className="button primary"
-          href="/campanhas/novo"
-          pendingLabel="Abrindo..."
-        >
-          <Plus size={16} />
-          Nova campanha
-        </PendingLink>
+        <div className="page-actions campaign-toolbar-actions">
+          <CampaignImportDialog />
+          <PendingLink
+            className="button primary"
+            href="/campanhas/novo"
+            pendingLabel="Abrindo..."
+          >
+            <Plus size={16} />
+            Nova campanha
+          </PendingLink>
+        </div>
       </div>
 
       <div className="panel">

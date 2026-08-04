@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-import Image from "next/image";
 import { PenLine } from "lucide-react";
+import Image from "next/image";
 import {
   CampaignHeadline,
   splitCandidateName
@@ -73,15 +73,20 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
       style={{ "--campaign-accent": accent } as CSSProperties}
     >
       <section className="campaign-hero">
-        <Image
-          alt=""
-          className="campaign-hero-image"
-          fill
-          priority
-          sizes="100vw"
-          src="/images/petition-hero.webp"
-        />
-        <div className="campaign-hero-overlay" />
+        {campanha.imagemFundoVersao ? (
+          <>
+            <Image
+              alt=""
+              className="campaign-hero-image"
+              fill
+              priority
+              sizes="100vw"
+              src={`/api/campanhas/${campanha.id}/imagem?v=${campanha.imagemFundoVersao}`}
+              unoptimized
+            />
+            <div className="campaign-hero-overlay" />
+          </>
+        ) : null}
 
         <nav className="campaign-nav" aria-label="Campanha">
           <div className="campaign-candidate-name">
@@ -124,7 +129,6 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <aside className="campaign-form-column" id="assinar">
             <PublicSignatureForm
               campanhaId={campanha.id}
-              candidatoId={campanha.candidatoId}
               meta={campanha.assinaturasMeta}
               textoDot={campanha.textoDot}
               textoForm={campanha.textoForm || campanha.titulo}

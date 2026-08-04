@@ -4,6 +4,8 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
+import { parseCampaignBackground } from "@/lib/campaign-background";
+import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
 import {
   campaignCacheTag,
   publicCandidatesCacheTag
@@ -69,7 +71,31 @@ function campaignColor(formData: FormData) {
   return value.toUpperCase();
 }
 
+class CampaignBackgroundInputError extends Error {}
+class CampaignRedirectInputError extends Error {}
+
+function campaignBackground(formData: FormData) {
+  const value = formData.get("imagem_fundo");
+  if (typeof value !== "string" || value.length === 0) return null;
+  if (!parseCampaignBackground(value)) {
+    throw new CampaignBackgroundInputError("Imagem de fundo invalida.");
+  }
+  return value;
+}
+
+function campaignRedirectUrl(formData: FormData) {
+  const raw = text(formData, "url_formulario");
+  if (!raw) return null;
+  const value = normalizeCampaignWhatsappUrl(raw);
+  if (value === null) {
+    throw new CampaignRedirectInputError("Link do WhatsApp invalido.");
+  }
+  return value;
+}
+
 function campaignSaveErrorPath(error: unknown, path: string) {
+  if (error instanceof CampaignBackgroundInputError) return `${path}?erro=imagem`;
+  if (error instanceof CampaignRedirectInputError) return `${path}?erro=whatsapp`;
   if (!(error instanceof SupabaseRequestError)) return null;
   if (error.code === "PGRST204") return `${path}?erro=estrutura`;
   if (error.status === 400 || error.status === 409) return `${path}?erro=dados`;
@@ -141,7 +167,9 @@ export async function createCampanhaAction(formData: FormData) {
       texto_dot: nullableText(formData, "texto_dot", 80),
       destaque_primario: nullableText(formData, "destaque_primario", 160),
       destaque_secundario: nullableText(formData, "destaque_secundario", 160),
-      cor_destaque: campaignColor(formData)
+      cor_destaque: campaignColor(formData),
+      imagem_fundo: campaignBackground(formData),
+      url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {
     const errorPath = campaignSaveErrorPath(error, "/campanhas/novo");
@@ -168,7 +196,9 @@ export async function updateCampanhaAction(formData: FormData) {
       texto_dot: nullableText(formData, "texto_dot", 80),
       destaque_primario: nullableText(formData, "destaque_primario", 160),
       destaque_secundario: nullableText(formData, "destaque_secundario", 160),
-      cor_destaque: campaignColor(formData)
+      cor_destaque: campaignColor(formData),
+      imagem_fundo: campaignBackground(formData),
+      url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {
     const errorPath = campaignSaveErrorPath(error, `/campanhas/${id}/editar`);

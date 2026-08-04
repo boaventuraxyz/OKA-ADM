@@ -75,6 +75,22 @@ function invalidSignature(ip, origin = baseUrl) {
   });
 }
 
+function importRequest({ cookie, file = "id,titulo\n,Teste", origin = baseUrl }) {
+  const body = new FormData();
+  body.set("arquivo", new File([file], "campanhas.csv", { type: "text/csv" }));
+  body.set("modo", "preview");
+  return fetch(`${baseUrl}/api/campanhas/importar`, {
+    body,
+    headers: {
+      ...(cookie ? { Cookie: cookie } : {}),
+      Origin: origin,
+      "X-Vercel-Forwarded-For": "10.0.0.40"
+    },
+    method: "POST",
+    redirect: "manual"
+  });
+}
+
 try {
   await waitForServer();
 
@@ -198,11 +214,27 @@ try {
   });
   assert(crossOriginLogout.status === 403, "Cross-origin logout was accepted.");
 
+  const anonymousImport = await importRequest({});
+  assert(anonymousImport.status === 401, "Anonymous campaign import was accepted.");
+
+  const crossOriginImport = await importRequest({
+    cookie: sessionCookie,
+    origin: "https://evil.example"
+  });
+  assert(crossOriginImport.status === 403, "Cross-origin campaign import was accepted.");
+
+  const oversizedImport = await importRequest({
+    cookie: sessionCookie,
+    file: "x".repeat(2 * 1024 * 1024 + 64_001)
+  });
+  assert(oversizedImport.status === 413, "Oversized campaign import was accepted.");
+
   console.log("Security headers: OK");
   console.log("Login origin, body and rate-limit controls: OK");
   console.log("Signed session flags and tamper rejection: OK");
   console.log("Public submission origin and rate-limit controls: OK");
   console.log("Admin logout origin controls: OK");
+  console.log("Campaign import session, origin and size controls: OK");
 } finally {
   server.kill();
 }

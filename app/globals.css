@@ -510,6 +510,167 @@ html.route-loading .route-progress {
   padding: 0;
 }
 
+.campaign-import-dialog {
+  width: min(680px, calc(100% - 32px));
+  max-height: min(760px, calc(100svh - 48px));
+  overflow: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  color: var(--text);
+  padding: 0;
+}
+
+.campaign-import-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.campaign-import-dialog .button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.import-dialog-header,
+.import-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.import-dialog-header {
+  border-bottom: 1px solid var(--line);
+}
+
+.import-dialog-header h2,
+.import-dialog-header p {
+  margin: 0;
+}
+
+.import-dialog-header h2 {
+  font-size: 19px;
+}
+
+.import-dialog-header p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.import-dialog-body {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.import-model-row,
+.import-file-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.import-model-row {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+}
+
+.import-model-row > div {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.import-model-row strong {
+  font-size: 13px;
+}
+
+.import-model-row span,
+.import-file-name {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.import-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-summary {
+  display: grid;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.import-summary > div {
+  display: grid;
+  gap: 2px;
+  padding: 14px;
+  text-align: center;
+}
+
+.import-summary > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.import-summary strong {
+  font-size: 22px;
+}
+
+.import-summary span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.import-errors {
+  max-height: 220px;
+  overflow: auto;
+  border-left: 3px solid var(--danger);
+  margin-top: 16px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  padding: 12px 14px;
+  font-size: 12px;
+}
+
+.import-errors-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 750;
+}
+
+.import-errors ul {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding-left: 19px;
+}
+
+.import-dialog-body .alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.alert.success {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.import-dialog-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+}
+
 .form-grid {
   display: grid;
   gap: 16px;
@@ -579,6 +740,62 @@ html.route-loading .route-progress {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(20, 83, 45, 0.12);
   outline: none;
+}
+
+.campaign-background-control {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.campaign-background-preview {
+  position: relative;
+  width: 180px;
+  aspect-ratio: 16 / 9;
+  flex: 0 0 180px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #eef1f5;
+}
+
+.campaign-background-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.campaign-background-empty {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.campaign-background-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.campaign-background-actions .button {
+  cursor: pointer;
+}
+
+.campaign-background-actions .button[aria-disabled="true"] {
+  cursor: wait;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.campaign-background-error {
+  margin: 8px 0 0;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .checkbox-row {
@@ -800,6 +1017,20 @@ html.route-loading .route-progress {
 }
 
 @media (max-width: 600px) {
+  .campaign-background-control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .campaign-background-preview {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .campaign-background-actions .button:not(.icon) {
+    flex: 1;
+  }
+
   .politicas-rodape .pol-conteudo {
     max-height: 320px;
     padding: 20px 18px;
@@ -819,6 +1050,31 @@ html.route-loading .route-progress {
   .page-actions > *,
   .button {
     width: 100%;
+  }
+
+  .page-actions > .campaign-import-dialog {
+    width: calc(100% - 16px);
+    max-height: calc(100svh - 16px);
+  }
+
+  .campaign-import-dialog .button.icon {
+    width: 36px;
+    flex: 0 0 36px;
+  }
+
+  .import-model-row,
+  .import-file-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .import-model-row > svg {
+    display: none;
+  }
+
+  .import-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
   }
 
   .campaign-row {

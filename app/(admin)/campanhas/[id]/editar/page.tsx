@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { updateCampanhaAction } from "@/app/actions";
+import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 import { CampaignSaveAlert } from "@/components/CampaignSaveAlert";
+import { parseCampaignBackground } from "@/lib/campaign-background";
 import { toDateTimeLocal } from "@/lib/format";
 import { getCampanha, listCandidatosForSelect } from "@/lib/supabase";
 
@@ -28,8 +30,13 @@ export default async function EditarCampanhaPage({
     "texto_dot",
     "destaque_primario",
     "destaque_secundario",
-    "cor_destaque"
+    "cor_destaque",
+    "imagem_fundo",
+    "url_formulario"
   ].every((column) => Object.prototype.hasOwnProperty.call(campanha, column));
+  const backgroundValue = parseCampaignBackground(campanha.imagem_fundo)
+    ? campanha.imagem_fundo
+    : null;
 
   return (
     <>
@@ -152,13 +159,18 @@ export default async function EditarCampanhaPage({
             type="color"
           />
         </div>
+        <CampaignBackgroundField defaultValue={backgroundValue} />
         <div className="field">
-          <label htmlFor="url_formulario">URL do formulário</label>
+          <label htmlFor="url_formulario">Link do WhatsApp após a assinatura (opcional)</label>
           <input
+            autoComplete="url"
             className="input"
+            defaultValue={campanha.url_formulario ?? ""}
             id="url_formulario"
-            readOnly
-            value={`/formulario?idCampanha=${campanha.id}`}
+            maxLength={2048}
+            name="url_formulario"
+            placeholder="https://wa.me/5511999999999"
+            type="url"
           />
         </div>
         <div className="two-cols">

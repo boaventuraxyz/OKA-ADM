@@ -140,8 +140,21 @@ export function listCampanhasDashboard() {
   );
 }
 
+export function listCampanhasForImport() {
+  return supabaseFetch<Campanha[]>(
+    "/campanhas?select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,assinaturas_meta,texto_form,texto_dot,destaque_primario,destaque_secundario,cor_destaque,url_formulario&order=criado_em.desc"
+  );
+}
+
 export async function getCampanha(id: string) {
   const rows = await supabaseFetch<Campanha[]>(`/campanhas?id=eq.${qs(id)}&select=*`);
+  return rows[0] ?? null;
+}
+
+export async function getCampanhaBackground(id: string) {
+  const rows = await supabaseFetch<Pick<Campanha, "id" | "imagem_fundo">[]>(
+    `/campanhas?id=eq.${qs(id)}&select=id,imagem_fundo`
+  );
   return rows[0] ?? null;
 }
 
@@ -154,9 +167,9 @@ export async function getCampanhaTitle(id: string) {
 
 export async function getCampanhaSubmissionConfig(id: string) {
   const rows = await supabaseFetch<
-    Pick<Campanha, "ativa" | "fim_em" | "id" | "inicio_em">[]
+    Pick<Campanha, "ativa" | "fim_em" | "id" | "inicio_em" | "url_formulario">[]
   >(
-    `/campanhas?id=eq.${qs(id)}&select=id,ativa,inicio_em,fim_em`
+    `/campanhas?id=eq.${qs(id)}&select=id,ativa,inicio_em,fim_em,url_formulario`
   );
   return rows[0] ?? null;
 }
@@ -183,6 +196,16 @@ export async function deleteCampanha(id: string) {
 
 export function listCandidatos() {
   return supabaseFetch<Candidato[]>("/candidatos?select=*&order=criado_em.desc");
+}
+
+export function upsertCampanhas(payloads: Array<Partial<Campanha>>) {
+  return supabaseFetch<Campanha[]>("/campanhas?on_conflict=id", {
+    method: "POST",
+    body: JSON.stringify(payloads),
+    headers: {
+      Prefer: "resolution=merge-duplicates,missing=default,return=representation"
+    }
+  });
 }
 
 export function countCandidatos() {

@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
+import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   isSameOrigin,
@@ -157,6 +158,7 @@ export async function POST(request: Request) {
   if (!campanha || !campaignAcceptsSignatures(campanha)) {
     return jsonError("Esta campanha nao esta recebendo assinaturas.", 409);
   }
+  const redirectUrl = normalizeCampaignWhatsappUrl(campanha.url_formulario);
 
   const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const realIp = request.headers.get("x-real-ip");
@@ -185,7 +187,7 @@ export async function POST(request: Request) {
   revalidateTag(campaignSignaturesCacheTag(campanhaId), { expire: 0 });
 
   return NextResponse.json(
-    { sucesso: true },
+    { redirectUrl, sucesso: true },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

@@ -25,6 +25,7 @@ export type Campanha = {
   destaque_primario: string | null;
   destaque_secundario: string | null;
   cor_destaque: string | null;
+  imagem_fundo: string | null;
 };
 
 export type Assinatura = {

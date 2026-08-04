@@ -1,6 +1,7 @@
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { createCampanhaAction } from "@/app/actions";
+import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 import { CampaignSaveAlert } from "@/components/CampaignSaveAlert";
 import { listCandidatosForSelect } from "@/lib/supabase";
 
@@ -110,6 +111,19 @@ export default async function NovaCampanhaPage({
             id="cor_destaque"
             name="cor_destaque"
             type="color"
+          />
+        </div>
+        <CampaignBackgroundField />
+        <div className="field">
+          <label htmlFor="url_formulario">Link do WhatsApp após a assinatura (opcional)</label>
+          <input
+            autoComplete="url"
+            className="input"
+            id="url_formulario"
+            maxLength={2048}
+            name="url_formulario"
+            placeholder="https://wa.me/5511999999999"
+            type="url"
           />
         </div>
         <div className="two-cols">

@@ -3,6 +3,10 @@ const messages: Record<string, string> = {
     "O Supabase recusou a gravação. Confira a SUPABASE_SECRET_KEY configurada na Vercel.",
   dados:
     "O Supabase recusou os dados da campanha. Revise os valores e tente novamente.",
+  imagem:
+    "A foto de fundo e invalida ou ficou muito grande. Selecione outra imagem e tente novamente.",
+  whatsapp:
+    "Informe um link HTTPS valido do WhatsApp, como wa.me ou chat.whatsapp.com.",
   estrutura:
     "A estrutura da tabela campanhas está desatualizada. Execute supabase/campaign-template.sql no SQL Editor do Supabase e tente novamente."
 };

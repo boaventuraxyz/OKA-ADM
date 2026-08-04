@@ -41,7 +41,8 @@
   --campaign-muted: #91a0ba;
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--campaign-dark);
+  background-color: var(--campaign-dark);
+  background-image: none;
   color: var(--campaign-text);
   font-family: "Montserrat", sans-serif;
 }
@@ -51,7 +52,8 @@
   isolation: isolate;
   min-height: 100svh;
   overflow: hidden;
-  background: var(--campaign-dark);
+  background-color: var(--campaign-dark);
+  background-image: none;
 }
 
 .campaign-hero-image {

@@ -56,7 +56,7 @@ const privatePageHeaders = [
 const nextConfig = {
   experimental: {
     serverActions: {
-      bodySizeLimit: "512kb"
+      bodySizeLimit: "2mb"
     }
   },
   async headers() {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { parseCampaignBackground } from "@/lib/campaign-background";
 import { getCampanha, getCandidato } from "@/lib/supabase";
 
 export const campaignCacheTag = (id: string) => `campanha-publica:${id}`;
@@ -14,10 +15,10 @@ export function getPublicCampaignView(id: string) {
       const candidato = campanha.candidato_id
         ? await getCandidato(campanha.candidato_id)
         : null;
+      const background = parseCampaignBackground(campanha.imagem_fundo);
 
       return {
         assinaturasMeta: campanha.assinaturas_meta,
-        candidatoId: campanha.candidato_id,
         candidato: candidato
           ? {
               cargo: candidato.cargo,
@@ -32,6 +33,7 @@ export function getPublicCampaignView(id: string) {
         destaquePrimario: campanha.destaque_primario,
         destaqueSecundario: campanha.destaque_secundario,
         id: campanha.id,
+        imagemFundoVersao: background?.version ?? null,
         textoDot: campanha.texto_dot,
         textoForm: campanha.texto_form,
         titulo: campanha.titulo

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 
 type Props = {
   campanhaId: string;
-  candidatoId?: string | null;
   textoDot?: string | null;
   textoForm?: string | null;
   totalAssinaturas: number;
@@ -73,7 +72,6 @@ function validCep(value: string) {
 
 export function PublicSignatureForm({
   campanhaId,
-  candidatoId,
   textoDot,
   textoForm,
   totalAssinaturas,
@@ -88,23 +86,24 @@ export function PublicSignatureForm({
   const [complemento, setComplemento] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
+  const [currentTotal, setCurrentTotal] = useState(totalAssinaturas);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ type: "s" | "e"; text: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const cepRequest = useRef<AbortController | null>(null);
   const toastTimer = useRef<number | null>(null);
-  const reloadTimer = useRef<number | null>(null);
+  const redirectTimer = useRef<number | null>(null);
 
   const metaValue = meta ?? 0;
-  const restante = Math.max(metaValue - totalAssinaturas, 0);
+  const restante = Math.max(metaValue - currentTotal, 0);
   const progresso =
-    metaValue > 0 ? Math.min((totalAssinaturas / metaValue) * 100, 100) : 0;
+    metaValue > 0 ? Math.min((currentTotal / metaValue) * 100, 100) : 0;
 
   useEffect(() => {
     return () => {
       cepRequest.current?.abort();
       if (toastTimer.current) window.clearTimeout(toastTimer.current);
-      if (reloadTimer.current) window.clearTimeout(reloadTimer.current);
+      if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
     };
   }, []);
 
@@ -160,7 +159,7 @@ export function PublicSignatureForm({
 
     setBusy(true);
 
-    const formData = new FormData();
+    const formData = new FormData(event.currentTarget);
     formData.set("campanha_id", campanhaId);
     formData.set("nome_assinante", nome);
     formData.set("numero_assinante", telefone);
@@ -171,7 +170,6 @@ export function PublicSignatureForm({
     formData.set("cidade_assinante", cidade);
     formData.set("estado_assinante", estado);
     formData.set("complemento_assinante", complemento);
-    formData.set("website", "");
 
     try {
       const response = await fetch("/api/assinaturas", {
@@ -179,22 +177,37 @@ export function PublicSignatureForm({
         body: formData
       });
 
-      if (!response.ok) throw new Error("Erro ao salvar");
+      const result = (await response.json()) as {
+        erro?: string;
+        redirectUrl?: string | null;
+        sucesso?: boolean;
+      };
+      if (!response.ok || !result.sucesso) {
+        throw new Error(result.erro || "Erro ao salvar");
+      }
 
       showToast("Assinatura realizada com sucesso!", "s");
-      reloadTimer.current = window.setTimeout(() => {
-        if (candidatoId === "f037f25c-cdef-403a-a578-24e4fa863a3d") {
-          window.open(
-            "https://chat.whatsapp.com/C3ShiDCMTdtKlzWVmw9AfP?s=cl&p=a&mlu=1",
-            "_blank",
-            "noopener,noreferrer"
-          );
-        }
-
-        window.location.reload();
-      }, 1500);
-    } catch {
-      showToast("Erro ao enviar formulário", "e");
+      if (result.redirectUrl) {
+        const target = result.redirectUrl;
+        redirectTimer.current = window.setTimeout(() => {
+          window.location.assign(target);
+        }, 700);
+      } else {
+        setCurrentTotal((value) => value + 1);
+        setNome("");
+        setTelefone("");
+        setEmail("");
+        setCep("");
+        setRua("");
+        setNumero("");
+        setComplemento("");
+        setCidade("");
+        setEstado("");
+        setErrors({});
+        setBusy(false);
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao enviar formulário", "e");
       setBusy(false);
     }
   }
@@ -202,9 +215,6 @@ export function PublicSignatureForm({
   return (
     <>
       <div className="form-card">
-        <input id="campanhaID" type="hidden" value={campanhaId} />
-        <input id="campanhaCandidatoID" type="hidden" value={candidatoId ?? ""} />
-
         <div className="card-header">
           <div className="card-live">
             <span className="card-live-dot" />
@@ -221,7 +231,7 @@ export function PublicSignatureForm({
 
         <div className="live-count-display">
           <div className="live-num" id="liveNum">
-            {totalAssinaturas.toLocaleString("pt-BR")}
+            {currentTotal.toLocaleString("pt-BR")}
           </div>
           <div className="live-pessoas">pessoas já assinaram</div>
           <div className="remaining-text" id="remainingText">
@@ -238,7 +248,7 @@ export function PublicSignatureForm({
             {Math.floor(progresso)}%
           </span>
           <span className="progress-count" id="progressCount">
-            {totalAssinaturas.toLocaleString("pt-BR")}{" "}
+            {currentTotal.toLocaleString("pt-BR")}{" "}
             <span>/ Meta: {metaValue.toLocaleString("pt-BR")}</span>
           </span>
         </div>
