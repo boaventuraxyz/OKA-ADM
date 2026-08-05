@@ -70,7 +70,7 @@ export function CampaignThemeFields({
         />
         <div className="field">
           <label htmlFor="texto_contexto">
-            Tema 2 - 1. Texto da seção &quot;O caso e a proposta&quot;
+            {"Tema 2 - 1. Texto da seção \"O caso e a proposta\" (aceita <b>negrito</b>)"}
           </label>
           <textarea
             className="textarea"
@@ -83,7 +83,9 @@ export function CampaignThemeFields({
           />
         </div>
         <div className="field">
-          <label htmlFor="texto_proposta">Tema 2 - 2. Texto dentro da caixa destacada</label>
+          <label htmlFor="texto_proposta">
+            {"Tema 2 - 2. Texto dentro da caixa destacada (aceita <b>negrito</b>)"}
+          </label>
           <textarea
             className="textarea"
             defaultValue={defaultProposal ?? ""}
@@ -95,7 +97,9 @@ export function CampaignThemeFields({
           />
         </div>
         <div className="field">
-          <label htmlFor="texto_conclusao">Tema 2 - 3. Texto após a caixa destacada</label>
+          <label htmlFor="texto_conclusao">
+            {"Tema 2 - 3. Texto após a caixa destacada (aceita <b>negrito</b>)"}
+          </label>
           <textarea
             className="textarea"
             defaultValue={defaultConclusion ?? ""}

@@ -210,6 +210,12 @@
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.42);
 }
 
+.campaign-subtext b,
+.campaign-subtext strong {
+  color: #fff;
+  font-weight: 700;
+}
+
 .campaign-candidate-meta {
   display: flex;
   flex-wrap: wrap;
@@ -661,6 +667,18 @@
   font-size: 17px;
   line-height: 1.55;
   white-space: pre-line;
+}
+
+.campaign-theme2-subhead b,
+.campaign-theme2-subhead strong,
+.campaign-theme2-context-text b,
+.campaign-theme2-context-text strong,
+.campaign-theme2-conclusion b,
+.campaign-theme2-conclusion strong,
+.campaign-theme2-proposal-text b,
+.campaign-theme2-proposal-text strong {
+  color: var(--theme2-ink);
+  font-weight: 600;
 }
 
 .campaign-theme2-proposal {

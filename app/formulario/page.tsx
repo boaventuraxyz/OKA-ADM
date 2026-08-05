@@ -5,6 +5,7 @@ import {
   CampaignHeadline,
   splitCandidateName
 } from "@/components/CampaignHeadline";
+import { CampaignRichText } from "@/components/CampaignRichText";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import { getPublicCampaignView } from "@/lib/public-campaign";
@@ -101,7 +102,9 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
                 {campanha.textoDot || "Mobilização cidadã"}
               </span>
               <h1>{title}</h1>
-              {description ? <p>{description}</p> : null}
+              {description ? (
+                <CampaignRichText className="campaign-theme2-subhead" text={description} />
+              ) : null}
               <a className="campaign-theme2-primary-cta" href="#assinar">
                 Quero assinar agora
                 <span aria-hidden="true">→</span>
@@ -127,31 +130,17 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <section className="campaign-theme2-context">
             <div className="campaign-theme2-wrap">
               <div className="campaign-theme2-kicker">O caso e a proposta</div>
-              {context
-                ? context
-                    .split(/\n\s*\n/)
-                    .filter(Boolean)
-                    .map((paragraph, index) => (
-                      <p className="campaign-theme2-context-text" key={`context-${index}`}>
-                        {paragraph}
-                      </p>
-                    ))
-                : null}
+              {context ? (
+                <CampaignRichText className="campaign-theme2-context-text" text={context} />
+              ) : null}
               {proposal ? (
                 <div className="campaign-theme2-proposal">
-                  <p>{proposal}</p>
+                  <CampaignRichText className="campaign-theme2-proposal-text" text={proposal} />
                 </div>
               ) : null}
-              {conclusion
-                ? conclusion
-                    .split(/\n\s*\n/)
-                    .filter(Boolean)
-                    .map((paragraph, index) => (
-                      <p className="campaign-theme2-conclusion" key={`conclusion-${index}`}>
-                        {paragraph}
-                      </p>
-                    ))
-                : null}
+              {conclusion ? (
+                <CampaignRichText className="campaign-theme2-conclusion" text={conclusion} />
+              ) : null}
             </div>
           </section>
         ) : null}
@@ -232,7 +221,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
             </h1>
 
             {description && description !== title ? (
-              <p className="campaign-subtext">{description}</p>
+              <CampaignRichText className="campaign-subtext" text={description} />
             ) : null}
 
             {candidateMeta || location ? (
