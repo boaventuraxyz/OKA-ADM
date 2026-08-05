@@ -882,6 +882,230 @@
   background: var(--theme2-paper);
 }
 
+.candidate-index-page {
+  --candidate-index-accent: #e05a5a;
+  --candidate-index-gold: #e8c84a;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: #0d111a;
+  color: #eef0f5;
+  font-family: "Montserrat", sans-serif;
+}
+
+.candidate-index-nav {
+  display: flex;
+  width: min(1120px, calc(100% - 64px));
+  min-height: 78px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  text-transform: uppercase;
+}
+
+.candidate-index-nav strong {
+  max-width: min(70vw, 620px);
+  color: #fff;
+  font-family: "Clash Display", sans-serif;
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+.candidate-index-nav span {
+  color: #91a0ba;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.candidate-index-header {
+  width: min(1120px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 68px 0 58px;
+}
+
+.candidate-index-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--candidate-index-accent);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.candidate-index-eyebrow span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--candidate-index-accent);
+  animation: campaignPulse 1.8s ease-in-out infinite;
+}
+
+.candidate-index-header h1 {
+  max-width: 900px;
+  margin: 19px 0 0;
+  color: #fff;
+  font-family: "Clash Display", sans-serif;
+  font-size: 56px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.candidate-index-header > p {
+  margin: 20px 0 0;
+  color: #aab5c9;
+  font-size: 17px;
+}
+
+.candidate-index-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 27px;
+  color: #91a0ba;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.candidate-index-meta strong {
+  color: var(--candidate-index-gold);
+}
+
+.candidate-index-campaigns {
+  width: min(1120px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 0 0 80px;
+}
+
+.candidate-index-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  padding-bottom: 16px;
+  color: var(--candidate-index-gold);
+}
+
+.candidate-index-section-title h2 {
+  margin: 0;
+  color: #fff;
+  font-family: "Clash Display", sans-serif;
+  font-size: 20px;
+}
+
+.candidate-index-section-title span {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border-radius: 50%;
+  background: rgba(232, 200, 74, 0.14);
+  color: var(--candidate-index-gold);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.candidate-index-list > a {
+  display: grid;
+  min-height: 116px;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #eef0f5;
+  padding: 24px 12px;
+  text-decoration: none;
+  transition: background 0.2s ease, padding 0.2s ease;
+}
+
+.candidate-index-list > a:hover {
+  background: rgba(255, 255, 255, 0.035);
+  padding-right: 20px;
+  padding-left: 20px;
+}
+
+.candidate-index-list > a > div {
+  min-width: 0;
+}
+
+.candidate-index-list span {
+  color: var(--candidate-index-accent);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.candidate-index-list h3 {
+  margin: 8px 0 0;
+  color: #fff;
+  font-family: "Clash Display", sans-serif;
+  font-size: 24px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.candidate-index-list svg {
+  color: var(--candidate-index-gold);
+}
+
+.candidate-index-empty {
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #91a0ba;
+  padding: 36px 12px;
+}
+
+.candidate-index-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #080d16;
+}
+
+.candidate-index-footer .politicas-rodape .pol-toggle {
+  color: rgba(232, 200, 74, 0.75);
+}
+
+.candidate-index-footer .politicas-rodape .pol-conteudo {
+  border-color: rgba(145, 160, 186, 0.2);
+  background: #111a2a;
+}
+
+.candidate-index-footer .politicas-rodape h1.pol-titulo,
+.candidate-index-footer .politicas-rodape h2 {
+  color: var(--candidate-index-gold);
+}
+
+.candidate-index-unavailable {
+  display: flex;
+  width: min(640px, calc(100% - 40px));
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.candidate-index-unavailable span {
+  color: var(--candidate-index-gold);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.candidate-index-unavailable h1 {
+  margin: 14px 0 0;
+  color: #fff;
+  font-family: "Clash Display", sans-serif;
+  font-size: 44px;
+}
+
+.candidate-index-unavailable p {
+  margin: 12px 0 0;
+  color: #91a0ba;
+}
+
 .campaign-unavailable {
   display: flex;
   width: min(640px, calc(100% - 40px));
@@ -1004,6 +1228,60 @@
 }
 
 @media (max-width: 600px) {
+  .candidate-index-nav,
+  .candidate-index-header,
+  .candidate-index-campaigns {
+    width: calc(100% - 36px);
+  }
+
+  .candidate-index-nav {
+    min-height: 70px;
+  }
+
+  .candidate-index-nav strong {
+    font-size: 15px;
+  }
+
+  .candidate-index-nav span {
+    font-size: 9px;
+  }
+
+  .candidate-index-header {
+    padding: 48px 0 44px;
+  }
+
+  .candidate-index-header h1 {
+    font-size: 36px;
+  }
+
+  .candidate-index-header > p {
+    font-size: 15px;
+  }
+
+  .candidate-index-campaigns {
+    padding-bottom: 56px;
+  }
+
+  .candidate-index-list > a {
+    min-height: 100px;
+    grid-template-columns: minmax(0, 1fr) 30px;
+    gap: 14px;
+    padding: 20px 4px;
+  }
+
+  .candidate-index-list > a:hover {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .candidate-index-list h3 {
+    font-size: 20px;
+  }
+
+  .candidate-index-unavailable h1 {
+    font-size: 34px;
+  }
+
   .campaign-theme2-topbar {
     padding: 16px 20px;
   }
@@ -1180,6 +1458,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .candidate-index-eyebrow span,
   .campaign-badge-dot,
   .form-card .card-live-dot {
     animation: none;

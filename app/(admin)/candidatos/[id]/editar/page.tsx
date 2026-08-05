@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { updateCandidatoAction } from "@/app/actions";
+import { CandidateSaveAlert } from "@/components/CandidateSaveAlert";
 import { getCandidato } from "@/lib/supabase";
 
 const estados = [
@@ -35,11 +36,14 @@ const estados = [
 ];
 
 export default async function EditarCandidatoPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ erro?: string }>;
 }) {
   const { id } = await params;
+  const { erro } = await searchParams;
   const candidato = await getCandidato(id);
   if (!candidato) notFound();
 
@@ -57,6 +61,7 @@ export default async function EditarCandidatoPage({
       </div>
 
       <form action={updateCandidatoAction} className="panel panel-padding form-grid">
+        <CandidateSaveAlert error={erro} />
         <input name="id" type="hidden" value={candidato.id} />
         <div className="field">
           <label htmlFor="nome">Nome</label>
@@ -114,6 +119,20 @@ export default async function EditarCandidatoPage({
               name="municipio"
             />
           </div>
+        </div>
+        <div className="field">
+          <label htmlFor="dominio_formularios">
+            Dominio dos formularios publicos (sem https://)
+          </label>
+          <input
+            className="input"
+            defaultValue={candidato.dominio_formularios ?? ""}
+            id="dominio_formularios"
+            inputMode="url"
+            maxLength={253}
+            name="dominio_formularios"
+            placeholder="tieminevoeiro.com"
+          />
         </div>
         <div className="page-actions">
           <button className="button primary" type="submit">

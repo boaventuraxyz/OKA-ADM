@@ -1153,3 +1153,12 @@ html.route-loading .route-progress {
     white-space: normal;
   }
 }
+.table-domain-link {
+  color: #155f35;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.table-domain-link:hover {
+  text-decoration: underline;
+}

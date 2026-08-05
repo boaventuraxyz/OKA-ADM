@@ -1,6 +1,12 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
+import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
+import {
+  candidateDomainMatches,
+  isPlatformHostname,
+  normalizeRequestHostname
+} from "@/lib/candidate-domain";
 import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import {
@@ -11,6 +17,7 @@ import {
 import {
   createAssinatura,
   getCampanhaSubmissionConfig,
+  getCandidato,
   SupabaseRequestError
 } from "@/lib/supabase";
 import { formText, isUuid, singleLine } from "@/lib/validation";
@@ -37,21 +44,6 @@ function validPhone(value: string) {
   }
   const ddd = Number(numbers.slice(0, 2));
   return ddd >= 11 && ddd <= 99 && (numbers.length === 10 || numbers[2] === "9");
-}
-
-function campaignAcceptsSignatures(campaign: {
-  ativa: boolean | null;
-  inicio_em: string | null;
-  fim_em: string | null;
-}) {
-  if (!campaign.ativa) return false;
-  const now = Date.now();
-  const startsAt = campaign.inicio_em ? Date.parse(campaign.inicio_em) : null;
-  const endsAt = campaign.fim_em ? Date.parse(campaign.fim_em) : null;
-  return (
-    (startsAt === null || (Number.isFinite(startsAt) && startsAt <= now)) &&
-    (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now))
-  );
 }
 
 export async function POST(request: Request) {
@@ -157,6 +149,23 @@ export async function POST(request: Request) {
   const campanha = await getCampanhaSubmissionConfig(campanhaId);
   if (!campanha || !campaignAcceptsSignatures(campanha)) {
     return jsonError("Esta campanha nao esta recebendo assinaturas.", 409);
+  }
+
+  const requestHostname = normalizeRequestHostname(
+    request.headers.get("host") ||
+      request.headers.get("x-forwarded-host") ||
+      new URL(request.url).host
+  );
+  if (!isPlatformHostname(requestHostname)) {
+    const candidato = campanha.candidato_id
+      ? await getCandidato(campanha.candidato_id)
+      : null;
+    if (
+      !candidato ||
+      !candidateDomainMatches(requestHostname, candidato.dominio_formularios)
+    ) {
+      return jsonError("Campanha nao encontrada neste dominio.", 404);
+    }
   }
   const redirectUrl = normalizeCampaignWhatsappUrl(campanha.url_formulario);
 

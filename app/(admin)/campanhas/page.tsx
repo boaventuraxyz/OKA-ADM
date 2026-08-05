@@ -13,6 +13,7 @@ import { CampaignImportDialog } from "@/components/CampaignImportDialog";
 import { DownloadLink } from "@/components/DownloadLink";
 import { PendingLink } from "@/components/PendingLink";
 import { PendingSubmitButton } from "@/components/PendingSubmitButton";
+import { publicCampaignHref } from "@/lib/candidate-domain";
 import { listCampanhas, listCandidatosForSelect } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +83,10 @@ export default async function CampanhasPage() {
                     <Link
                       aria-label="Abrir formulário público"
                       className="button icon"
-                      href={`/formulario?idCampanha=${campanha.id}`}
+                      href={publicCampaignHref(
+                        campanha.id,
+                        candidato?.dominio_formularios
+                      )}
                       target="_blank"
                       title="Abrir formulário público"
                     >

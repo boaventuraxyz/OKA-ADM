@@ -174,9 +174,12 @@ export async function getCampanhaTitle(id: string) {
 
 export async function getCampanhaSubmissionConfig(id: string) {
   const rows = await supabaseFetch<
-    Pick<Campanha, "ativa" | "fim_em" | "id" | "inicio_em" | "url_formulario">[]
+    Pick<
+      Campanha,
+      "ativa" | "candidato_id" | "fim_em" | "id" | "inicio_em" | "url_formulario"
+    >[]
   >(
-    `/campanhas?id=eq.${qs(id)}&select=id,ativa,inicio_em,fim_em,url_formulario`
+    `/campanhas?id=eq.${qs(id)}&select=id,candidato_id,ativa,inicio_em,fim_em,url_formulario`
   );
   return rows[0] ?? null;
 }
@@ -220,7 +223,22 @@ export function countCandidatos() {
 }
 
 export function listCandidatosForSelect() {
-  return supabaseFetch<Candidato[]>("/candidatos?select=id,nome,partido&order=nome.asc");
+  return supabaseFetch<Candidato[]>(
+    "/candidatos?select=id,nome,partido,dominio_formularios&order=nome.asc"
+  );
+}
+
+export async function getCandidatoByDomain(domain: string) {
+  const rows = await supabaseFetch<Candidato[]>(
+    `/candidatos?dominio_formularios=eq.${qs(domain)}&select=*&limit=1`
+  );
+  return rows[0] ?? null;
+}
+
+export function listPublicCampanhasByCandidate(candidateId: string) {
+  return supabaseFetch<Campanha[]>(
+    `/campanhas?candidato_id=eq.${qs(candidateId)}&ativa=eq.true&select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,criado_em&order=criado_em.desc`
+  );
 }
 
 export async function getCandidato(id: string) {

@@ -27,6 +27,24 @@ Para migrar campanhas que ainda possuem HTML em Base64, execute tambem
 [`supabase/campaign-template.sql`](supabase/campaign-template.sql). Ele adiciona
 os campos de destaque do template padrao e remove definitivamente a coluna `html`.
 
+Para usar dominios exclusivos por candidato, execute tambem
+[`supabase/candidate-domain.sql`](supabase/candidate-domain.sql). O script cria o
+campo `dominio_formularios` e tenta associar `tieminevoeiro.com` ao primeiro
+candidato cujo nome contenha "Tiemi Nevoeiro". O dominio tambem pode ser definido
+ou alterado em **Candidatos > Editar**.
+
+## Dominio dos formularios
+
+1. Adicione o dominio raiz e o `www` em Vercel > Project > Settings > Domains.
+2. No provedor DNS, copie exatamente os registros exibidos pela Vercel.
+3. No cadastro do candidato, informe somente o dominio raiz, sem `https://` e sem
+   caminho, por exemplo `tieminevoeiro.com`.
+4. Faca um novo deploy depois de executar a migracao do Supabase.
+
+A raiz do dominio lista somente as campanhas ativas daquele candidato. Os links
+gerados na tela de campanhas usam automaticamente o dominio configurado. Tanto o
+endereco raiz quanto o `www` sao reconhecidos pela aplicacao.
+
 ## Firewall
 
 No Vercel Firewall, configure rate limiting por IP:
@@ -61,6 +79,7 @@ para aplicar a regra globalmente entre todas as funcoes serverless.
 - `/assinaturas/[id]`
 - `/formulario?idCampanha=...`
 - `/formulario/[idCampanha]`
+- `/formularios` (indice publico usado na raiz do dominio do candidato)
 - `/grupo-wpp`
 - `/grupo-wpp/tias`
 

@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { request as httpRequest } from "node:http";
 
 const port = Number(process.env.SECURITY_TEST_PORT || 3117);
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -32,6 +33,26 @@ function assert(condition, message) {
 function redirectPath(response) {
   const location = response.headers.get("location");
   return location ? new URL(location, baseUrl).pathname : null;
+}
+
+function requestWithHost(path, host) {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(
+      {
+        headers: { Host: host },
+        hostname: "127.0.0.1",
+        method: "GET",
+        path,
+        port
+      },
+      (response) => {
+        response.resume();
+        response.on("end", () => resolve(response));
+      }
+    );
+    request.on("error", reject);
+    request.end();
+  });
 }
 
 async function waitForServer() {
@@ -104,6 +125,16 @@ try {
     "Strict-Transport-Security is missing."
   );
   assert(loginPage.headers.get("x-frame-options") === "SAMEORIGIN", "X-Frame-Options is missing.");
+
+  const customDomainAdmin = await requestWithHost(
+    "/login",
+    "tieminevoeiro.com"
+  );
+  assert(customDomainAdmin.statusCode === 404, "Custom candidate domain exposed an admin route.");
+  assert(
+    customDomainAdmin.headers["x-robots-tag"]?.includes("noindex"),
+    "Blocked custom-domain route is indexable."
+  );
 
   const crossOriginLogin = await login(password, "10.0.0.10", "https://evil.example");
   assert(crossOriginLogin.status === 403, "Cross-origin login was accepted.");
@@ -230,6 +261,7 @@ try {
   assert(oversizedImport.status === 413, "Oversized campaign import was accepted.");
 
   console.log("Security headers: OK");
+  console.log("Candidate domain admin isolation: OK");
   console.log("Login origin, body and rate-limit controls: OK");
   console.log("Signed session flags and tamper rejection: OK");
   console.log("Public submission origin and rate-limit controls: OK");

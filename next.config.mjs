@@ -65,7 +65,7 @@ const nextConfig = {
         source: "/:path*",
         headers: securityHeaders
       },
-      ...["/", "/login", "/campanhas/:path*", "/candidatos/:path*", "/assinaturas/:path*"].map(
+      ...["/login", "/campanhas/:path*", "/candidatos/:path*", "/assinaturas/:path*"].map(
         (source) => ({
           source,
           headers: privatePageHeaders

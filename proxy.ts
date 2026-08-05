@@ -1,4 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  isPlatformHostname,
+  normalizeRequestHostname
+} from "@/lib/candidate-domain";
 
 const exactRedirects: Record<string, string> = {
   "/Login": "/login",
@@ -18,9 +22,50 @@ const exactRedirects: Record<string, string> = {
   "/GrupoWpp/Tias": "/grupo-wpp/tias"
 };
 
+function isCandidatePublicPath(pathname: string) {
+  return (
+    pathname === "/formulario" ||
+    pathname.startsWith("/formulario/") ||
+    pathname === "/formularios" ||
+    pathname === "/Formulario" ||
+    pathname.startsWith("/Formulario/") ||
+    pathname === "/api/assinaturas" ||
+    /^\/api\/campanhas\/[^/]+\/imagem(?:-lateral)?$/.test(pathname) ||
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/fonts/") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml"
+  );
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const exact = exactRedirects[pathname];
+  const hostname = normalizeRequestHostname(
+    request.headers.get("host") ||
+      request.headers.get("x-forwarded-host") ||
+      request.nextUrl.host
+  );
+
+  if (!isPlatformHostname(hostname)) {
+    if (pathname === "/") {
+      return NextResponse.rewrite(
+        new URL(`/formularios${request.nextUrl.search}`, request.url)
+      );
+    }
+
+    if (!isCandidatePublicPath(pathname)) {
+      return new NextResponse("Pagina nao encontrada.", {
+        status: 404,
+        headers: {
+          "Cache-Control": "no-store",
+          "Content-Type": "text/plain; charset=utf-8",
+          "X-Robots-Tag": "noindex, nofollow"
+        }
+      });
+    }
+  }
 
   if (request.method === "POST" && pathname === "/Formulario/Create") {
     return NextResponse.rewrite(new URL("/api/assinaturas", request.url));
@@ -60,6 +105,13 @@ export function proxy(request: NextRequest) {
   const formularioId = pathname.match(/^\/Formulario\/([^/]+)$/);
   if (formularioId) {
     return NextResponse.redirect(new URL(`/formulario/${formularioId[1]}`, request.url));
+  }
+
+  if (pathname === "/") {
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
   }
 
   return NextResponse.next();

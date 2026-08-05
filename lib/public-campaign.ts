@@ -2,7 +2,13 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { parseCampaignBackground } from "@/lib/campaign-background";
-import { getCampanha, getCandidato } from "@/lib/supabase";
+import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
+import {
+  getCampanha,
+  getCandidato,
+  getCandidatoByDomain,
+  listPublicCampanhasByCandidate
+} from "@/lib/supabase";
 
 export const campaignCacheTag = (id: string) => `campanha-publica:${id}`;
 export const publicCandidatesCacheTag = "candidatos-publicos";
@@ -23,6 +29,7 @@ export function getPublicCampaignView(id: string) {
         candidato: candidato
           ? {
               cargo: candidato.cargo,
+              dominioFormularios: candidato.dominio_formularios,
               estado: candidato.estado,
               municipio: candidato.municipio,
               nome: candidato.nome,
@@ -34,6 +41,9 @@ export function getPublicCampaignView(id: string) {
         destaquePrimario: campanha.destaque_primario,
         destaqueSecundario: campanha.destaque_secundario,
         id: campanha.id,
+        ativa: campanha.ativa,
+        inicioEm: campanha.inicio_em,
+        fimEm: campanha.fim_em,
         imagemFundoVersao: background?.version ?? null,
         imagemLateralVersao: sideImage?.version ?? null,
         tema: campanha.tema === 2 ? 2 : 1,
@@ -53,4 +63,14 @@ export function getPublicCampaignView(id: string) {
       tags: [campaignCacheTag(id), publicCandidatesCacheTag]
     }
   )();
+}
+
+export async function getPublicCandidateIndex(domain: string) {
+  const candidato = await getCandidatoByDomain(domain);
+  if (!candidato) return null;
+
+  const campanhas = (await listPublicCampanhasByCandidate(candidato.id)).filter(
+    campaignAcceptsSignatures
+  );
+  return { campanhas, candidato };
 }

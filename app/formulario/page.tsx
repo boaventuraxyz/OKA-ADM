@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { PenLine } from "lucide-react";
 import Image from "next/image";
+import { headers } from "next/headers";
 import {
   CampaignHeadline,
   splitCandidateName
@@ -8,6 +9,12 @@ import {
 import { CampaignRichText } from "@/components/CampaignRichText";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
+import {
+  candidateDomainMatches,
+  isPlatformHostname,
+  normalizeRequestHostname
+} from "@/lib/candidate-domain";
 import { getPublicCampaignView } from "@/lib/public-campaign";
 import { countAssinaturasByCampanha } from "@/lib/supabase";
 import { isUuid } from "@/lib/validation";
@@ -45,13 +52,47 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
     return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
   }
 
-  const [campanha, assinaturas] = await Promise.all([
+  const [campanha, assinaturas, requestHeaders] = await Promise.all([
     getPublicCampaignView(idCampanha),
-    countAssinaturasByCampanha(idCampanha)
+    countAssinaturasByCampanha(idCampanha),
+    headers()
   ]);
 
   if (!campanha) {
     return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
+  }
+
+  if (
+    !campaignAcceptsSignatures({
+      ativa: campanha.ativa,
+      fim_em: campanha.fimEm,
+      inicio_em: campanha.inicioEm
+    })
+  ) {
+    return (
+      <CampaignUnavailable
+        description="Este abaixo-assinado não está recebendo assinaturas no momento."
+        title="Campanha indisponível"
+      />
+    );
+  }
+
+  const requestHostname = normalizeRequestHostname(
+    requestHeaders.get("host") || requestHeaders.get("x-forwarded-host")
+  );
+  if (
+    !isPlatformHostname(requestHostname) &&
+    !candidateDomainMatches(
+      requestHostname,
+      campanha.candidato?.dominioFormularios
+    )
+  ) {
+    return (
+      <CampaignUnavailable
+        description="Esta campanha não pertence a este endereço."
+        title="Campanha não encontrada"
+      />
+    );
   }
 
   const candidateName = campanha.candidato?.nome || "Campanha Cidadã";
@@ -89,7 +130,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
             <small>— Abaixo-assinado</small>
           </div>
           <a className="campaign-theme2-mini-cta" href="#assinar">
-            Assinar agora
+           🚨 Assinar agora
           </a>
         </header>
 
@@ -106,7 +147,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
                 <CampaignRichText className="campaign-theme2-subhead" text={description} />
               ) : null}
               <a className="campaign-theme2-primary-cta" href="#assinar">
-                Quero assinar agora
+               🚨 Quero assinar agora
                 <span aria-hidden="true">→</span>
               </a>
             </div>
@@ -149,7 +190,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <div className="campaign-theme2-wrap">
             <h2>{impactTitle}</h2>
             <p>{impactSupport}</p>
-            <a href="#assinar">Assinar o abaixo-assinado</a>
+            <a href="#assinar">🚨Assinar o abaixo-assinado</a>
           </div>
         </section>
 

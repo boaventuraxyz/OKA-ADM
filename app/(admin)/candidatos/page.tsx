@@ -33,6 +33,7 @@ export default async function CandidatosPage() {
                   <th>Partido</th>
                   <th>Cargo</th>
                   <th>Local</th>
+                  <th>Dominio publico</th>
                   <th />
                 </tr>
               </thead>
@@ -45,6 +46,20 @@ export default async function CandidatosPage() {
                     <td>
                       {[candidato.municipio, candidato.estado].filter(Boolean).join(" / ") ||
                         "-"}
+                    </td>
+                    <td>
+                      {candidato.dominio_formularios ? (
+                        <a
+                          className="table-domain-link"
+                          href={`https://${candidato.dominio_formularios}`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          {candidato.dominio_formularios}
+                        </a>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="table-actions">
                       <div className="row-actions">

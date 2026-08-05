@@ -1,6 +1,7 @@
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { createCandidatoAction } from "@/app/actions";
+import { CandidateSaveAlert } from "@/components/CandidateSaveAlert";
 
 const estados = [
   "AC",
@@ -32,7 +33,13 @@ const estados = [
   "TO"
 ];
 
-export default function NovoCandidatoPage() {
+export default async function NovoCandidatoPage({
+  searchParams
+}: {
+  searchParams: Promise<{ erro?: string }>;
+}) {
+  const { erro } = await searchParams;
+
   return (
     <>
       <div className="page-toolbar">
@@ -47,6 +54,7 @@ export default function NovoCandidatoPage() {
       </div>
 
       <form action={createCandidatoAction} className="panel panel-padding form-grid">
+        <CandidateSaveAlert error={erro} />
         <div className="field">
           <label htmlFor="nome">Nome</label>
           <input className="input" id="nome" name="nome" required />
@@ -77,6 +85,19 @@ export default function NovoCandidatoPage() {
             <label htmlFor="municipio">Município</label>
             <input className="input" id="municipio" name="municipio" />
           </div>
+        </div>
+        <div className="field">
+          <label htmlFor="dominio_formularios">
+            Dominio dos formularios publicos (sem https://)
+          </label>
+          <input
+            className="input"
+            id="dominio_formularios"
+            inputMode="url"
+            maxLength={253}
+            name="dominio_formularios"
+            placeholder="tieminevoeiro.com"
+          />
         </div>
         <div className="page-actions">
           <button className="button primary" type="submit">
