@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { normalizeCandidateDomain } from "@/lib/candidate-domain";
+import { normalizeCandidateSlug } from "@/lib/candidate-slug";
 import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
 import {
   campaignCacheTag,
@@ -75,6 +76,7 @@ function campaignColor(formData: FormData) {
 class CampaignBackgroundInputError extends Error {}
 class CampaignRedirectInputError extends Error {}
 class CandidateDomainInputError extends Error {}
+class CandidateSlugInputError extends Error {}
 
 function candidateDomain(formData: FormData) {
   const raw = text(formData, "dominio_formularios");
@@ -84,8 +86,16 @@ function candidateDomain(formData: FormData) {
   return value;
 }
 
+function candidateSlug(formData: FormData, candidateName: string | null) {
+  const raw = text(formData, "slug_publico") || candidateName;
+  const value = normalizeCandidateSlug(raw);
+  if (!value) throw new CandidateSlugInputError("Identificador publico invalido.");
+  return value;
+}
+
 function candidateSaveErrorPath(error: unknown, path: string) {
   if (error instanceof CandidateDomainInputError) return `${path}?erro=dominio`;
+  if (error instanceof CandidateSlugInputError) return `${path}?erro=slug`;
   if (!(error instanceof SupabaseRequestError)) return null;
   if (error.code === "PGRST204") return `${path}?erro=estrutura`;
   if (error.status === 400 || error.status === 409) return `${path}?erro=dados`;
@@ -143,14 +153,16 @@ function nullableUuid(formData: FormData, name: string) {
 
 export async function createCandidatoAction(formData: FormData) {
   await requireAdmin();
+  const nome = nullableText(formData, "nome", 120);
   try {
     await createCandidato({
-      nome: nullableText(formData, "nome", 120),
+      nome,
       partido: nullableText(formData, "partido", 80),
       cargo: nullableText(formData, "cargo", 100),
       estado: nullableText(formData, "estado", 60),
       municipio: nullableText(formData, "municipio", 120),
-      dominio_formularios: candidateDomain(formData)
+      dominio_formularios: candidateDomain(formData),
+      slug_publico: candidateSlug(formData, nome)
     });
   } catch (error) {
     const errorPath = candidateSaveErrorPath(error, "/candidatos/novo");
@@ -165,14 +177,16 @@ export async function createCandidatoAction(formData: FormData) {
 export async function updateCandidatoAction(formData: FormData) {
   await requireAdmin();
   const id = requiredUuid(formData);
+  const nome = nullableText(formData, "nome", 120);
   try {
     await updateCandidato(id, {
-      nome: nullableText(formData, "nome", 120),
+      nome,
       partido: nullableText(formData, "partido", 80),
       cargo: nullableText(formData, "cargo", 100),
       estado: nullableText(formData, "estado", 60),
       municipio: nullableText(formData, "municipio", 120),
-      dominio_formularios: candidateDomain(formData)
+      dominio_formularios: candidateDomain(formData),
+      slug_publico: candidateSlug(formData, nome)
     });
   } catch (error) {
     const errorPath = candidateSaveErrorPath(error, `/candidatos/${id}/editar`);

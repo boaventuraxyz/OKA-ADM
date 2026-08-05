@@ -6,6 +6,7 @@ export type Candidato = {
   estado: string | null;
   municipio: string | null;
   dominio_formularios: string | null;
+  slug_publico: string | null;
   criado_em: string | null;
 };
 

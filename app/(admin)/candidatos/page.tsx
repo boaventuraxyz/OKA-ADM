@@ -1,6 +1,7 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { deleteCandidatoAction } from "@/app/actions";
+import { publicCandidateHubHref } from "@/lib/candidate-domain";
 import { listCandidatos } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -33,53 +34,78 @@ export default async function CandidatosPage() {
                   <th>Partido</th>
                   <th>Cargo</th>
                   <th>Local</th>
-                  <th>Dominio publico</th>
+                  <th>Hub público</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
-                {candidatos.map((candidato) => (
-                  <tr key={candidato.id}>
-                    <td>{candidato.nome || "-"}</td>
-                    <td>{candidato.partido || "-"}</td>
-                    <td>{candidato.cargo || "-"}</td>
-                    <td>
-                      {[candidato.municipio, candidato.estado].filter(Boolean).join(" / ") ||
-                        "-"}
-                    </td>
-                    <td>
-                      {candidato.dominio_formularios ? (
-                        <a
-                          className="table-domain-link"
-                          href={`https://${candidato.dominio_formularios}`}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          {candidato.dominio_formularios}
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="table-actions">
-                      <div className="row-actions">
-                        <Link
-                          className="button icon"
-                          href={`/candidatos/${candidato.id}/editar`}
-                          title="Editar"
-                        >
-                          <Pencil size={15} />
-                        </Link>
-                        <form action={deleteCandidatoAction}>
-                          <input name="id" type="hidden" value={candidato.id} />
-                          <button className="button icon danger" title="Excluir" type="submit">
-                            <Trash2 size={15} />
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {candidatos.map((candidato) => {
+                  const hubHref = publicCandidateHubHref(
+                    candidato.dominio_formularios,
+                    candidato.slug_publico
+                  );
+
+                  return (
+                    <tr key={candidato.id}>
+                      <td>{candidato.nome || "-"}</td>
+                      <td>{candidato.partido || "-"}</td>
+                      <td>{candidato.cargo || "-"}</td>
+                      <td>
+                        {[candidato.municipio, candidato.estado]
+                          .filter(Boolean)
+                          .join(" / ") || "-"}
+                      </td>
+                      <td>
+                        {hubHref ? (
+                          <a
+                            className="table-domain-link"
+                            href={hubHref}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            {candidato.dominio_formularios ||
+                              `/c/${candidato.slug_publico}`}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="table-actions">
+                        <div className="row-actions">
+                          {hubHref ? (
+                            <Link
+                              aria-label="Abrir hub público"
+                              className="button icon"
+                              href={hubHref}
+                              rel="noreferrer"
+                              target="_blank"
+                              title="Abrir hub público"
+                            >
+                              <ExternalLink size={15} />
+                            </Link>
+                          ) : null}
+                          <Link
+                            className="button icon"
+                            href={`/candidatos/${candidato.id}/editar`}
+                            title="Editar"
+                          >
+                            <Pencil size={15} />
+                          </Link>
+                          <form action={deleteCandidatoAction}>
+                            <input name="id" type="hidden" value={candidato.id} />
+                            <button
+                              className="button icon danger"
+                              title="Excluir"
+                              type="submit"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -59,6 +59,17 @@ export default async function NovoCandidatoPage({
           <label htmlFor="nome">Nome</label>
           <input className="input" id="nome" name="nome" required />
         </div>
+        <div className="field">
+          <label htmlFor="slug_publico">Identificador do hub publico (opcional)</label>
+          <input
+            className="input"
+            id="slug_publico"
+            maxLength={80}
+            name="slug_publico"
+            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            placeholder="Gerado automaticamente a partir do nome"
+          />
+        </div>
         <div className="two-cols">
           <div className="field">
             <label htmlFor="partido">Partido</label>

@@ -134,6 +134,19 @@ export default async function EditarCandidatoPage({
             placeholder="tieminevoeiro.com"
           />
         </div>
+        <div className="field">
+          <label htmlFor="slug_publico">Identificador do hub publico</label>
+          <input
+            className="input"
+            defaultValue={candidato.slug_publico ?? ""}
+            id="slug_publico"
+            maxLength={80}
+            name="slug_publico"
+            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            placeholder="nome-do-candidato"
+            required
+          />
+        </div>
         <div className="page-actions">
           <button className="button primary" type="submit">
             <Save size={16} />

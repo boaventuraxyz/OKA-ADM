@@ -1,3 +1,5 @@
+import { normalizeCandidateSlug } from "@/lib/candidate-slug";
+
 const DOMAIN_PATTERN =
   /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])$/;
 
@@ -75,4 +77,15 @@ export function publicCampaignHref(
   return domain
     ? `https://${domain}/${encodedId}`
     : `/formulario/${encodedId}`;
+}
+
+export function publicCandidateHubHref(
+  configuredDomain: string | null | undefined,
+  publicSlug: string | null | undefined
+) {
+  const domain = normalizeCandidateDomain(configuredDomain);
+  if (domain) return `https://${domain}`;
+
+  const slug = normalizeCandidateSlug(publicSlug);
+  return slug ? `/c/${encodeURIComponent(slug)}` : null;
 }

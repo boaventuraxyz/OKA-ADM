@@ -33,6 +33,10 @@ campo `dominio_formularios` e tenta associar `tieminevoeiro.com` ao primeiro
 candidato cujo nome contenha "Tiemi Nevoeiro". O dominio tambem pode ser definido
 ou alterado em **Candidatos > Editar**.
 
+Para criar um hub publico para todos os candidatos, inclusive os que nao possuem
+dominio proprio, execute [`supabase/candidate-hubs.sql`](supabase/candidate-hubs.sql).
+O script gera um `slug_publico` unico para cada cadastro existente.
+
 ## Dominio dos formularios
 
 1. Adicione o dominio raiz e o `www` em Vercel > Project > Settings > Domains.
@@ -82,6 +86,7 @@ para aplicar a regra globalmente entre todas as funcoes serverless.
 - `/formulario?idCampanha=...`
 - `/formulario/[idCampanha]`
 - `/formularios` (indice publico usado na raiz do dominio do candidato)
+- `/c/[slug]` (hub publico de candidato sem dominio proprio)
 - `/grupo-wpp`
 - `/grupo-wpp/tias`
 

@@ -7,6 +7,7 @@ import {
   getCampanha,
   getCandidato,
   getCandidatoByDomain,
+  getCandidatoByPublicSlug,
   listPublicCampanhasByCandidate
 } from "@/lib/supabase";
 
@@ -65,12 +66,19 @@ export function getPublicCampaignView(id: string) {
   )();
 }
 
-export async function getPublicCandidateIndex(domain: string) {
-  const candidato = await getCandidatoByDomain(domain);
+async function getPublicCandidateHub(candidato: Awaited<ReturnType<typeof getCandidato>>) {
   if (!candidato) return null;
 
   const campanhas = (await listPublicCampanhasByCandidate(candidato.id)).filter(
     campaignAcceptsSignatures
   );
   return { campanhas, candidato };
+}
+
+export async function getPublicCandidateIndex(domain: string) {
+  return getPublicCandidateHub(await getCandidatoByDomain(domain));
+}
+
+export async function getPublicCandidateIndexBySlug(slug: string) {
+  return getPublicCandidateHub(await getCandidatoByPublicSlug(slug));
 }

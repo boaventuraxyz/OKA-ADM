@@ -224,13 +224,20 @@ export function countCandidatos() {
 
 export function listCandidatosForSelect() {
   return supabaseFetch<Candidato[]>(
-    "/candidatos?select=id,nome,partido,dominio_formularios&order=nome.asc"
+    "/candidatos?select=id,nome,partido,dominio_formularios,slug_publico&order=nome.asc"
   );
 }
 
 export async function getCandidatoByDomain(domain: string) {
   const rows = await supabaseFetch<Candidato[]>(
     `/candidatos?dominio_formularios=eq.${qs(domain)}&select=*&limit=1`
+  );
+  return rows[0] ?? null;
+}
+
+export async function getCandidatoByPublicSlug(slug: string) {
+  const rows = await supabaseFetch<Candidato[]>(
+    `/candidatos?slug_publico=eq.${qs(slug)}&select=*&limit=1`
   );
   return rows[0] ?? null;
 }
