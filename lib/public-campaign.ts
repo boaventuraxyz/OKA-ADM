@@ -37,6 +37,7 @@ export function getPublicCampaignView(id: string) {
         imagemFundoVersao: background?.version ?? null,
         imagemLateralVersao: sideImage?.version ?? null,
         tema: campanha.tema === 2 ? 2 : 1,
+        textoConclusao: campanha.texto_conclusao,
         textoContexto: campanha.texto_contexto,
         textoDot: campanha.texto_dot,
         textoForm: campanha.texto_form,

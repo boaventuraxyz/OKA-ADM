@@ -6,6 +6,7 @@ import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 
 type CampaignThemeFieldsProps = {
   defaultBackground?: string | null;
+  defaultConclusion?: string | null;
   defaultContext?: string | null;
   defaultImpact?: string | null;
   defaultImpactSupport?: string | null;
@@ -16,6 +17,7 @@ type CampaignThemeFieldsProps = {
 
 export function CampaignThemeFields({
   defaultBackground = null,
+  defaultConclusion = null,
   defaultContext = null,
   defaultImpact = null,
   defaultImpactSupport = null,
@@ -28,7 +30,7 @@ export function CampaignThemeFields({
   return (
     <>
       <div className="field">
-        <label>Tema do formulário público</label>
+        <label>Tema da página pública</label>
         <input name="tema" readOnly type="hidden" value={theme} />
         <div aria-label="Tema do formulário público" className="campaign-theme-selector" role="group">
           <button
@@ -38,7 +40,7 @@ export function CampaignThemeFields({
             type="button"
           >
             <LayoutTemplate aria-hidden="true" size={18} />
-            <span>Tema 1</span>
+            <span>Tema 1 - Capa</span>
           </button>
           <button
             aria-pressed={theme === 2}
@@ -47,47 +49,66 @@ export function CampaignThemeFields({
             type="button"
           >
             <Columns2 aria-hidden="true" size={18} />
-            <span>Tema 2</span>
+            <span>Tema 2 - Editorial</span>
           </button>
         </div>
       </div>
 
       <div hidden={theme !== 1}>
-        <CampaignBackgroundField defaultValue={defaultBackground} />
+        <CampaignBackgroundField
+          defaultValue={defaultBackground}
+          label="Tema 1: imagem de fundo da capa (opcional)"
+        />
       </div>
 
       <div className="campaign-theme-two-fields" hidden={theme !== 2}>
         <CampaignBackgroundField
           defaultValue={defaultSideImage}
           inputId="campaign-side-image-file"
-          label="Foto ao lado do texto (opcional)"
+          label="Tema 2: imagem ao lado do título principal (opcional)"
           name="imagem_lateral"
         />
         <div className="field">
-          <label htmlFor="texto_contexto">Contexto da campanha</label>
+          <label htmlFor="texto_contexto">
+            Tema 2 - 1. Texto da seção &quot;O caso e a proposta&quot;
+          </label>
           <textarea
             className="textarea"
             defaultValue={defaultContext ?? ""}
             id="texto_contexto"
             maxLength={8000}
             name="texto_contexto"
+            placeholder="Parágrafos que aparecem antes da caixa destacada. Separe parágrafos com uma linha em branco."
             rows={6}
           />
         </div>
         <div className="field">
-          <label htmlFor="texto_proposta">Proposta em destaque</label>
+          <label htmlFor="texto_proposta">Tema 2 - 2. Texto dentro da caixa destacada</label>
           <textarea
             className="textarea"
             defaultValue={defaultProposal ?? ""}
             id="texto_proposta"
             maxLength={4000}
             name="texto_proposta"
+            placeholder="Resumo da proposta principal da campanha."
+            rows={4}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="texto_conclusao">Tema 2 - 3. Texto após a caixa destacada</label>
+          <textarea
+            className="textarea"
+            defaultValue={defaultConclusion ?? ""}
+            id="texto_conclusao"
+            maxLength={4000}
+            name="texto_conclusao"
+            placeholder="Argumentos finais e convite para a pessoa assinar."
             rows={4}
           />
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="texto_impacto">Chamada intermediária</label>
+            <label htmlFor="texto_impacto">Tema 2 - 4. Título do bloco claro</label>
             <input
               className="input"
               defaultValue={defaultImpact ?? ""}
@@ -97,7 +118,7 @@ export function CampaignThemeFields({
             />
           </div>
           <div className="field">
-            <label htmlFor="texto_impacto_apoio">Complemento da chamada</label>
+            <label htmlFor="texto_impacto_apoio">Tema 2 - 5. Texto abaixo da chamada</label>
             <input
               className="input"
               defaultValue={defaultImpactSupport ?? ""}

@@ -142,7 +142,7 @@ export function listCampanhasDashboard() {
 
 export function listCampanhasForImport() {
   return supabaseFetch<Campanha[]>(
-    "/campanhas?select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,assinaturas_meta,texto_form,texto_dot,destaque_primario,destaque_secundario,cor_destaque,url_formulario,tema,texto_contexto,texto_proposta,texto_impacto,texto_impacto_apoio&order=criado_em.desc"
+    "/campanhas?select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,assinaturas_meta,texto_form,texto_dot,destaque_primario,destaque_secundario,cor_destaque,url_formulario,tema,texto_contexto,texto_proposta,texto_conclusao,texto_impacto,texto_impacto_apoio&order=criado_em.desc"
   );
 }
 

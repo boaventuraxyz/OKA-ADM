@@ -70,6 +70,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
   if (campanha.tema === 2) {
     const context = campanha.textoContexto?.trim();
     const proposal = campanha.textoProposta?.trim();
+    const conclusion = campanha.textoConclusao?.trim();
     const impactTitle =
       campanha.textoImpacto?.trim() || "Sua assinatura transforma indignação em ação.";
     const impactSupport =
@@ -84,7 +85,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <div className="campaign-theme2-mark">
             {candidateFirstLine ? <span>{candidateFirstLine} </span> : null}
             <strong>{candidateSecondLine}</strong>
-            <small>Abaixo-assinado</small>
+            <small>— Abaixo-assinado</small>
           </div>
           <a className="campaign-theme2-mini-cta" href="#assinar">
             Assinar agora
@@ -92,48 +93,65 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
         </header>
 
         <section
-          className={`campaign-theme2-hero ${campanha.imagemLateralVersao ? "" : "without-image"}`}
+          className={`campaign-theme2-hero ${campanha.imagemLateralVersao ? "has-image" : "without-image"}`}
         >
-          <div className="campaign-theme2-hero-copy">
-            <span className="campaign-theme2-eyebrow">
-              {campanha.textoDot || "Mobilização cidadã"}
-            </span>
-            <h1>{title}</h1>
-            {description ? <p>{description}</p> : null}
-            <a className="campaign-theme2-primary-cta" href="#assinar">
-              Quero assinar agora
-              <span aria-hidden="true">→</span>
-            </a>
-            {candidateMeta || location ? (
-              <div className="campaign-theme2-meta">
-                {candidateMeta ? <strong>{candidateMeta}</strong> : null}
-                {location ? <span>{location}</span> : null}
-              </div>
+          <div className="campaign-theme2-hero-inner">
+            <div className="campaign-theme2-hero-copy">
+              <span className="campaign-theme2-eyebrow">
+                {campanha.textoDot || "Mobilização cidadã"}
+              </span>
+              <h1>{title}</h1>
+              {description ? <p>{description}</p> : null}
+              <a className="campaign-theme2-primary-cta" href="#assinar">
+                Quero assinar agora
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
+
+            {campanha.imagemLateralVersao ? (
+              <figure className="campaign-theme2-visual">
+                <Image
+                  alt={`Imagem da campanha ${title}`}
+                  fill
+                  priority
+                  sizes="(max-width: 820px) 100vw, 44vw"
+                  src={`/api/campanhas/${campanha.id}/imagem-lateral?v=${campanha.imagemLateralVersao}`}
+                  unoptimized
+                />
+              </figure>
             ) : null}
           </div>
-
-          {campanha.imagemLateralVersao ? (
-            <figure className="campaign-theme2-visual">
-              <Image
-                alt={`Imagem da campanha ${title}`}
-                fill
-                priority
-                sizes="(max-width: 820px) 100vw, 44vw"
-                src={`/api/campanhas/${campanha.id}/imagem-lateral?v=${campanha.imagemLateralVersao}`}
-                unoptimized
-              />
-            </figure>
-          ) : null}
         </section>
 
-        {context || proposal ? (
+        {context || proposal || conclusion ? (
           <section className="campaign-theme2-context">
             <div className="campaign-theme2-wrap">
-              <span className="campaign-theme2-kicker">O contexto</span>
-              {context ? <p className="campaign-theme2-context-text">{context}</p> : null}
+              <div className="campaign-theme2-kicker">O caso e a proposta</div>
+              {context
+                ? context
+                    .split(/\n\s*\n/)
+                    .filter(Boolean)
+                    .map((paragraph, index) => (
+                      <p className="campaign-theme2-context-text" key={`context-${index}`}>
+                        {paragraph}
+                      </p>
+                    ))
+                : null}
               {proposal ? (
-                <div className="campaign-theme2-proposal">{proposal}</div>
+                <div className="campaign-theme2-proposal">
+                  <p>{proposal}</p>
+                </div>
               ) : null}
+              {conclusion
+                ? conclusion
+                    .split(/\n\s*\n/)
+                    .filter(Boolean)
+                    .map((paragraph, index) => (
+                      <p className="campaign-theme2-conclusion" key={`conclusion-${index}`}>
+                        {paragraph}
+                      </p>
+                    ))
+                : null}
             </div>
           </section>
         ) : null}
@@ -152,8 +170,9 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
               campanhaId={campanha.id}
               meta={campanha.assinaturasMeta}
               textoDot={campanha.textoDot}
-              textoForm={campanha.textoForm || campanha.titulo}
+              textoForm={campanha.textoForm || campanha.descricao || campanha.titulo}
               totalAssinaturas={assinaturas}
+              variant="editorial"
             />
           </div>
         </section>

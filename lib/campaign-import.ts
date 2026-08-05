@@ -48,6 +48,7 @@ const modelColumns = [
   "cor_destaque",
   "texto_contexto",
   "texto_proposta",
+  "texto_conclusao",
   "texto_impacto",
   "texto_impacto_apoio",
   "url_formulario"
@@ -87,6 +88,9 @@ const headerAliases = new Map<string, string>([
   ["contexto", "texto_contexto"],
   ["texto_proposta", "texto_proposta"],
   ["proposta", "texto_proposta"],
+  ["texto_conclusao", "texto_conclusao"],
+  ["conclusao", "texto_conclusao"],
+  ["texto_apos_proposta", "texto_conclusao"],
   ["texto_impacto", "texto_impacto"],
   ["chamada_intermediaria", "texto_impacto"],
   ["texto_impacto_apoio", "texto_impacto_apoio"],
@@ -354,7 +358,7 @@ export async function prepareCampaignImport(
     }
 
     const textFields = [
-      ["texto_form", 200, "Título do formulário"],
+      ["texto_form", 200, "Texto do formulário"],
       ["texto_dot", 80, "Texto vermelho"],
       ["destaque_primario", 160, "Destaque principal"],
       ["destaque_secundario", 160, "Destaque amarelo"],
@@ -384,6 +388,16 @@ export async function prepareCampaignImport(
         4000,
         line,
         "Proposta",
+        issues,
+        true
+      );
+    }
+    if (columns.has("texto_conclusao")) {
+      payload.texto_conclusao = textValue(
+        value("texto_conclusao"),
+        4000,
+        line,
+        "Texto após a proposta",
         issues,
         true
       );
@@ -465,6 +479,7 @@ export function campaignImportModelCsv(campaigns: Campanha[], candidates: Candid
       campaign.cor_destaque || "#E05A5A",
       campaign.texto_contexto,
       campaign.texto_proposta,
+      campaign.texto_conclusao,
       campaign.texto_impacto,
       campaign.texto_impacto_apoio,
       campaign.url_formulario

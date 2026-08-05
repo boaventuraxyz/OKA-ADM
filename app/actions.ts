@@ -179,6 +179,7 @@ export async function createCampanhaAction(formData: FormData) {
       tema: campaignTheme(formData),
       texto_contexto: nullableLongText(formData, "texto_contexto", 8000),
       texto_proposta: nullableLongText(formData, "texto_proposta", 4000),
+      texto_conclusao: nullableLongText(formData, "texto_conclusao", 4000),
       texto_impacto: nullableText(formData, "texto_impacto", 300),
       texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
       url_formulario: campaignRedirectUrl(formData)
@@ -214,6 +215,7 @@ export async function updateCampanhaAction(formData: FormData) {
       tema: campaignTheme(formData),
       texto_contexto: nullableLongText(formData, "texto_contexto", 8000),
       texto_proposta: nullableLongText(formData, "texto_proposta", 4000),
+      texto_conclusao: nullableLongText(formData, "texto_conclusao", 4000),
       texto_impacto: nullableText(formData, "texto_impacto", 300),
       texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
       url_formulario: campaignRedirectUrl(formData)

@@ -31,11 +31,11 @@ export default async function NovaCampanhaPage({
       <form action={createCampanhaAction} className="panel panel-padding form-grid">
         <CampaignSaveAlert error={erro} />
         <div className="field">
-          <label htmlFor="titulo">Título principal (texto grande)</label>
+          <label htmlFor="titulo">Título principal (texto grande no topo da página)</label>
           <input className="input" id="titulo" maxLength={200} name="titulo" required />
         </div>
         <div className="field">
-          <label htmlFor="descricao">Descrição (texto abaixo do título)</label>
+          <label htmlFor="descricao">Resumo principal (texto logo abaixo do título)</label>
           <textarea
             className="textarea"
             id="descricao"
@@ -46,7 +46,7 @@ export default async function NovaCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="destaque_primario">Trecho do título em destaque</label>
+            <label htmlFor="destaque_primario">Tema 1: trecho do título na cor escolhida</label>
             <input
               className="input"
               id="destaque_primario"
@@ -55,7 +55,7 @@ export default async function NovaCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="destaque_secundario">Trecho do título em amarelo</label>
+            <label htmlFor="destaque_secundario">Tema 1: trecho do título em amarelo</label>
             <input
               className="input"
               id="destaque_secundario"
@@ -66,7 +66,7 @@ export default async function NovaCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="candidato_id">Candidato</label>
+            <label htmlFor="candidato_id">Candidato ou responsável exibido no topo</label>
             <select className="select" id="candidato_id" name="candidato_id">
               <option value="">Selecione</option>
               {candidatos.map((candidato) => (
@@ -77,23 +77,25 @@ export default async function NovaCampanhaPage({
             </select>
           </div>
           <div className="field">
-            <label htmlFor="assinaturas_meta">Meta de assinaturas</label>
+            <label htmlFor="assinaturas_meta">Meta de assinaturas (contador exibido no Tema 1)</label>
             <input className="input" id="assinaturas_meta" min="0" name="assinaturas_meta" type="number" />
           </div>
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="texto_form">Título do formulário</label>
+            <label htmlFor="texto_form">
+              Tema 1: título do formulário / Tema 2: texto abaixo de &quot;Assine o abaixo-assinado&quot;
+            </label>
             <input
               className="input"
               id="texto_form"
               maxLength={200}
               name="texto_form"
-              placeholder="Ex.: Contra a máfia dos flanelinhas"
+              placeholder="Ex.: Defenda esta causa e manifeste seu apoio."
             />
           </div>
           <div className="field">
-            <label htmlFor="texto_dot">Texto vermelho pulsante</label>
+            <label htmlFor="texto_dot">Selo acima do título / texto pulsante do Tema 1</label>
             <input
               className="input"
               defaultValue="Assine agora"
@@ -104,7 +106,7 @@ export default async function NovaCampanhaPage({
           </div>
         </div>
         <div className="field campaign-color-field">
-          <label htmlFor="cor_destaque">Cor do destaque principal</label>
+          <label htmlFor="cor_destaque">Cor dos botões, bordas e destaques</label>
           <input
             className="campaign-color-input"
             defaultValue="#E05A5A"

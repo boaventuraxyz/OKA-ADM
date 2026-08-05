@@ -8,6 +8,7 @@ type Props = {
   textoForm?: string | null;
   totalAssinaturas: number;
   meta?: number | null;
+  variant?: "default" | "editorial";
 };
 
 type ViaCepResponse = {
@@ -75,7 +76,8 @@ export function PublicSignatureForm({
   textoDot,
   textoForm,
   totalAssinaturas,
-  meta
+  meta,
+  variant = "default"
 }: Props) {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -98,6 +100,7 @@ export function PublicSignatureForm({
   const restante = Math.max(metaValue - currentTotal, 0);
   const progresso =
     metaValue > 0 ? Math.min((currentTotal / metaValue) * 100, 100) : 0;
+  const editorial = variant === "editorial";
 
   useEffect(() => {
     return () => {
@@ -214,44 +217,63 @@ export function PublicSignatureForm({
 
   return (
     <>
-      <div className="form-card">
+      <div className={`form-card ${editorial ? "form-card-editorial" : ""}`}>
         <div className="card-header">
-          <div className="card-live">
-            <span className="card-live-dot" />
-            {textoDot || "Assine agora"}
-          </div>
+          {editorial ? (
+            <>
+              <h2 className="card-title">Assine o abaixo-assinado</h2>
+              <p className="card-desc">
+                {textoForm || "Manifeste seu apoio a esta iniciativa."}
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="card-live">
+                <span className="card-live-dot" />
+                {textoDot || "Assine agora"}
+              </div>
 
-          <div className="card-title">{textoForm || "Texto Apoio"}</div>
+              <div className="card-title">{textoForm || "Texto Apoio"}</div>
 
-          <div className="card-desc">
-            Precisamos de <strong>{metaValue.toLocaleString("pt-BR")} assinaturas</strong> para
-            protocolar a solicitação.
-          </div>
+              <div className="card-desc">
+                Precisamos de <strong>{metaValue.toLocaleString("pt-BR")} assinaturas</strong> para
+                protocolar a solicitação.
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="live-count-display">
-          <div className="live-num" id="liveNum">
-            {currentTotal.toLocaleString("pt-BR")}
-          </div>
-          <div className="live-pessoas">pessoas já assinaram</div>
-          <div className="remaining-text" id="remainingText">
-            Faltam {restante.toLocaleString("pt-BR")} para a meta
-          </div>
-        </div>
+        {!editorial ? (
+          <>
+            <div className="live-count-display">
+              <div className="live-num" id="liveNum">
+                {currentTotal.toLocaleString("pt-BR")}
+              </div>
+              <div className="live-pessoas">pessoas já assinaram</div>
+              <div className="remaining-text" id="remainingText">
+                Faltam {restante.toLocaleString("pt-BR")} para a meta
+              </div>
+            </div>
 
-        <div className="progress-bar-track">
-          <div className="progress-bar-fill" id="progressFill" style={{ width: `${progresso}%` }} />
-        </div>
+            <div className="progress-bar-track">
+              <div
+                className="progress-bar-fill"
+                id="progressFill"
+                style={{ width: `${progresso}%` }}
+              />
+            </div>
 
-        <div className="progress-info">
-          <span className="progress-pct" id="progressPct">
-            {Math.floor(progresso)}%
-          </span>
-          <span className="progress-count" id="progressCount">
-            {currentTotal.toLocaleString("pt-BR")}{" "}
-            <span>/ Meta: {metaValue.toLocaleString("pt-BR")}</span>
-          </span>
-        </div>
+            <div className="progress-info">
+              <span className="progress-pct" id="progressPct">
+                {Math.floor(progresso)}%
+              </span>
+              <span className="progress-count" id="progressCount">
+                {currentTotal.toLocaleString("pt-BR")}{" "}
+                <span>/ Meta: {metaValue.toLocaleString("pt-BR")}</span>
+              </span>
+            </div>
+          </>
+        ) : null}
 
         <form className="form-fields" id="formAssinar" autoComplete="on" onSubmit={handleSign}>
           <input
@@ -262,161 +284,198 @@ export function PublicSignatureForm({
             tabIndex={-1}
             type="text"
           />
-          <input
-            aria-describedby="erroNome"
-            aria-invalid={errors.nome || undefined}
-            autoComplete="name"
-            className={`form-input ${errors.nome ? "error" : ""}`}
-            id="nome"
-            name="name"
-            onBlur={() => setErrors((value) => ({ ...value, nome: !validName(nome) }))}
-            onChange={(event) => setNome(event.target.value)}
-            placeholder="Seu nome completo"
-            type="text"
-            value={nome}
-          />
-          <span className={`field-error ${errors.nome ? "show" : ""}`} id="erroNome">
-            Informe seu nome completo
-          </span>
+          <div className="signature-field signature-field-name">
+            <label htmlFor="nome">Nome completo</label>
+            <input
+              aria-describedby="erroNome"
+              aria-invalid={errors.nome || undefined}
+              autoComplete="name"
+              className={`form-input ${errors.nome ? "error" : ""}`}
+              id="nome"
+              name="name"
+              onBlur={() => setErrors((value) => ({ ...value, nome: !validName(nome) }))}
+              onChange={(event) => setNome(event.target.value)}
+              placeholder="Seu nome completo"
+              type="text"
+              value={nome}
+            />
+            <span className={`field-error ${errors.nome ? "show" : ""}`} id="erroNome">
+              Informe seu nome completo
+            </span>
+          </div>
 
-          <input
-            aria-describedby="erroTel"
-            aria-invalid={errors.tel || undefined}
-            autoComplete="tel"
-            className={`form-input ${errors.tel ? "error" : ""}`}
-            id="tel"
-            name="phone"
-            onChange={(event) => {
-              const next = formatPhone(event.target.value);
-              setTelefone(next);
-              setErrors((value) => ({ ...value, tel: next.trim() !== "" && !validPhone(next) }));
-            }}
-            placeholder="WhatsApp com DDD"
-            type="tel"
-            value={telefone}
-          />
-          <span className={`field-error ${errors.tel ? "show" : ""}`} id="erroTel">
-            Informe um telefone válido
-          </span>
+          <div className="signature-field signature-field-phone">
+            <label htmlFor="tel">WhatsApp</label>
+            <input
+              aria-describedby="erroTel"
+              aria-invalid={errors.tel || undefined}
+              autoComplete="tel"
+              className={`form-input ${errors.tel ? "error" : ""}`}
+              id="tel"
+              name="phone"
+              onChange={(event) => {
+                const next = formatPhone(event.target.value);
+                setTelefone(next);
+                setErrors((value) => ({ ...value, tel: next.trim() !== "" && !validPhone(next) }));
+              }}
+              placeholder={editorial ? "(00) 00000-0000" : "WhatsApp com DDD"}
+              type="tel"
+              value={telefone}
+            />
+            <span className={`field-error ${errors.tel ? "show" : ""}`} id="erroTel">
+              Informe um telefone válido
+            </span>
+          </div>
 
-          <input
-            aria-describedby="erroMail"
-            aria-invalid={errors.mail || undefined}
-            autoComplete="email"
-            className={`form-input ${errors.mail ? "error" : ""}`}
-            id="mail"
-            name="email"
-            onBlur={() => setErrors((value) => ({ ...value, mail: !validEmail(email) }))}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Seu melhor e-mail"
-            type="email"
-            value={email}
-          />
-          <span className={`field-error ${errors.mail ? "show" : ""}`} id="erroMail">
-            Informe um e-mail válido (ex: nome@email.com)
-          </span>
+          <div className="signature-field signature-field-email">
+            <label htmlFor="mail">E-mail</label>
+            <input
+              aria-describedby="erroMail"
+              aria-invalid={errors.mail || undefined}
+              autoComplete="email"
+              className={`form-input ${errors.mail ? "error" : ""}`}
+              id="mail"
+              name="email"
+              onBlur={() => setErrors((value) => ({ ...value, mail: !validEmail(email) }))}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={editorial ? "nome@email.com" : "Seu melhor e-mail"}
+              type="email"
+              value={email}
+            />
+            <span className={`field-error ${errors.mail ? "show" : ""}`} id="erroMail">
+              Informe um e-mail válido (ex: nome@email.com)
+            </span>
+          </div>
 
-          <input
-            aria-describedby="erroCep"
-            aria-invalid={errors.cep || undefined}
-            autoComplete="postal-code"
-            className={`form-input ${errors.cep ? "error" : ""}`}
-            id="cep"
-            inputMode="numeric"
-            maxLength={9}
-            name="postal-code"
-            onChange={(event) => {
-              const next = formatCep(event.target.value);
-              setCep(next);
-              setErrors((value) => ({ ...value, cep: next.trim() !== "" && !validCep(next) }));
-              void lookupCep(next);
-            }}
-            placeholder="CEP (00000-000)"
-            type="text"
-            value={cep}
-          />
-          <span className={`field-error ${errors.cep ? "show" : ""}`} id="erroCep">
-            Informe um CEP válido (00000-000)
-          </span>
+          <div className="signature-field signature-field-cep">
+            <label htmlFor="cep">CEP</label>
+            <input
+              aria-describedby="erroCep"
+              aria-invalid={errors.cep || undefined}
+              autoComplete="postal-code"
+              className={`form-input ${errors.cep ? "error" : ""}`}
+              id="cep"
+              inputMode="numeric"
+              maxLength={9}
+              name="postal-code"
+              onChange={(event) => {
+                const next = formatCep(event.target.value);
+                setCep(next);
+                setErrors((value) => ({ ...value, cep: next.trim() !== "" && !validCep(next) }));
+                void lookupCep(next);
+              }}
+              placeholder={editorial ? "00000-000" : "CEP (00000-000)"}
+              type="text"
+              value={cep}
+            />
+            <span className={`field-error ${errors.cep ? "show" : ""}`} id="erroCep">
+              Informe um CEP válido (00000-000)
+            </span>
+          </div>
 
-          <div className="endereco-row">
+          <div className="signature-address-group">
             <input id="cidade" name="city" type="hidden" value={cidade} />
             <input id="estado" name="state" type="hidden" value={estado} />
-            <input
-              aria-describedby="erroRua"
-              aria-invalid={errors.rua || undefined}
-              autoComplete="address-line1"
-              className={`form-input ${errors.rua ? "error" : ""}`}
-              id="rua"
-              name="address-line1"
-              onBlur={() =>
-                setErrors((value) => ({
-                  ...value,
-                  rua: rua.trim().length < 3 || numero.trim().length < 1
-                }))
-              }
-              onChange={(event) => setRua(event.target.value)}
-              placeholder="Rua / Av. / Travessa..."
-              readOnly
-              type="text"
-              value={rua}
-            />
+            <div className="endereco-row">
+              <div className="signature-field">
+                <label htmlFor="rua">Endereço</label>
+                <input
+                  aria-describedby="erroRua"
+                  aria-invalid={errors.rua || undefined}
+                  autoComplete="address-line1"
+                  className={`form-input ${errors.rua ? "error" : ""}`}
+                  id="rua"
+                  name="address-line1"
+                  onBlur={() =>
+                    setErrors((value) => ({
+                      ...value,
+                      rua: rua.trim().length < 3 || numero.trim().length < 1
+                    }))
+                  }
+                  onChange={(event) => setRua(event.target.value)}
+                  placeholder="Rua / Av. / Travessa..."
+                  readOnly
+                  type="text"
+                  value={rua}
+                />
+              </div>
 
-            <input
-              aria-describedby="erroRua"
-              aria-invalid={errors.rua || undefined}
-              autoComplete="address-line2"
-              className={`form-input ${errors.rua ? "error" : ""}`}
-              id="numero"
-              inputMode="numeric"
-              name="address-line2"
-              onBlur={() =>
-                setErrors((value) => ({
-                  ...value,
-                  rua: rua.trim().length < 3 || numero.trim().length < 1
-                }))
-              }
-              onChange={(event) => setNumero(event.target.value)}
-              placeholder="Nº"
-              type="text"
-              value={numero}
-            />
+              <div className="signature-field">
+                <label htmlFor="numero">Número</label>
+                <input
+                  aria-describedby="erroRua"
+                  aria-invalid={errors.rua || undefined}
+                  autoComplete="address-line2"
+                  className={`form-input ${errors.rua ? "error" : ""}`}
+                  id="numero"
+                  inputMode="numeric"
+                  name="address-line2"
+                  onBlur={() =>
+                    setErrors((value) => ({
+                      ...value,
+                      rua: rua.trim().length < 3 || numero.trim().length < 1
+                    }))
+                  }
+                  onChange={(event) => setNumero(event.target.value)}
+                  placeholder="Nº"
+                  type="text"
+                  value={numero}
+                />
+              </div>
+            </div>
+            <span className={`field-error ${errors.rua ? "show" : ""}`} id="erroRua">
+              Informe o endereço e o número
+            </span>
           </div>
-          <span className={`field-error ${errors.rua ? "show" : ""}`} id="erroRua">
-            Informe o endereço e o número
-          </span>
 
-          <input
-            aria-describedby="erroComplemento"
-            aria-invalid={errors.complemento || undefined}
-            autoComplete="address-line3"
-            className={`form-input ${errors.complemento ? "error" : ""}`}
-            id="complemento"
-            name="address-line3"
-            onChange={(event) => {
-              setComplemento(event.target.value);
-              setErrors((value) => ({
-                ...value,
-                complemento: event.target.value.trim() === ""
-              }));
-            }}
-            placeholder="Apartamento, bloco, casa"
-            type="text"
-            value={complemento}
-          />
-          <span className={`field-error ${errors.complemento ? "show" : ""}`} id="erroComplemento">
-            Informe o complemento
-          </span>
+          <div className="signature-field signature-field-complement">
+            <label htmlFor="complemento">Complemento</label>
+            <input
+              aria-describedby="erroComplemento"
+              aria-invalid={errors.complemento || undefined}
+              autoComplete="address-line3"
+              className={`form-input ${errors.complemento ? "error" : ""}`}
+              id="complemento"
+              name="address-line3"
+              onChange={(event) => {
+                setComplemento(event.target.value);
+                setErrors((value) => ({
+                  ...value,
+                  complemento: event.target.value.trim() === ""
+                }));
+              }}
+              placeholder={editorial ? "Apartamento, bloco ou casa" : "Apartamento, bloco, casa"}
+              type="text"
+              value={complemento}
+            />
+            <span className={`field-error ${errors.complemento ? "show" : ""}`} id="erroComplemento">
+              Informe o complemento
+            </span>
+          </div>
+
+          {editorial ? (
+            <label className="theme2-consent">
+              <input name="consentimento" required type="checkbox" value="sim" />
+              <span>
+                Declaro meu apoio a esta iniciativa e autorizo o uso dos meus dados exclusivamente
+                para fins relacionados a este abaixo-assinado, conforme a legislação aplicável.
+              </span>
+            </label>
+          ) : null}
 
           <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
             {busy ? "Enviando..." : "Assinar agora"}
           </button>
         </form>
 
-        <div className="form-footer">
-          <span>Leva menos de 1 minuto</span>
-          <span>Seus dados estão protegidos conforme a LGPD</span>
-        </div>
+        {editorial ? (
+          <p className="theme2-form-note">Seus dados não serão compartilhados com terceiros.</p>
+        ) : (
+          <div className="form-footer">
+            <span>Leva menos de 1 minuto</span>
+            <span>Seus dados estão protegidos conforme a LGPD</span>
+          </div>
+        )}
       </div>
 
       <div

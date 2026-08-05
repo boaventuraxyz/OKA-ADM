@@ -30,6 +30,7 @@ export type Campanha = {
   tema: number | null;
   texto_contexto: string | null;
   texto_proposta: string | null;
+  texto_conclusao: string | null;
   texto_impacto: string | null;
   texto_impacto_apoio: string | null;
 };

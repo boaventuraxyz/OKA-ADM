@@ -11,6 +11,7 @@ alter table public.campanhas
   add column if not exists tema smallint,
   add column if not exists texto_contexto text,
   add column if not exists texto_proposta text,
+  add column if not exists texto_conclusao text,
   add column if not exists texto_impacto text,
   add column if not exists texto_impacto_apoio text,
   add column if not exists url_formulario text;
@@ -113,9 +114,24 @@ begin
       check (
         (texto_contexto is null or char_length(texto_contexto) <= 8000)
         and (texto_proposta is null or char_length(texto_proposta) <= 4000)
+        and (texto_conclusao is null or char_length(texto_conclusao) <= 4000)
         and (texto_impacto is null or char_length(texto_impacto) <= 300)
         and (texto_impacto_apoio is null or char_length(texto_impacto_apoio) <= 500)
       );
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'campanhas_texto_conclusao_tamanho'
+      and conrelid = 'public.campanhas'::regclass
+  ) then
+    alter table public.campanhas
+      add constraint campanhas_texto_conclusao_tamanho
+      check (texto_conclusao is null or char_length(texto_conclusao) <= 4000);
   end if;
 end $$;
 

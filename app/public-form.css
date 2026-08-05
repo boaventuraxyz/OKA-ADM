@@ -362,6 +362,15 @@
   gap: 11px;
 }
 
+.form-card .signature-field,
+.form-card .signature-address-group {
+  display: contents;
+}
+
+.form-card .signature-field > label {
+  display: none;
+}
+
 .form-card .form-input {
   width: 100%;
   min-height: 44px;
@@ -468,15 +477,19 @@
   --theme2-muted: #b8b3a8;
   background: var(--theme2-paper);
   color: var(--theme2-ink);
+  font-family: "Inter", Arial, sans-serif;
+  line-height: 1.55;
 }
 
 .campaign-theme2-topbar {
   display: flex;
-  min-height: 72px;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--theme2-line);
-  padding: 12px max(24px, calc((100% - 1180px) / 2));
+  color: var(--theme2-muted);
+  padding: 16px 24px;
+  font-size: 13px;
+  text-transform: uppercase;
 }
 
 .campaign-theme2-mark {
@@ -484,9 +497,10 @@
   min-width: 0;
   align-items: baseline;
   color: var(--theme2-ink);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 16px;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 15px;
   font-weight: 700;
+  text-transform: none;
 }
 
 .campaign-theme2-mark strong {
@@ -494,123 +508,122 @@
 }
 
 .campaign-theme2-mark small {
-  margin-left: 10px;
+  margin-left: 5px;
   color: var(--theme2-muted);
-  font-family: "Montserrat", sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .campaign-theme2-mini-cta,
-.campaign-theme2-primary-cta,
 .campaign-theme2-impact a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 2px;
   background: var(--campaign-accent);
-  color: #fff;
+  color: #f5f1ea;
   font-weight: 700;
   text-decoration: none;
-  transition: filter 0.18s ease, transform 0.18s ease;
+  transition: filter 0.15s ease;
 }
 
 .campaign-theme2-mini-cta {
-  min-height: 38px;
+  min-height: 36px;
   padding: 0 16px;
   font-size: 12px;
-  text-transform: uppercase;
 }
 
-.campaign-theme2-primary-cta:hover,
 .campaign-theme2-mini-cta:hover,
 .campaign-theme2-impact a:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+  filter: brightness(1.12);
 }
 
 .campaign-theme2-hero {
-  display: grid;
-  width: min(1180px, calc(100% - 48px));
-  min-height: 660px;
-  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
-  align-items: center;
-  gap: 72px;
-  margin: 0 auto;
-  padding: 68px 0;
+  border-bottom: 1px solid var(--theme2-line);
+  padding: 76px 24px 56px;
 }
 
-.campaign-theme2-hero.without-image {
-  grid-template-columns: minmax(0, 780px);
+.campaign-theme2-hero-inner {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.campaign-theme2-hero.has-image .campaign-theme2-hero-inner {
+  display: grid;
+  width: min(1180px, 100%);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
+  align-items: center;
+  gap: 56px;
 }
 
 .campaign-theme2-hero-copy {
   min-width: 0;
 }
 
-.campaign-theme2-eyebrow,
-.campaign-theme2-kicker {
+.campaign-theme2-eyebrow {
   display: inline-block;
+  margin-bottom: 22px;
   border-left: 3px solid var(--campaign-accent);
   color: var(--campaign-accent);
   padding-left: 10px;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
 .campaign-theme2-hero h1 {
   max-width: 15ch;
-  margin: 24px 0 0;
+  margin: 0 0 26px;
   color: var(--theme2-ink);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 60px;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 54px;
   font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.06;
+  line-height: 1.08;
   overflow-wrap: anywhere;
 }
 
 .campaign-theme2-hero-copy > p {
-  max-width: 58ch;
-  margin: 24px 0 0;
+  max-width: 56ch;
+  margin: 0 0 34px;
   color: var(--theme2-muted);
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 18px;
+  line-height: 1.55;
   white-space: pre-line;
 }
 
 .campaign-theme2-primary-cta {
-  min-height: 52px;
-  gap: 14px;
-  margin-top: 32px;
-  padding: 0 25px;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 2px;
+  background: var(--theme2-ink);
+  color: var(--theme2-paper);
+  padding: 16px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.campaign-theme2-primary-cta:hover {
+  background: var(--campaign-accent);
+  color: #f5f1ea;
 }
 
 .campaign-theme2-primary-cta span {
-  font-size: 19px;
+  font-size: 18px;
+  transition: transform 0.15s ease;
 }
 
-.campaign-theme2-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  margin-top: 26px;
-  color: var(--theme2-muted);
-  font-size: 10px;
-  text-transform: uppercase;
-}
-
-.campaign-theme2-meta strong {
-  color: var(--theme2-ink);
+.campaign-theme2-primary-cta:hover span {
+  transform: translateX(3px);
 }
 
 .campaign-theme2-visual {
   position: relative;
   width: 100%;
-  min-height: 540px;
+  min-height: 460px;
   overflow: hidden;
   margin: 0;
   border: 1px solid var(--theme2-line);
@@ -623,9 +636,8 @@
 }
 
 .campaign-theme2-context {
-  border-top: 1px solid var(--theme2-line);
-  background: var(--theme2-surface);
-  padding: 72px 24px;
+  border-bottom: 1px solid var(--theme2-line);
+  padding: 56px 24px;
 }
 
 .campaign-theme2-wrap {
@@ -634,99 +646,222 @@
 }
 
 .campaign-theme2-kicker {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   color: var(--theme2-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.campaign-theme2-context-text {
+.campaign-theme2-context-text,
+.campaign-theme2-conclusion {
+  max-width: 60ch;
+  margin: 0 0 18px;
   color: var(--theme2-muted);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 20px;
-  line-height: 1.75;
+  font-size: 17px;
+  line-height: 1.55;
   white-space: pre-line;
 }
 
 .campaign-theme2-proposal {
-  margin-top: 32px;
+  margin-top: 28px;
   border-left: 3px solid var(--campaign-accent);
-  background: var(--theme2-paper);
-  color: var(--theme2-ink);
-  padding: 24px 26px;
+  background: var(--theme2-surface);
+  padding: 22px 24px;
+}
+
+.campaign-theme2-proposal p {
+  margin: 0;
+  color: var(--theme2-muted);
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.55;
   white-space: pre-line;
 }
 
+.campaign-theme2-conclusion:first-of-type,
+.campaign-theme2-context-text + .campaign-theme2-conclusion,
+.campaign-theme2-proposal + .campaign-theme2-conclusion {
+  margin-top: 28px;
+}
+
 .campaign-theme2-impact {
-  border-top: 1px solid #d4d0c8;
-  border-bottom: 1px solid #d4d0c8;
+  border-bottom: 1px solid var(--theme2-line);
   background: var(--theme2-ink);
   color: var(--theme2-paper);
-  padding: 72px 24px;
+  padding: 64px 24px;
   text-align: center;
 }
 
 .campaign-theme2-impact h2 {
-  max-width: 22ch;
-  margin: 0 auto;
+  max-width: 20ch;
+  margin: 0 auto 20px;
   color: var(--theme2-paper);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 40px;
-  line-height: 1.16;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 38px;
+  line-height: 1.18;
 }
 
 .campaign-theme2-impact p {
-  margin: 18px 0 0;
-  color: #54504a;
-  font-size: 16px;
+  margin: 0 0 30px;
+  color: #4a4744;
+  font-size: 17px;
 }
 
 .campaign-theme2-impact a {
   min-height: 52px;
-  margin-top: 28px;
-  padding: 0 26px;
-  font-size: 14px;
+  padding: 0 32px;
+  font-size: 15px;
 }
 
 .campaign-theme2-form-section {
-  background: var(--theme2-paper);
-  padding: 80px 24px 96px;
+  padding: 64px 24px 90px;
 }
 
 .campaign-theme2-form-wrap {
-  width: min(620px, 100%);
+  width: min(560px, 100%);
   margin: 0 auto;
 }
 
-.campaign-theme-2 .form-card {
-  gap: 18px;
+.campaign-theme-2 .form-card-editorial {
+  gap: 0;
   border-color: var(--theme2-line);
-  border-radius: 2px;
+  border-radius: 0;
   background: var(--theme2-surface);
   box-shadow: none;
-  padding: 36px 32px;
+  padding: 40px 32px;
 }
 
-.campaign-theme-2 .form-card .card-title {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 28px;
+.campaign-theme-2 .form-card-editorial .card-header {
+  text-align: left;
 }
 
-.campaign-theme-2 .form-card .form-input {
+.campaign-theme-2 .form-card-editorial .card-title {
+  margin: 0;
+  color: var(--theme2-ink);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.campaign-theme-2 .form-card-editorial .card-desc {
+  margin: 10px 0 28px;
+  color: var(--theme2-muted);
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.campaign-theme-2 .form-card-editorial .form-fields {
+  gap: 18px;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field,
+.campaign-theme-2 .form-card-editorial .signature-address-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field > label {
+  display: block;
+  color: var(--theme2-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field-name {
+  order: 1;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field-email {
+  order: 2;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field-phone {
+  order: 3;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field-cep {
+  order: 4;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-address-group {
+  order: 5;
+}
+
+.campaign-theme-2 .form-card-editorial .signature-field-complement {
+  order: 6;
+}
+
+.campaign-theme-2 .form-card-editorial .theme2-consent {
+  order: 7;
+}
+
+.campaign-theme-2 .form-card-editorial .btn-sign {
+  order: 8;
+}
+
+.campaign-theme-2 .form-card-editorial .endereco-row {
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 16px;
+}
+
+.campaign-theme-2 .form-card-editorial .form-input {
+  min-height: 46px;
   border-color: var(--theme2-line);
   border-radius: 2px;
   background: var(--theme2-paper);
+  padding: 13px 14px;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 15px;
 }
 
-.campaign-theme-2 .form-card .btn-sign {
+.campaign-theme-2 .form-card-editorial .form-input:focus {
+  border-color: var(--campaign-accent);
+  box-shadow: 0 0 0 2px var(--campaign-accent);
+}
+
+.campaign-theme-2 .form-card-editorial .field-error {
+  margin: 0;
+}
+
+.campaign-theme-2 .form-card-editorial .theme2-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--theme2-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.campaign-theme-2 .form-card-editorial .theme2-consent input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin-top: 3px;
+  accent-color: var(--campaign-accent);
+}
+
+.campaign-theme-2 .form-card-editorial .btn-sign {
+  min-height: 52px;
   border-radius: 2px;
   background: var(--campaign-accent);
-  color: #fff;
+  color: #f5f1ea;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 16px;
+}
+
+.campaign-theme-2 .form-card-editorial .theme2-form-note {
+  margin: 16px 0 0;
+  color: #8a8378;
+  font-size: 12px;
+  text-align: center;
 }
 
 .campaign-theme-2 .campaign-footer {
   border-color: var(--theme2-line);
-  background: var(--theme2-surface);
+  background: var(--theme2-paper);
 }
 
 .campaign-unavailable {
@@ -801,15 +936,9 @@
 }
 
 @media (max-width: 900px) {
-  .campaign-theme2-hero {
-    min-height: 0;
+  .campaign-theme2-hero.has-image .campaign-theme2-hero-inner {
     grid-template-columns: 1fr;
     gap: 42px;
-    padding: 58px 0 64px;
-  }
-
-  .campaign-theme2-hero.without-image {
-    grid-template-columns: 1fr;
   }
 
   .campaign-theme2-hero h1 {
@@ -858,48 +987,37 @@
 
 @media (max-width: 600px) {
   .campaign-theme2-topbar {
-    min-height: 64px;
-    padding: 10px 16px;
+    padding: 16px 20px;
   }
 
   .campaign-theme2-mark {
-    max-width: calc(100% - 112px);
     flex-wrap: wrap;
     font-size: 14px;
   }
 
   .campaign-theme2-mark small {
-    width: 100%;
-    margin: 2px 0 0;
-    font-size: 8px;
-  }
-
-  .campaign-theme2-mini-cta {
-    min-height: 36px;
-    padding: 0 12px;
     font-size: 10px;
   }
 
+  .campaign-theme2-mini-cta {
+    display: none;
+  }
+
   .campaign-theme2-hero {
-    width: calc(100% - 32px);
-    gap: 32px;
-    padding: 44px 0 48px;
+    padding: 52px 20px 40px;
+  }
+
+  .campaign-theme2-hero.has-image .campaign-theme2-hero-inner {
+    gap: 34px;
   }
 
   .campaign-theme2-hero h1 {
-    margin-top: 20px;
-    font-size: 38px;
+    font-size: 34px;
     line-height: 1.08;
   }
 
   .campaign-theme2-hero-copy > p {
-    margin-top: 19px;
-    font-size: 15px;
-  }
-
-  .campaign-theme2-primary-cta {
-    width: 100%;
-    margin-top: 26px;
+    font-size: 16px;
   }
 
   .campaign-theme2-visual {
@@ -909,17 +1027,17 @@
   .campaign-theme2-context,
   .campaign-theme2-impact,
   .campaign-theme2-form-section {
-    padding-right: 16px;
-    padding-left: 16px;
+    padding-right: 20px;
+    padding-left: 20px;
   }
 
   .campaign-theme2-context {
-    padding-top: 52px;
-    padding-bottom: 52px;
+    padding-top: 48px;
+    padding-bottom: 48px;
   }
 
   .campaign-theme2-context-text {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .campaign-theme2-proposal {
@@ -928,25 +1046,25 @@
   }
 
   .campaign-theme2-impact {
-    padding-top: 56px;
-    padding-bottom: 56px;
+    padding-top: 52px;
+    padding-bottom: 52px;
   }
 
   .campaign-theme2-impact h2 {
-    font-size: 32px;
-  }
-
-  .campaign-theme2-impact a {
-    width: 100%;
+    font-size: 28px;
   }
 
   .campaign-theme2-form-section {
-    padding-top: 56px;
-    padding-bottom: 64px;
+    padding-top: 52px;
+    padding-bottom: 68px;
   }
 
-  .campaign-theme-2 .form-card {
-    padding: 24px 18px;
+  .campaign-theme-2 .form-card-editorial {
+    padding: 30px 22px;
+  }
+
+  .campaign-theme-2 .form-card-editorial .endereco-row {
+    grid-template-columns: 1fr;
   }
 
   .campaign-nav {

@@ -36,6 +36,7 @@ export default async function EditarCampanhaPage({
     "tema",
     "texto_contexto",
     "texto_proposta",
+    "texto_conclusao",
     "texto_impacto",
     "texto_impacto_apoio",
     "url_formulario"
@@ -64,7 +65,7 @@ export default async function EditarCampanhaPage({
         <CampaignSaveAlert error={erro || (!templateColumnsReady ? "estrutura" : undefined)} />
         <input name="id" type="hidden" value={campanha.id} />
         <div className="field">
-          <label htmlFor="titulo">Título principal (texto grande)</label>
+          <label htmlFor="titulo">Título principal (texto grande no topo da página)</label>
           <input
             className="input"
             defaultValue={campanha.titulo ?? ""}
@@ -75,7 +76,7 @@ export default async function EditarCampanhaPage({
           />
         </div>
         <div className="field">
-          <label htmlFor="descricao">Descrição (texto abaixo do título)</label>
+          <label htmlFor="descricao">Resumo principal (texto logo abaixo do título)</label>
           <textarea
             className="textarea"
             defaultValue={campanha.descricao ?? ""}
@@ -87,7 +88,7 @@ export default async function EditarCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="destaque_primario">Trecho do título em destaque</label>
+            <label htmlFor="destaque_primario">Tema 1: trecho do título na cor escolhida</label>
             <input
               className="input"
               defaultValue={campanha.destaque_primario ?? ""}
@@ -97,7 +98,7 @@ export default async function EditarCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="destaque_secundario">Trecho do título em amarelo</label>
+            <label htmlFor="destaque_secundario">Tema 1: trecho do título em amarelo</label>
             <input
               className="input"
               defaultValue={campanha.destaque_secundario ?? ""}
@@ -109,7 +110,7 @@ export default async function EditarCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="candidato_id">Candidato</label>
+            <label htmlFor="candidato_id">Candidato ou responsável exibido no topo</label>
             <select
               className="select"
               defaultValue={campanha.candidato_id ?? ""}
@@ -125,7 +126,7 @@ export default async function EditarCampanhaPage({
             </select>
           </div>
           <div className="field">
-            <label htmlFor="assinaturas_meta">Meta de assinaturas</label>
+            <label htmlFor="assinaturas_meta">Meta de assinaturas (contador exibido no Tema 1)</label>
             <input
               className="input"
               defaultValue={campanha.assinaturas_meta ?? ""}
@@ -138,7 +139,9 @@ export default async function EditarCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="texto_form">Título do formulário</label>
+            <label htmlFor="texto_form">
+              Tema 1: título do formulário / Tema 2: texto abaixo de &quot;Assine o abaixo-assinado&quot;
+            </label>
             <input
               className="input"
               defaultValue={campanha.texto_form ?? ""}
@@ -148,7 +151,7 @@ export default async function EditarCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="texto_dot">Texto vermelho pulsante</label>
+            <label htmlFor="texto_dot">Selo acima do título / texto pulsante do Tema 1</label>
             <input
               className="input"
               defaultValue={campanha.texto_dot ?? "Assine agora"}
@@ -159,7 +162,7 @@ export default async function EditarCampanhaPage({
           </div>
         </div>
         <div className="field campaign-color-field">
-          <label htmlFor="cor_destaque">Cor do destaque principal</label>
+          <label htmlFor="cor_destaque">Cor dos botões, bordas e destaques</label>
           <input
             className="campaign-color-input"
             defaultValue={campanha.cor_destaque ?? "#E05A5A"}
@@ -170,6 +173,7 @@ export default async function EditarCampanhaPage({
         </div>
         <CampaignThemeFields
           defaultBackground={backgroundValue}
+          defaultConclusion={campanha.texto_conclusao}
           defaultContext={campanha.texto_contexto}
           defaultImpact={campanha.texto_impacto}
           defaultImpactSupport={campanha.texto_impacto_apoio}
