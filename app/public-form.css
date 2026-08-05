@@ -617,17 +617,17 @@
   align-items: center;
   gap: 10px;
   border-radius: 2px;
-  background: var(--campaign-gold);
-  color: #16140b;
+  background: var(--campaign-accent);
+  color: #f5f1ea;
   padding: 16px 28px;
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.15s ease;
+  transition: filter 0.15s ease;
 }
 
 .campaign-theme2-primary-cta:hover {
-  background: var(--campaign-accent);
+  filter: brightness(1.12);
   color: #f5f1ea;
 }
 
