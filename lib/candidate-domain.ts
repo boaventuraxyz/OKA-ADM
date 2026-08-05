@@ -71,6 +71,8 @@ export function publicCampaignHref(
   configuredDomain: string | null | undefined
 ) {
   const domain = normalizeCandidateDomain(configuredDomain);
-  const path = `/formulario/${encodeURIComponent(campaignId)}`;
-  return domain ? `https://${domain}${path}` : path;
+  const encodedId = encodeURIComponent(campaignId);
+  return domain
+    ? `https://${domain}/${encodedId}`
+    : `/formulario/${encodedId}`;
 }

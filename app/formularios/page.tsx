@@ -77,7 +77,7 @@ export default async function FormulariosPage() {
         {campanhas.length ? (
           <div className="candidate-index-list">
             {campanhas.map((campanha) => (
-              <Link href={`/formulario/${campanha.id}`} key={campanha.id}>
+              <Link href={`/${campanha.id}`} key={campanha.id}>
                 <div>
                   <span>Abaixo-assinado</span>
                   <h3>{campanha.titulo || "Campanha sem título"}</h3>

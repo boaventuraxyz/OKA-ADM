@@ -476,11 +476,11 @@
 }
 
 .campaign-theme-2 {
-  --theme2-paper: #0b0b0c;
-  --theme2-surface: #141415;
-  --theme2-line: #2a2a2c;
+  --theme2-paper: #0b0e13;
+  --theme2-surface: #151a22;
+  --theme2-line: #303742;
   --theme2-ink: #f3f1ec;
-  --theme2-muted: #b8b3a8;
+  --theme2-muted: #b8c0cb;
   background: var(--theme2-paper);
   color: var(--theme2-ink);
   font-family: "Inter", Arial, sans-serif;
@@ -491,7 +491,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--theme2-line);
+  border-bottom: 1px solid color-mix(in srgb, var(--campaign-accent) 45%, var(--theme2-line));
+  background: #10151c;
   color: var(--theme2-muted);
   padding: 16px 24px;
   font-size: 13px;
@@ -507,6 +508,10 @@
   font-size: 15px;
   font-weight: 700;
   text-transform: none;
+}
+
+.campaign-theme2-mark > span {
+  color: var(--campaign-gold);
 }
 
 .campaign-theme2-mark strong {
@@ -546,7 +551,8 @@
 }
 
 .campaign-theme2-hero {
-  border-bottom: 1px solid var(--theme2-line);
+  border-bottom: 1px solid color-mix(in srgb, var(--campaign-gold) 38%, var(--theme2-line));
+  background: #0e1219;
   padding: 76px 24px 56px;
 }
 
@@ -589,6 +595,14 @@
   overflow-wrap: anywhere;
 }
 
+.campaign-theme2-hero .campaign-headline-accent {
+  color: var(--campaign-accent);
+}
+
+.campaign-theme2-hero .campaign-headline-gold {
+  color: var(--campaign-gold);
+}
+
 .campaign-theme2-hero-copy > p {
   max-width: 56ch;
   margin: 0 0 34px;
@@ -603,8 +617,8 @@
   align-items: center;
   gap: 10px;
   border-radius: 2px;
-  background: var(--theme2-ink);
-  color: var(--theme2-paper);
+  background: var(--campaign-gold);
+  color: #16140b;
   padding: 16px 28px;
   font-size: 15px;
   font-weight: 600;
@@ -632,8 +646,9 @@
   min-height: 460px;
   overflow: hidden;
   margin: 0;
-  border: 1px solid var(--theme2-line);
+  border: 1px solid color-mix(in srgb, var(--campaign-accent) 55%, var(--theme2-line));
   background: var(--theme2-surface);
+  box-shadow: 12px 12px 0 color-mix(in srgb, var(--campaign-gold) 22%, transparent);
 }
 
 .campaign-theme2-visual img {
@@ -642,7 +657,8 @@
 }
 
 .campaign-theme2-context {
-  border-bottom: 1px solid var(--theme2-line);
+  border-bottom: 1px solid color-mix(in srgb, var(--campaign-accent) 28%, var(--theme2-line));
+  background: var(--theme2-paper);
   padding: 56px 24px;
 }
 
@@ -653,7 +669,7 @@
 
 .campaign-theme2-kicker {
   margin-bottom: 18px;
-  color: var(--theme2-muted);
+  color: var(--campaign-accent);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -677,14 +693,14 @@
 .campaign-theme2-conclusion strong,
 .campaign-theme2-proposal-text b,
 .campaign-theme2-proposal-text strong {
-  color: var(--theme2-ink);
-  font-weight: 600;
+  color: var(--campaign-accent);
+  font-weight: 700;
 }
 
 .campaign-theme2-proposal {
   margin-top: 28px;
   border-left: 3px solid var(--campaign-accent);
-  background: var(--theme2-surface);
+  background: color-mix(in srgb, var(--campaign-accent) 11%, var(--theme2-surface));
   padding: 22px 24px;
 }
 
@@ -703,9 +719,9 @@
 }
 
 .campaign-theme2-impact {
-  border-bottom: 1px solid var(--theme2-line);
-  background: var(--theme2-ink);
-  color: var(--theme2-paper);
+  border-bottom: 1px solid color-mix(in srgb, var(--campaign-accent) 30%, #8f7a20);
+  background: var(--campaign-gold);
+  color: #17140a;
   padding: 64px 24px;
   text-align: center;
 }
@@ -713,7 +729,7 @@
 .campaign-theme2-impact h2 {
   max-width: 20ch;
   margin: 0 auto 20px;
-  color: var(--theme2-paper);
+  color: #17140a;
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 38px;
   line-height: 1.18;
@@ -721,7 +737,7 @@
 
 .campaign-theme2-impact p {
   margin: 0 0 30px;
-  color: #4a4744;
+  color: #4b4119;
   font-size: 17px;
 }
 
@@ -729,9 +745,12 @@
   min-height: 52px;
   padding: 0 32px;
   font-size: 15px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--campaign-accent) 28%, transparent);
 }
 
 .campaign-theme2-form-section {
+  border-top: 3px solid var(--campaign-accent);
+  background: #10151d;
   padding: 64px 24px 90px;
 }
 
@@ -742,7 +761,8 @@
 
 .campaign-theme-2 .form-card-editorial {
   gap: 0;
-  border-color: var(--theme2-line);
+  border-color: color-mix(in srgb, var(--campaign-gold) 45%, var(--theme2-line));
+  border-top: 4px solid var(--campaign-gold);
   border-radius: 0;
   background: var(--theme2-surface);
   box-shadow: none;
@@ -755,7 +775,7 @@
 
 .campaign-theme-2 .form-card-editorial .card-title {
   margin: 0;
-  color: var(--theme2-ink);
+  color: var(--campaign-gold);
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 26px;
   line-height: 1.25;
@@ -782,7 +802,7 @@
 
 .campaign-theme-2 .form-card-editorial .signature-field > label {
   display: block;
-  color: var(--theme2-muted);
+  color: color-mix(in srgb, var(--campaign-gold) 68%, var(--theme2-muted));
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;

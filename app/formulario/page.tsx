@@ -142,7 +142,13 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
               <span className="campaign-theme2-eyebrow">
                 {campanha.textoDot || "Mobilização cidadã"}
               </span>
-              <h1>{title}</h1>
+              <h1>
+                <CampaignHeadline
+                  primary={campanha.destaquePrimario}
+                  secondary={campanha.destaqueSecundario}
+                  text={title}
+                />
+              </h1>
               {description ? (
                 <CampaignRichText className="campaign-theme2-subhead" text={description} />
               ) : null}

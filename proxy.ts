@@ -22,6 +22,9 @@ const exactRedirects: Record<string, string> = {
   "/GrupoWpp/Tias": "/grupo-wpp/tias"
 };
 
+const shortCampaignPath =
+  /^\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/?$/i;
+
 function isCandidatePublicPath(pathname: string) {
   return (
     pathname === "/formulario" ||
@@ -52,6 +55,19 @@ export function proxy(request: NextRequest) {
     if (pathname === "/") {
       return NextResponse.rewrite(
         new URL(`/formularios${request.nextUrl.search}`, request.url)
+      );
+    }
+
+    const shortCampaign = pathname.match(shortCampaignPath);
+    if (
+      shortCampaign &&
+      (request.method === "GET" || request.method === "HEAD")
+    ) {
+      return NextResponse.rewrite(
+        new URL(
+          `/formulario/${shortCampaign[1]}${request.nextUrl.search}`,
+          request.url
+        )
       );
     }
 

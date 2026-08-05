@@ -44,6 +44,8 @@ ou alterado em **Candidatos > Editar**.
 A raiz do dominio lista somente as campanhas ativas daquele candidato. Os links
 gerados na tela de campanhas usam automaticamente o dominio configurado. Tanto o
 endereco raiz quanto o `www` sao reconhecidos pela aplicacao.
+Em dominios personalizados, os formularios usam a URL curta `/{idCampanha}`. As
+URLs antigas em `/formulario/{idCampanha}` continuam funcionando.
 
 ## Firewall
 

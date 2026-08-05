@@ -88,7 +88,9 @@ export default async function EditarCampanhaPage({
         </div>
         <div className="two-cols">
           <div className="field">
-            <label htmlFor="destaque_primario">Tema 1: trecho do título na cor escolhida</label>
+            <label htmlFor="destaque_primario">
+              Trecho do título na cor escolhida (temas 1 e 2)
+            </label>
             <input
               className="input"
               defaultValue={campanha.destaque_primario ?? ""}
@@ -98,7 +100,9 @@ export default async function EditarCampanhaPage({
             />
           </div>
           <div className="field">
-            <label htmlFor="destaque_secundario">Tema 1: trecho do título em amarelo</label>
+            <label htmlFor="destaque_secundario">
+              Outro trecho do título em amarelo (temas 1 e 2)
+            </label>
             <input
               className="input"
               defaultValue={campanha.destaque_secundario ?? ""}
@@ -162,7 +166,9 @@ export default async function EditarCampanhaPage({
           </div>
         </div>
         <div className="field campaign-color-field">
-          <label htmlFor="cor_destaque">Cor dos botões, bordas e destaques</label>
+          <label htmlFor="cor_destaque">
+            Cor dos botões, bordas e palavras destacadas
+          </label>
           <input
             className="campaign-color-input"
             defaultValue={campanha.cor_destaque ?? "#E05A5A"}
