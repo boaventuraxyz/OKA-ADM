@@ -3,7 +3,8 @@ export function PoliticasRodape({
 }: {
   candidateName?: string | null;
 }) {
-  const updateSubject = candidateName?.trim() || "a iniciativa";
+  const normalizedCandidateName = candidateName?.trim();
+  const updateSubject = normalizedCandidateName || "a iniciativa";
 
   return (
     <details className="politicas-rodape">
@@ -21,9 +22,11 @@ export function PoliticasRodape({
 
         <h2>1. Responsável pelo Tratamento</h2>
         <p>
-          Os dados coletados neste formulário são de responsabilidade de Felipe Sertenjo
-          e Ben Pontes, que atuam como controladores dos dados pessoais fornecidos pelos
-          participantes.
+          Os dados coletados neste formulário são de responsabilidade {normalizedCandidateName ? (
+            <>de {normalizedCandidateName}</>
+          ) : (
+            <>da equipe responsável pela iniciativa</>
+          )}, que atua como controladora dos dados pessoais fornecidos pelos participantes.
         </p>
 
         <h2>2. Dados Coletados</h2>
