@@ -37,6 +37,7 @@ const modelColumns = [
   "descricao",
   "candidato",
   "ativa",
+  "tema",
   "inicio_em",
   "fim_em",
   "assinaturas_meta",
@@ -45,6 +46,10 @@ const modelColumns = [
   "destaque_primario",
   "destaque_secundario",
   "cor_destaque",
+  "texto_contexto",
+  "texto_proposta",
+  "texto_impacto",
+  "texto_impacto_apoio",
   "url_formulario"
 ] as const;
 
@@ -59,6 +64,8 @@ const headerAliases = new Map<string, string>([
   ["ativa", "ativa"],
   ["ativo", "ativa"],
   ["status", "ativa"],
+  ["tema", "tema"],
+  ["tema_formulario", "tema"],
   ["inicio", "inicio_em"],
   ["inicio_em", "inicio_em"],
   ["fim", "fim_em"],
@@ -76,6 +83,14 @@ const headerAliases = new Map<string, string>([
   ["destaque_amarelo", "destaque_secundario"],
   ["cor", "cor_destaque"],
   ["cor_destaque", "cor_destaque"],
+  ["texto_contexto", "texto_contexto"],
+  ["contexto", "texto_contexto"],
+  ["texto_proposta", "texto_proposta"],
+  ["proposta", "texto_proposta"],
+  ["texto_impacto", "texto_impacto"],
+  ["chamada_intermediaria", "texto_impacto"],
+  ["texto_impacto_apoio", "texto_impacto_apoio"],
+  ["complemento_chamada", "texto_impacto_apoio"],
   ["url_formulario", "url_formulario"],
   ["url_whatsapp", "url_formulario"],
   ["link_whatsapp", "url_formulario"]
@@ -174,6 +189,14 @@ function booleanValue(
   if (["nao", "false", "inativo", "inativa", "0"].includes(normalized)) return false;
   addIssue(issues, line, "O campo ativa deve ser Sim ou Não.");
   return false;
+}
+
+function themeValue(value: Cell | undefined, line: number, issues: CampaignImportIssue[]) {
+  const normalized = normalizedKey(cellText(value));
+  if (!normalized || ["1", "tema_1", "tema1"].includes(normalized)) return 1;
+  if (["2", "tema_2", "tema2", "editorial"].includes(normalized)) return 2;
+  addIssue(issues, line, "Tema inválido; use 1 ou 2.");
+  return 1;
 }
 
 function dateValue(
@@ -319,6 +342,7 @@ export async function prepareCampaignImport(
     }
 
     if (columns.has("ativa")) payload.ativa = booleanValue(value("ativa"), line, issues);
+    if (columns.has("tema")) payload.tema = themeValue(value("tema"), line, issues);
     if (columns.has("inicio_em")) {
       payload.inicio_em = dateValue(value("inicio_em"), line, "Início", issues);
     }
@@ -333,13 +357,36 @@ export async function prepareCampaignImport(
       ["texto_form", 200, "Título do formulário"],
       ["texto_dot", 80, "Texto vermelho"],
       ["destaque_primario", 160, "Destaque principal"],
-      ["destaque_secundario", 160, "Destaque amarelo"]
+      ["destaque_secundario", 160, "Destaque amarelo"],
+      ["texto_impacto", 300, "Chamada intermediária"],
+      ["texto_impacto_apoio", 500, "Complemento da chamada"]
     ] as const;
 
     for (const [field, maxLength, label] of textFields) {
       if (columns.has(field)) {
         payload[field] = textValue(value(field), maxLength, line, label, issues);
       }
+    }
+
+    if (columns.has("texto_contexto")) {
+      payload.texto_contexto = textValue(
+        value("texto_contexto"),
+        8000,
+        line,
+        "Contexto",
+        issues,
+        true
+      );
+    }
+    if (columns.has("texto_proposta")) {
+      payload.texto_proposta = textValue(
+        value("texto_proposta"),
+        4000,
+        line,
+        "Proposta",
+        issues,
+        true
+      );
     }
 
     if (columns.has("cor_destaque")) {
@@ -407,6 +454,7 @@ export function campaignImportModelCsv(campaigns: Campanha[], candidates: Candid
       campaign.descricao,
       campaign.candidato_id ? candidateNames.get(campaign.candidato_id) : "",
       campaign.ativa ? "Sim" : "Não",
+      campaign.tema === 2 ? 2 : 1,
       campaign.inicio_em,
       campaign.fim_em,
       campaign.assinaturas_meta,
@@ -415,6 +463,10 @@ export function campaignImportModelCsv(campaigns: Campanha[], candidates: Candid
       campaign.destaque_primario,
       campaign.destaque_secundario,
       campaign.cor_destaque || "#E05A5A",
+      campaign.texto_contexto,
+      campaign.texto_proposta,
+      campaign.texto_impacto,
+      campaign.texto_impacto_apoio,
       campaign.url_formulario
     ];
     lines.push(values.map(safeCsvCell).join(","));

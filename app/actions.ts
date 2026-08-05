@@ -74,13 +74,19 @@ function campaignColor(formData: FormData) {
 class CampaignBackgroundInputError extends Error {}
 class CampaignRedirectInputError extends Error {}
 
-function campaignBackground(formData: FormData) {
-  const value = formData.get("imagem_fundo");
+function campaignImage(formData: FormData, name: "imagem_fundo" | "imagem_lateral") {
+  const value = formData.get(name);
   if (typeof value !== "string" || value.length === 0) return null;
   if (!parseCampaignBackground(value)) {
     throw new CampaignBackgroundInputError("Imagem de fundo invalida.");
   }
   return value;
+}
+
+function campaignTheme(formData: FormData) {
+  const value = text(formData, "tema") || "1";
+  if (value !== "1" && value !== "2") throw new Error("Tema invalido.");
+  return Number(value);
 }
 
 function campaignRedirectUrl(formData: FormData) {
@@ -168,7 +174,13 @@ export async function createCampanhaAction(formData: FormData) {
       destaque_primario: nullableText(formData, "destaque_primario", 160),
       destaque_secundario: nullableText(formData, "destaque_secundario", 160),
       cor_destaque: campaignColor(formData),
-      imagem_fundo: campaignBackground(formData),
+      imagem_fundo: campaignImage(formData, "imagem_fundo"),
+      imagem_lateral: campaignImage(formData, "imagem_lateral"),
+      tema: campaignTheme(formData),
+      texto_contexto: nullableLongText(formData, "texto_contexto", 8000),
+      texto_proposta: nullableLongText(formData, "texto_proposta", 4000),
+      texto_impacto: nullableText(formData, "texto_impacto", 300),
+      texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
       url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {
@@ -197,7 +209,13 @@ export async function updateCampanhaAction(formData: FormData) {
       destaque_primario: nullableText(formData, "destaque_primario", 160),
       destaque_secundario: nullableText(formData, "destaque_secundario", 160),
       cor_destaque: campaignColor(formData),
-      imagem_fundo: campaignBackground(formData),
+      imagem_fundo: campaignImage(formData, "imagem_fundo"),
+      imagem_lateral: campaignImage(formData, "imagem_lateral"),
+      tema: campaignTheme(formData),
+      texto_contexto: nullableLongText(formData, "texto_contexto", 8000),
+      texto_proposta: nullableLongText(formData, "texto_proposta", 4000),
+      texto_impacto: nullableText(formData, "texto_impacto", 300),
+      texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
       url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {

@@ -142,7 +142,7 @@ export function listCampanhasDashboard() {
 
 export function listCampanhasForImport() {
   return supabaseFetch<Campanha[]>(
-    "/campanhas?select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,assinaturas_meta,texto_form,texto_dot,destaque_primario,destaque_secundario,cor_destaque,url_formulario&order=criado_em.desc"
+    "/campanhas?select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,assinaturas_meta,texto_form,texto_dot,destaque_primario,destaque_secundario,cor_destaque,url_formulario,tema,texto_contexto,texto_proposta,texto_impacto,texto_impacto_apoio&order=criado_em.desc"
   );
 }
 
@@ -154,6 +154,13 @@ export async function getCampanha(id: string) {
 export async function getCampanhaBackground(id: string) {
   const rows = await supabaseFetch<Pick<Campanha, "id" | "imagem_fundo">[]>(
     `/campanhas?id=eq.${qs(id)}&select=id,imagem_fundo`
+  );
+  return rows[0] ?? null;
+}
+
+export async function getCampanhaSideImage(id: string) {
+  const rows = await supabaseFetch<Pick<Campanha, "id" | "imagem_lateral">[]>(
+    `/campanhas?id=eq.${qs(id)}&select=id,imagem_lateral`
   );
   return rows[0] ?? null;
 }

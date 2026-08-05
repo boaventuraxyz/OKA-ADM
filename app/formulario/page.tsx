@@ -67,6 +67,104 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
     .filter(Boolean)
     .join(" / ");
 
+  if (campanha.tema === 2) {
+    const context = campanha.textoContexto?.trim();
+    const proposal = campanha.textoProposta?.trim();
+    const impactTitle =
+      campanha.textoImpacto?.trim() || "Sua assinatura transforma indignação em ação.";
+    const impactSupport =
+      campanha.textoImpactoApoio?.trim() || "Manifeste seu apoio a esta iniciativa.";
+
+    return (
+      <main
+        className="campaign-public-page campaign-theme-2"
+        style={{ "--campaign-accent": accent } as CSSProperties}
+      >
+        <header className="campaign-theme2-topbar">
+          <div className="campaign-theme2-mark">
+            {candidateFirstLine ? <span>{candidateFirstLine} </span> : null}
+            <strong>{candidateSecondLine}</strong>
+            <small>Abaixo-assinado</small>
+          </div>
+          <a className="campaign-theme2-mini-cta" href="#assinar">
+            Assinar agora
+          </a>
+        </header>
+
+        <section
+          className={`campaign-theme2-hero ${campanha.imagemLateralVersao ? "" : "without-image"}`}
+        >
+          <div className="campaign-theme2-hero-copy">
+            <span className="campaign-theme2-eyebrow">
+              {campanha.textoDot || "Mobilização cidadã"}
+            </span>
+            <h1>{title}</h1>
+            {description ? <p>{description}</p> : null}
+            <a className="campaign-theme2-primary-cta" href="#assinar">
+              Quero assinar agora
+              <span aria-hidden="true">→</span>
+            </a>
+            {candidateMeta || location ? (
+              <div className="campaign-theme2-meta">
+                {candidateMeta ? <strong>{candidateMeta}</strong> : null}
+                {location ? <span>{location}</span> : null}
+              </div>
+            ) : null}
+          </div>
+
+          {campanha.imagemLateralVersao ? (
+            <figure className="campaign-theme2-visual">
+              <Image
+                alt={`Imagem da campanha ${title}`}
+                fill
+                priority
+                sizes="(max-width: 820px) 100vw, 44vw"
+                src={`/api/campanhas/${campanha.id}/imagem-lateral?v=${campanha.imagemLateralVersao}`}
+                unoptimized
+              />
+            </figure>
+          ) : null}
+        </section>
+
+        {context || proposal ? (
+          <section className="campaign-theme2-context">
+            <div className="campaign-theme2-wrap">
+              <span className="campaign-theme2-kicker">O contexto</span>
+              {context ? <p className="campaign-theme2-context-text">{context}</p> : null}
+              {proposal ? (
+                <div className="campaign-theme2-proposal">{proposal}</div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="campaign-theme2-impact">
+          <div className="campaign-theme2-wrap">
+            <h2>{impactTitle}</h2>
+            <p>{impactSupport}</p>
+            <a href="#assinar">Assinar o abaixo-assinado</a>
+          </div>
+        </section>
+
+        <section className="campaign-theme2-form-section" id="assinar">
+          <div className="campaign-theme2-form-wrap">
+            <PublicSignatureForm
+              campanhaId={campanha.id}
+              meta={campanha.assinaturasMeta}
+              textoDot={campanha.textoDot}
+              textoForm={campanha.textoForm || campanha.titulo}
+              totalAssinaturas={assinaturas}
+            />
+          </div>
+        </section>
+
+        <footer className="campaign-footer">
+          <PoliticasRodape />
+        </footer>
+      </main>
+    );
+  }
+
   return (
     <main
       className="campaign-public-page"

@@ -81,7 +81,19 @@ async function optimizeImage(file: File) {
   throw new Error("A imagem continuou muito grande depois da otimizacao.");
 }
 
-export function CampaignBackgroundField({ defaultValue = null }: { defaultValue?: string | null }) {
+type CampaignImageFieldProps = {
+  defaultValue?: string | null;
+  inputId?: string;
+  label?: string;
+  name?: string;
+};
+
+export function CampaignBackgroundField({
+  defaultValue = null,
+  inputId = "campaign-background-file",
+  label = "Foto de fundo desta campanha (opcional)",
+  name = "imagem_fundo"
+}: CampaignImageFieldProps) {
   const fieldRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(defaultValue || "");
@@ -124,8 +136,8 @@ export function CampaignBackgroundField({ defaultValue = null }: { defaultValue?
 
   return (
     <div className="field campaign-background-field" ref={fieldRef}>
-      <label htmlFor="campaign-background-file">Foto de fundo desta campanha (opcional)</label>
-      <input name="imagem_fundo" readOnly type="hidden" value={value} />
+      <label htmlFor={inputId}>{label}</label>
+      <input name={name} readOnly type="hidden" value={value} />
       <div className="campaign-background-control">
         <div className="campaign-background-preview">
           {value ? (
@@ -147,7 +159,7 @@ export function CampaignBackgroundField({ defaultValue = null }: { defaultValue?
           <label
             aria-disabled={processing}
             className="button"
-            htmlFor="campaign-background-file"
+            htmlFor={inputId}
           >
             {processing ? (
               <LoaderCircle aria-hidden="true" className="spin" size={16} />
@@ -173,7 +185,7 @@ export function CampaignBackgroundField({ defaultValue = null }: { defaultValue?
         accept="image/jpeg,image/png,image/webp"
         className="sr-only"
         disabled={processing}
-        id="campaign-background-file"
+        id={inputId}
         onChange={(event) => void handleFile(event.target.files?.[0])}
         ref={inputRef}
         type="file"

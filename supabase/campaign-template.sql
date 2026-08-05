@@ -7,6 +7,12 @@ alter table public.campanhas
   add column if not exists destaque_secundario text,
   add column if not exists cor_destaque text,
   add column if not exists imagem_fundo text,
+  add column if not exists imagem_lateral text,
+  add column if not exists tema smallint,
+  add column if not exists texto_contexto text,
+  add column if not exists texto_proposta text,
+  add column if not exists texto_impacto text,
+  add column if not exists texto_impacto_apoio text,
   add column if not exists url_formulario text;
 
 update public.campanhas
@@ -17,6 +23,14 @@ where cor_destaque is null
 alter table public.campanhas
   alter column cor_destaque set default '#E05A5A',
   alter column cor_destaque set not null;
+
+update public.campanhas
+set tema = 1
+where tema is null or tema not in (1, 2);
+
+alter table public.campanhas
+  alter column tema set default 1,
+  alter column tema set not null;
 
 do $$
 begin
@@ -37,6 +51,20 @@ begin
   if not exists (
     select 1
     from pg_constraint
+    where conname = 'campanhas_tema_valido'
+      and conrelid = 'public.campanhas'::regclass
+  ) then
+    alter table public.campanhas
+      add constraint campanhas_tema_valido
+      check (tema in (1, 2));
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
     where conname = 'campanhas_imagem_fundo_valida'
       and conrelid = 'public.campanhas'::regclass
   ) then
@@ -48,6 +76,45 @@ begin
           octet_length(imagem_fundo) <= 1230000
           and imagem_fundo ~ '^data:image/(jpeg|png|webp);base64,'
         )
+      );
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'campanhas_imagem_lateral_valida'
+      and conrelid = 'public.campanhas'::regclass
+  ) then
+    alter table public.campanhas
+      add constraint campanhas_imagem_lateral_valida
+      check (
+        imagem_lateral is null
+        or (
+          octet_length(imagem_lateral) <= 1230000
+          and imagem_lateral ~ '^data:image/(jpeg|png|webp);base64,'
+        )
+      );
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'campanhas_textos_tema2_tamanho'
+      and conrelid = 'public.campanhas'::regclass
+  ) then
+    alter table public.campanhas
+      add constraint campanhas_textos_tema2_tamanho
+      check (
+        (texto_contexto is null or char_length(texto_contexto) <= 8000)
+        and (texto_proposta is null or char_length(texto_proposta) <= 4000)
+        and (texto_impacto is null or char_length(texto_impacto) <= 300)
+        and (texto_impacto_apoio is null or char_length(texto_impacto_apoio) <= 500)
       );
   end if;
 end $$;

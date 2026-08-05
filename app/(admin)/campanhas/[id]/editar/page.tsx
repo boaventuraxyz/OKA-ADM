@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { updateCampanhaAction } from "@/app/actions";
-import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 import { CampaignSaveAlert } from "@/components/CampaignSaveAlert";
+import { CampaignThemeFields } from "@/components/CampaignThemeFields";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { toDateTimeLocal } from "@/lib/format";
 import { getCampanha, listCandidatosForSelect } from "@/lib/supabase";
@@ -32,10 +32,19 @@ export default async function EditarCampanhaPage({
     "destaque_secundario",
     "cor_destaque",
     "imagem_fundo",
+    "imagem_lateral",
+    "tema",
+    "texto_contexto",
+    "texto_proposta",
+    "texto_impacto",
+    "texto_impacto_apoio",
     "url_formulario"
   ].every((column) => Object.prototype.hasOwnProperty.call(campanha, column));
   const backgroundValue = parseCampaignBackground(campanha.imagem_fundo)
     ? campanha.imagem_fundo
+    : null;
+  const sideImageValue = parseCampaignBackground(campanha.imagem_lateral)
+    ? campanha.imagem_lateral
     : null;
 
   return (
@@ -159,7 +168,15 @@ export default async function EditarCampanhaPage({
             type="color"
           />
         </div>
-        <CampaignBackgroundField defaultValue={backgroundValue} />
+        <CampaignThemeFields
+          defaultBackground={backgroundValue}
+          defaultContext={campanha.texto_contexto}
+          defaultImpact={campanha.texto_impacto}
+          defaultImpactSupport={campanha.texto_impacto_apoio}
+          defaultProposal={campanha.texto_proposta}
+          defaultSideImage={sideImageValue}
+          defaultTheme={campanha.tema}
+        />
         <div className="field">
           <label htmlFor="url_formulario">Link do WhatsApp após a assinatura (opcional)</label>
           <input

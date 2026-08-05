@@ -16,6 +16,7 @@ export function getPublicCampaignView(id: string) {
         ? await getCandidato(campanha.candidato_id)
         : null;
       const background = parseCampaignBackground(campanha.imagem_fundo);
+      const sideImage = parseCampaignBackground(campanha.imagem_lateral);
 
       return {
         assinaturasMeta: campanha.assinaturas_meta,
@@ -34,8 +35,14 @@ export function getPublicCampaignView(id: string) {
         destaqueSecundario: campanha.destaque_secundario,
         id: campanha.id,
         imagemFundoVersao: background?.version ?? null,
+        imagemLateralVersao: sideImage?.version ?? null,
+        tema: campanha.tema === 2 ? 2 : 1,
+        textoContexto: campanha.texto_contexto,
         textoDot: campanha.texto_dot,
         textoForm: campanha.texto_form,
+        textoImpacto: campanha.texto_impacto,
+        textoImpactoApoio: campanha.texto_impacto_apoio,
+        textoProposta: campanha.texto_proposta,
         titulo: campanha.titulo
       };
     },

@@ -26,6 +26,12 @@ export type Campanha = {
   destaque_secundario: string | null;
   cor_destaque: string | null;
   imagem_fundo: string | null;
+  imagem_lateral: string | null;
+  tema: number | null;
+  texto_contexto: string | null;
+  texto_proposta: string | null;
+  texto_impacto: string | null;
+  texto_impacto_apoio: string | null;
 };
 
 export type Assinatura = {
