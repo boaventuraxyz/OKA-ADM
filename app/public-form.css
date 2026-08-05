@@ -720,7 +720,7 @@
 
 .campaign-theme2-impact {
   border-bottom: 1px solid color-mix(in srgb, var(--campaign-accent) 30%, #8f7a20);
-  background: var(--campaign-gold);
+  background: whitesmoke;
   color: #17140a;
   padding: 64px 24px;
   text-align: center;
