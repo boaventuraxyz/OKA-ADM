@@ -94,7 +94,7 @@ export default async function FormulariosPage() {
       </section>
 
       <footer className="candidate-index-footer">
-        <PoliticasRodape />
+        <PoliticasRodape candidateName={candidato.nome} />
       </footer>
     </main>
   );

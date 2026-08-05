@@ -1,4 +1,10 @@
-export function PoliticasRodape() {
+export function PoliticasRodape({
+  candidateName
+}: {
+  candidateName?: string | null;
+}) {
+  const updateSubject = candidateName?.trim() || "a iniciativa";
+
   return (
     <details className="politicas-rodape">
       <summary className="pol-toggle">Seus dados são protegidos pela LGPD &middot; Ler Política de Privacidade</summary>
@@ -34,7 +40,9 @@ export function PoliticasRodape() {
         <ul>
           <li>Registro e controle das assinaturas do abaixo-assinado;</li>
           <li>Envio de comunicados, atualizações e informações relacionadas à iniciativa;</li>
-          <li>Encaminhamento de materiais informativos e atualizações de mandato;</li>
+          <li>
+            Encaminhamento de materiais informativos e atualizações sobre {updateSubject};
+          </li>
           <li>Comunicação futura por e-mail, telefone, WhatsApp ou correspondência.</li>
         </ul>
 

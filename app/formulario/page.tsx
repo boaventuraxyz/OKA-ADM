@@ -214,7 +214,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
         </section>
 
         <footer className="campaign-footer">
-          <PoliticasRodape />
+          <PoliticasRodape candidateName={campanha.candidato?.nome} />
         </footer>
       </main>
     );
@@ -292,7 +292,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
       </section>
 
       <footer className="campaign-footer">
-        <PoliticasRodape />
+        <PoliticasRodape candidateName={campanha.candidato?.nome} />
       </footer>
     </main>
   );
