@@ -105,7 +105,7 @@ export async function POST(request: Request) {
   const complemento = singleLine(
     formText(formData, "complemento_assinante", "ComplementoAssinante"),
     120
-  );
+  ) || "casa";
   const cidade = singleLine(
     formText(formData, "cidade_assinante", "CidadeAssinante"),
     100
@@ -135,7 +135,6 @@ export async function POST(request: Request) {
     !Number.isSafeInteger(numero) ||
     numero < 1 ||
     numero > 99_999_999 ||
-    !complemento ||
     !cidade ||
     cidade.length < 2 ||
     !cep ||

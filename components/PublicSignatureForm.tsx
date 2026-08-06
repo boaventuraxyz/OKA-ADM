@@ -148,8 +148,7 @@ export function PublicSignatureForm({
       tel: !validPhone(telefone),
       mail: !validEmail(email),
       cep: !validCep(cep),
-      rua: rua.trim().length < 3 || numero.trim().length < 1,
-      complemento: complemento.trim() === ""
+      rua: rua.trim().length < 3 || numero.trim().length < 1
     };
 
     setErrors(nextErrors);
@@ -172,7 +171,7 @@ export function PublicSignatureForm({
     formData.set("cep_assinante", cep);
     formData.set("cidade_assinante", cidade);
     formData.set("estado_assinante", estado);
-    formData.set("complemento_assinante", complemento);
+    formData.set("complemento_assinante", complemento.trim() || "casa");
 
     try {
       const response = await fetch("/api/assinaturas", {
@@ -429,28 +428,17 @@ export function PublicSignatureForm({
           </div>
 
           <div className="signature-field signature-field-complement">
-            <label htmlFor="complemento">Complemento</label>
+            <label htmlFor="complemento">Complemento (opcional)</label>
             <input
-              aria-describedby="erroComplemento"
-              aria-invalid={errors.complemento || undefined}
               autoComplete="address-line3"
-              className={`form-input ${errors.complemento ? "error" : ""}`}
+              className="form-input"
               id="complemento"
               name="address-line3"
-              onChange={(event) => {
-                setComplemento(event.target.value);
-                setErrors((value) => ({
-                  ...value,
-                  complemento: event.target.value.trim() === ""
-                }));
-              }}
+              onChange={(event) => setComplemento(event.target.value)}
               placeholder={editorial ? "Apartamento, bloco ou casa" : "Apartamento, bloco, casa"}
               type="text"
               value={complemento}
             />
-            <span className={`field-error ${errors.complemento ? "show" : ""}`} id="erroComplemento">
-              Informe o complemento
-            </span>
           </div>
 
           {editorial ? (
