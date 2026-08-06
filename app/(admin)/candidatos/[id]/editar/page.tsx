@@ -3,6 +3,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { updateCandidatoAction } from "@/app/actions";
 import { CandidateSaveAlert } from "@/components/CandidateSaveAlert";
+import { candidatePublicSlug } from "@/lib/candidate-slug";
 import { getCandidato } from "@/lib/supabase";
 
 const estados = [
@@ -138,7 +139,7 @@ export default async function EditarCandidatoPage({
           <label htmlFor="slug_publico">Identificador do hub publico</label>
           <input
             className="input"
-            defaultValue={candidato.slug_publico ?? ""}
+            defaultValue={candidatePublicSlug(candidato)}
             id="slug_publico"
             maxLength={80}
             name="slug_publico"

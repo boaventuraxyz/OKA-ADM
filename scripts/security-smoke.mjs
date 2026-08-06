@@ -35,11 +35,14 @@ function redirectPath(response) {
   return location ? new URL(location, baseUrl).pathname : null;
 }
 
-function requestWithHost(path, host) {
+function requestWithHost(path, host, protocol = "https") {
   return new Promise((resolve, reject) => {
     const request = httpRequest(
       {
-        headers: { Host: host },
+        headers: {
+          Host: host,
+          "X-Forwarded-Proto": protocol
+        },
         hostname: "127.0.0.1",
         method: "GET",
         path,
@@ -121,6 +124,10 @@ try {
     "Content-Security-Policy is missing."
   );
   assert(
+    loginPage.headers.get("content-security-policy")?.includes("upgrade-insecure-requests"),
+    "Mixed-content upgrade policy is missing."
+  );
+  assert(
     loginPage.headers.get("strict-transport-security") === "max-age=63072000",
     "Strict-Transport-Security is missing."
   );
@@ -134,6 +141,27 @@ try {
   assert(
     customDomainAdmin.headers["x-robots-tag"]?.includes("noindex"),
     "Blocked custom-domain route is indexable."
+  );
+
+  const customDomainHttp = await requestWithHost(
+    "/",
+    "tieminevoeiro.com",
+    "http"
+  );
+  assert(
+    customDomainHttp.statusCode === 308 &&
+      customDomainHttp.headers.location === "https://tieminevoeiro.com/",
+    "Custom candidate domain did not enforce HTTPS."
+  );
+
+  const customDomainWww = await requestWithHost(
+    "/",
+    "www.tieminevoeiro.com"
+  );
+  assert(
+    customDomainWww.statusCode === 308 &&
+      customDomainWww.headers.location === "https://tieminevoeiro.com/",
+    "Custom candidate www domain did not redirect to its canonical hostname."
   );
 
   const crossOriginLogin = await login(password, "10.0.0.10", "https://evil.example");

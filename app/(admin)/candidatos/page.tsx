@@ -2,6 +2,7 @@ import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { deleteCandidatoAction } from "@/app/actions";
 import { publicCandidateHubHref } from "@/lib/candidate-domain";
+import { candidatePublicSlug } from "@/lib/candidate-slug";
 import { listCandidatos } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -40,9 +41,10 @@ export default async function CandidatosPage() {
               </thead>
               <tbody>
                 {candidatos.map((candidato) => {
+                  const hubSlug = candidatePublicSlug(candidato, candidatos);
                   const hubHref = publicCandidateHubHref(
                     candidato.dominio_formularios,
-                    candidato.slug_publico
+                    hubSlug
                   );
 
                   return (
@@ -64,7 +66,7 @@ export default async function CandidatosPage() {
                             target="_blank"
                           >
                             {candidato.dominio_formularios ||
-                              `/c/${candidato.slug_publico}`}
+                              `/c/${hubSlug}`}
                           </a>
                         ) : (
                           "-"

@@ -2,7 +2,8 @@
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
-    value: "base-uri 'self'; frame-ancestors 'self'; form-action 'self'; object-src 'none'"
+    value:
+      "base-uri 'self'; frame-ancestors 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
   },
   {
     key: "Cross-Origin-Opener-Policy",

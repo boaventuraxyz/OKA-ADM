@@ -1,5 +1,6 @@
 import "server-only";
 
+import { findCandidateByPublicSlug } from "@/lib/candidate-slug";
 import type { Assinatura, Campanha, Candidato } from "@/lib/types";
 
 type AssinaturaExport = Pick<
@@ -224,7 +225,7 @@ export function countCandidatos() {
 
 export function listCandidatosForSelect() {
   return supabaseFetch<Candidato[]>(
-    "/candidatos?select=id,nome,partido,dominio_formularios,slug_publico&order=nome.asc"
+    "/candidatos?select=id,nome,partido,dominio_formularios&order=nome.asc"
   );
 }
 
@@ -236,10 +237,8 @@ export async function getCandidatoByDomain(domain: string) {
 }
 
 export async function getCandidatoByPublicSlug(slug: string) {
-  const rows = await supabaseFetch<Candidato[]>(
-    `/candidatos?slug_publico=eq.${qs(slug)}&select=*&limit=1`
-  );
-  return rows[0] ?? null;
+  const candidatos = await listCandidatos();
+  return findCandidateByPublicSlug(candidatos, slug);
 }
 
 export function listPublicCampanhasByCandidate(candidateId: string) {
@@ -253,20 +252,56 @@ export async function getCandidato(id: string) {
   return rows[0] ?? null;
 }
 
+function withoutCandidateSlug(payload: Partial<Candidato>) {
+  const compatiblePayload = { ...payload };
+  delete compatiblePayload.slug_publico;
+  return compatiblePayload;
+}
+
+function isMissingCandidateSlugColumn(error: unknown) {
+  return (
+    error instanceof SupabaseRequestError &&
+    error.status === 400 &&
+    (error.code === "42703" || error.code === "PGRST204")
+  );
+}
+
 export async function createCandidato(payload: Partial<Candidato>) {
-  await supabaseFetch<Candidato[]>("/candidatos", {
-    method: "POST",
-    body: JSON.stringify(payload),
-    preferRepresentation: true
-  });
+  try {
+    await supabaseFetch<Candidato[]>("/candidatos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      preferRepresentation: true
+    });
+  } catch (error) {
+    if (!("slug_publico" in payload) || !isMissingCandidateSlugColumn(error)) {
+      throw error;
+    }
+    await supabaseFetch<Candidato[]>("/candidatos", {
+      method: "POST",
+      body: JSON.stringify(withoutCandidateSlug(payload)),
+      preferRepresentation: true
+    });
+  }
 }
 
 export async function updateCandidato(id: string, payload: Partial<Candidato>) {
-  await supabaseFetch<Candidato[]>(`/candidatos?id=eq.${qs(id)}`, {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-    preferRepresentation: true
-  });
+  try {
+    await supabaseFetch<Candidato[]>(`/candidatos?id=eq.${qs(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      preferRepresentation: true
+    });
+  } catch (error) {
+    if (!("slug_publico" in payload) || !isMissingCandidateSlugColumn(error)) {
+      throw error;
+    }
+    await supabaseFetch<Candidato[]>(`/candidatos?id=eq.${qs(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(withoutCandidateSlug(payload)),
+      preferRepresentation: true
+    });
+  }
 }
 
 export async function deleteCandidato(id: string) {

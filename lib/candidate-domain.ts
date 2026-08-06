@@ -22,6 +22,17 @@ export function normalizeRequestHostname(value: string | null | undefined) {
   }
 }
 
+export function requestHostnameUsesWww(value: string | null | undefined) {
+  const candidate = value?.split(",")[0]?.trim();
+  if (!candidate) return false;
+
+  try {
+    return new URL(`http://${candidate}`).hostname.toLowerCase().startsWith("www.");
+  } catch {
+    return false;
+  }
+}
+
 export function normalizeCandidateDomain(value: string | null | undefined) {
   const candidate = value?.trim();
   if (!candidate) return null;

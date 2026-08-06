@@ -10,6 +10,7 @@ import {
   getCandidatoByPublicSlug,
   listPublicCampanhasByCandidate
 } from "@/lib/supabase";
+import type { Candidato } from "@/lib/types";
 
 export const campaignCacheTag = (id: string) => `campanha-publica:${id}`;
 export const publicCandidatesCacheTag = "candidatos-publicos";
@@ -66,7 +67,7 @@ export function getPublicCampaignView(id: string) {
   )();
 }
 
-async function getPublicCandidateHub(candidato: Awaited<ReturnType<typeof getCandidato>>) {
+async function getPublicCandidateHub(candidato: Candidato | null) {
   if (!candidato) return null;
 
   const campanhas = (await listPublicCampanhasByCandidate(candidato.id)).filter(

@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   isPlatformHostname,
-  normalizeRequestHostname
+  normalizeRequestHostname,
+  requestHostnameUsesWww
 } from "@/lib/candidate-domain";
 
 const exactRedirects: Record<string, string> = {
@@ -45,11 +46,29 @@ function isCandidatePublicPath(pathname: string) {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const exact = exactRedirects[pathname];
-  const hostname = normalizeRequestHostname(
+  const forwardedHost =
     request.headers.get("host") ||
-      request.headers.get("x-forwarded-host") ||
-      request.nextUrl.host
+    request.headers.get("x-forwarded-host") ||
+    request.nextUrl.host;
+  const hostname = normalizeRequestHostname(
+    forwardedHost
   );
+  const protocol = (
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    request.nextUrl.protocol.replace(":", "")
+  ).toLowerCase();
+
+  if (
+    hostname &&
+    !isPlatformHostname(hostname) &&
+    (protocol !== "https" || requestHostnameUsesWww(forwardedHost))
+  ) {
+    const secureUrl = request.nextUrl.clone();
+    secureUrl.protocol = "https:";
+    secureUrl.hostname = hostname;
+    secureUrl.port = "";
+    return NextResponse.redirect(secureUrl, 308);
+  }
 
   if (!isPlatformHostname(hostname)) {
     if (pathname === "/") {
