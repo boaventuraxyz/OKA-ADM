@@ -953,12 +953,6 @@ html.route-loading .route-progress {
   display: none;
 }
 
-.politicas-rodape .pol-toggle::before {
-  content: "\\01F512";
-  font-size: 11px;
-  opacity: 0.85;
-}
-
 .politicas-rodape .pol-toggle:hover,
 .politicas-rodape[open] .pol-toggle {
   color: #e8c84a;
