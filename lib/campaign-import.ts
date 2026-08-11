@@ -199,7 +199,8 @@ function themeValue(value: Cell | undefined, line: number, issues: CampaignImpor
   const normalized = normalizedKey(cellText(value));
   if (!normalized || ["1", "tema_1", "tema1"].includes(normalized)) return 1;
   if (["2", "tema_2", "tema2", "editorial"].includes(normalized)) return 2;
-  addIssue(issues, line, "Tema inválido; use 1 ou 2.");
+  if (["3", "tema_3", "tema3", "manifesto"].includes(normalized)) return 3;
+  addIssue(issues, line, "Tema inválido; use 1, 2 ou 3.");
   return 1;
 }
 
@@ -468,7 +469,7 @@ export function campaignImportModelCsv(campaigns: Campanha[], candidates: Candid
       campaign.descricao,
       campaign.candidato_id ? candidateNames.get(campaign.candidato_id) : "",
       campaign.ativa ? "Sim" : "Não",
-      campaign.tema === 2 ? 2 : 1,
+      campaign.tema === 2 || campaign.tema === 3 ? campaign.tema : 1,
       campaign.inicio_em,
       campaign.fim_em,
       campaign.assinaturas_meta,

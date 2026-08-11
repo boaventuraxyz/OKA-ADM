@@ -7,6 +7,7 @@ import {
   splitCandidateName
 } from "@/components/CampaignHeadline";
 import { CampaignRichText } from "@/components/CampaignRichText";
+import { CampaignTheme3 } from "@/components/CampaignTheme3";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
@@ -108,6 +109,16 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
   const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
     .filter(Boolean)
     .join(" / ");
+
+  if (campanha.tema === 3) {
+    return (
+      <CampaignTheme3
+        accent={accent || "#E2382B"}
+        campanha={campanha}
+        totalAssinaturas={assinaturas}
+      />
+    );
+  }
 
   if (campanha.tema === 2) {
     const context = campanha.textoContexto?.trim();

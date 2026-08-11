@@ -39,7 +39,22 @@ export default async function EditarCampanhaPage({
     "texto_conclusao",
     "texto_impacto",
     "texto_impacto_apoio",
-    "url_formulario"
+    "url_formulario",
+    "texto_faixa",
+    "titulo_topicos",
+    "texto_topicos_intro",
+    "texto_topicos",
+    "titulo_citacao",
+    "texto_citacao",
+    "nota_citacao",
+    "titulo_video",
+    "video_url",
+    "texto_video",
+    "legenda_video",
+    "nota_video",
+    "titulo_assinar",
+    "texto_assinar",
+    "texto_compartilhar"
   ].every((column) => Object.prototype.hasOwnProperty.call(campanha, column));
   const backgroundValue = parseCampaignBackground(campanha.imagem_fundo)
     ? campanha.imagem_fundo
@@ -89,7 +104,7 @@ export default async function EditarCampanhaPage({
         <div className="two-cols">
           <div className="field">
             <label htmlFor="destaque_primario">
-              Trecho do título na cor escolhida (temas 1 e 2)
+              Trecho do título na cor escolhida (todos os temas)
             </label>
             <input
               className="input"
@@ -101,7 +116,7 @@ export default async function EditarCampanhaPage({
           </div>
           <div className="field">
             <label htmlFor="destaque_secundario">
-              Outro trecho do título em amarelo (temas 1 e 2)
+              Outro trecho do título em amarelo (no Tema 3 vira marca-texto amarelo)
             </label>
             <input
               className="input"
@@ -186,6 +201,21 @@ export default async function EditarCampanhaPage({
           defaultProposal={campanha.texto_proposta}
           defaultSideImage={sideImageValue}
           defaultTheme={campanha.tema}
+          defaultStrip={campanha.texto_faixa}
+          defaultTopicsTitle={campanha.titulo_topicos}
+          defaultTopicsIntro={campanha.texto_topicos_intro}
+          defaultTopics={campanha.texto_topicos}
+          defaultQuoteTitle={campanha.titulo_citacao}
+          defaultQuote={campanha.texto_citacao}
+          defaultQuoteNote={campanha.nota_citacao}
+          defaultVideoTitle={campanha.titulo_video}
+          defaultVideoUrl={campanha.video_url}
+          defaultVideoText={campanha.texto_video}
+          defaultVideoCaption={campanha.legenda_video}
+          defaultVideoNote={campanha.nota_video}
+          defaultSignTitle={campanha.titulo_assinar}
+          defaultSignText={campanha.texto_assinar}
+          defaultShareText={campanha.texto_compartilhar}
         />
         <div className="field">
           <label htmlFor="url_formulario">Link do WhatsApp após a assinatura (opcional)</label>

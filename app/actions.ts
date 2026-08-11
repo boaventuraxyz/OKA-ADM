@@ -114,8 +114,41 @@ function campaignImage(formData: FormData, name: "imagem_fundo" | "imagem_latera
 
 function campaignTheme(formData: FormData) {
   const value = text(formData, "tema") || "1";
-  if (value !== "1" && value !== "2") throw new Error("Tema invalido.");
+  if (value !== "1" && value !== "2" && value !== "3") {
+    throw new Error("Tema invalido.");
+  }
   return Number(value);
+}
+
+class CampaignVideoInputError extends Error {}
+
+function campaignVideoUrl(formData: FormData) {
+  const raw = text(formData, "video_url");
+  if (!raw) return null;
+  if (raw.length > 2048 || !/^(https:\/\/|\/)/i.test(raw)) {
+    throw new CampaignVideoInputError("Link do video invalido.");
+  }
+  return raw;
+}
+
+function campaignTheme3Fields(formData: FormData) {
+  return {
+    texto_faixa: nullableText(formData, "texto_faixa", 500),
+    titulo_topicos: nullableText(formData, "titulo_topicos", 200),
+    texto_topicos_intro: nullableLongText(formData, "texto_topicos_intro", 2000),
+    texto_topicos: nullableLongText(formData, "texto_topicos", 8000),
+    titulo_citacao: nullableText(formData, "titulo_citacao", 200),
+    texto_citacao: nullableLongText(formData, "texto_citacao", 2000),
+    nota_citacao: nullableLongText(formData, "nota_citacao", 1000),
+    titulo_video: nullableText(formData, "titulo_video", 200),
+    video_url: campaignVideoUrl(formData),
+    texto_video: nullableLongText(formData, "texto_video", 4000),
+    legenda_video: nullableText(formData, "legenda_video", 300),
+    nota_video: nullableLongText(formData, "nota_video", 1000),
+    titulo_assinar: nullableText(formData, "titulo_assinar", 200),
+    texto_assinar: nullableLongText(formData, "texto_assinar", 2000),
+    texto_compartilhar: nullableText(formData, "texto_compartilhar", 500)
+  };
 }
 
 function campaignRedirectUrl(formData: FormData) {
@@ -131,6 +164,7 @@ function campaignRedirectUrl(formData: FormData) {
 function campaignSaveErrorPath(error: unknown, path: string) {
   if (error instanceof CampaignBackgroundInputError) return `${path}?erro=imagem`;
   if (error instanceof CampaignRedirectInputError) return `${path}?erro=whatsapp`;
+  if (error instanceof CampaignVideoInputError) return `${path}?erro=video`;
   if (!(error instanceof SupabaseRequestError)) return null;
   if (error.code === "PGRST204") return `${path}?erro=estrutura`;
   if (error.status === 400 || error.status === 409) return `${path}?erro=dados`;
@@ -229,6 +263,7 @@ export async function createCampanhaAction(formData: FormData) {
       texto_conclusao: nullableLongText(formData, "texto_conclusao", 4000),
       texto_impacto: nullableText(formData, "texto_impacto", 300),
       texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
+      ...campaignTheme3Fields(formData),
       url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {
@@ -265,6 +300,7 @@ export async function updateCampanhaAction(formData: FormData) {
       texto_conclusao: nullableLongText(formData, "texto_conclusao", 4000),
       texto_impacto: nullableText(formData, "texto_impacto", 300),
       texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
+      ...campaignTheme3Fields(formData),
       url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {

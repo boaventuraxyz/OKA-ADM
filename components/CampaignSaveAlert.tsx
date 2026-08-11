@@ -7,8 +7,10 @@ const messages: Record<string, string> = {
     "A foto de fundo e invalida ou ficou muito grande. Selecione outra imagem e tente novamente.",
   whatsapp:
     "Informe um link HTTPS valido do WhatsApp, como wa.me ou chat.whatsapp.com.",
+  video:
+    "Informe um link HTTPS valido para o video (arquivo .mp4).",
   estrutura:
-    "A estrutura da tabela campanhas está desatualizada. Execute supabase/campaign-template.sql no SQL Editor do Supabase e tente novamente."
+    "A estrutura da tabela campanhas está desatualizada. Execute supabase/campaign-template.sql e supabase/campaign-theme3.sql no SQL Editor do Supabase e tente novamente."
 };
 
 export function CampaignSaveAlert({ error }: { error?: string }) {

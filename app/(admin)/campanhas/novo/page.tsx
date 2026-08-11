@@ -47,7 +47,7 @@ export default async function NovaCampanhaPage({
         <div className="two-cols">
           <div className="field">
             <label htmlFor="destaque_primario">
-              Trecho do título na cor escolhida (temas 1 e 2)
+              Trecho do título na cor escolhida (todos os temas)
             </label>
             <input
               className="input"
@@ -58,7 +58,7 @@ export default async function NovaCampanhaPage({
           </div>
           <div className="field">
             <label htmlFor="destaque_secundario">
-              Outro trecho do título em amarelo (temas 1 e 2)
+              Outro trecho do título em amarelo (no Tema 3 vira marca-texto amarelo)
             </label>
             <input
               className="input"

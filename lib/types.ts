@@ -35,6 +35,21 @@ export type Campanha = {
   texto_conclusao: string | null;
   texto_impacto: string | null;
   texto_impacto_apoio: string | null;
+  texto_faixa: string | null;
+  titulo_topicos: string | null;
+  texto_topicos_intro: string | null;
+  texto_topicos: string | null;
+  titulo_citacao: string | null;
+  texto_citacao: string | null;
+  nota_citacao: string | null;
+  titulo_video: string | null;
+  video_url: string | null;
+  texto_video: string | null;
+  legenda_video: string | null;
+  nota_video: string | null;
+  titulo_assinar: string | null;
+  texto_assinar: string | null;
+  texto_compartilhar: string | null;
 };
 
 export type Assinatura = {

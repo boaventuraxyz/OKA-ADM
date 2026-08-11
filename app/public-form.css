@@ -1490,3 +1490,384 @@
     transition: none;
   }
 }
+
+/* ===== Tema 3 - Manifesto ===== */
+
+.campaign-theme-3 {
+  --t3-ink: #07080b;
+  --t3-navy: #0d1826;
+  --t3-navy-2: #132437;
+  --t3-amber: #f2c14e;
+  --t3-red: var(--campaign-accent, #e2382b);
+  --t3-paper: #eceae3;
+  --t3-muted: #7c8ca0;
+  --t3-line: rgba(236, 234, 227, 0.14);
+  background-color: var(--t3-ink);
+  color: var(--t3-paper);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.campaign-theme3-wrap {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+.campaign-theme3-strip {
+  position: sticky;
+  z-index: 50;
+  top: 0;
+  overflow: hidden;
+  background: var(--t3-red);
+  color: #fff;
+  padding: 9px 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.campaign-theme3-strip span {
+  display: inline-block;
+  padding-left: 100%;
+  animation: campaign-theme3-slide 22s linear infinite;
+}
+
+@keyframes campaign-theme3-slide {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.campaign-theme3-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--t3-line);
+  background:
+    radial-gradient(1100px 460px at 12% -10%, rgba(242, 193, 78, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--t3-navy) 0%, var(--t3-ink) 100%);
+  padding: 64px 0 58px;
+}
+
+.campaign-theme3-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+  color: var(--t3-amber);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.campaign-theme3-eyebrow b {
+  color: var(--t3-paper);
+  font-weight: 500;
+}
+
+.campaign-theme-3 h1 {
+  margin: 0 0 26px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: clamp(40px, 8.4vw, 86px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.campaign-theme-3 h1 .campaign-headline-gold {
+  background: var(--t3-amber);
+  color: var(--t3-ink);
+  padding: 0 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.campaign-theme-3 h1 .campaign-headline-accent {
+  color: var(--t3-red);
+}
+
+.campaign-theme3-lede {
+  max-width: 660px;
+  margin: 0 0 8px;
+  color: #c9ced6;
+  font-size: clamp(17px, 2.4vw, 21px);
+}
+
+.campaign-theme3-lede strong,
+.campaign-theme3-lede b {
+  color: var(--t3-paper);
+}
+
+.campaign-theme3-cta {
+  display: inline-block;
+  margin-top: 26px;
+  border-radius: 2px;
+  background: var(--t3-red);
+  color: #fff;
+  padding: 20px 34px;
+  font-family: "Anton", sans-serif;
+  font-size: clamp(20px, 3.4vw, 26px);
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+
+.campaign-theme3-cta:hover {
+  background: var(--t3-amber);
+  color: var(--t3-ink);
+  transform: translateY(-2px);
+}
+
+.campaign-theme3-section {
+  border-bottom: 1px solid var(--t3-line);
+  padding: 60px 0;
+}
+
+.campaign-theme-3 h2 {
+  margin: 0 0 24px;
+  font-family: "Anton", sans-serif;
+  font-size: clamp(26px, 4.6vw, 40px);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+
+.campaign-theme3-claims {
+  display: grid;
+  gap: 2px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.campaign-theme3-claims li {
+  position: relative;
+  border-left: 3px solid var(--t3-amber);
+  background: var(--t3-navy);
+  padding: 22px 24px 22px 66px;
+}
+
+.campaign-theme3-claims li::before {
+  content: attr(data-n);
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  color: var(--t3-amber);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.campaign-theme3-claims h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.campaign-theme3-claim-text {
+  margin: 0;
+  color: #afb8c4;
+  font-size: 16px;
+}
+
+.campaign-theme3-quote {
+  margin: 0;
+  border-left: 3px solid var(--t3-red);
+  background: var(--t3-navy-2);
+  padding: 30px 28px;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.campaign-theme3-quote-text {
+  margin: 0;
+}
+
+.campaign-theme3-quote-text + .campaign-theme3-quote-text {
+  margin-top: 14px;
+}
+
+.campaign-theme3-note {
+  margin: 16px 0 0;
+  border-left: 2px solid var(--t3-line);
+  color: var(--t3-muted);
+  padding-left: 14px;
+  font-size: 13px;
+}
+
+.campaign-theme3-video-section {
+  background: linear-gradient(180deg, #0a1421 0%, var(--t3-ink) 100%);
+}
+
+.campaign-theme3-vid-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) 1fr;
+  align-items: start;
+  gap: 34px;
+}
+
+.campaign-theme3-vid-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--t3-line);
+  border-radius: 3px;
+  background: #000;
+}
+
+.campaign-theme3-vid-frame video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.campaign-theme3-vid-tag {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  background: var(--t3-red);
+  color: #fff;
+  padding: 6px 10px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.campaign-theme3-vid-cap {
+  margin-top: 10px;
+  color: var(--t3-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.campaign-theme3-pull {
+  margin: 0 0 18px;
+  font-family: "Anton", sans-serif;
+  font-size: clamp(22px, 3.6vw, 32px);
+  line-height: 1.12;
+  text-transform: uppercase;
+}
+
+.campaign-theme3-pull em,
+.campaign-theme3-pull i,
+.campaign-theme3-pull b,
+.campaign-theme3-pull strong {
+  color: var(--t3-amber);
+  font-style: normal;
+  font-weight: inherit;
+}
+
+.campaign-theme3-vid-text {
+  margin: 0 0 16px;
+  color: #afb8c4;
+}
+
+.campaign-theme3-sign {
+  background: linear-gradient(180deg, var(--t3-navy) 0%, var(--t3-ink) 100%);
+}
+
+.campaign-theme3-form {
+  margin-top: 34px;
+}
+
+.campaign-theme-3 .form-card {
+  border: 1px solid var(--t3-line);
+  border-radius: 3px;
+  background: var(--t3-navy);
+}
+
+.campaign-theme-3 .form-card .btn-sign {
+  border-radius: 2px;
+  background: var(--t3-red);
+  font-family: "Anton", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.campaign-theme-3 .form-card .btn-sign:hover {
+  background: var(--t3-amber);
+  color: var(--t3-ink);
+}
+
+.campaign-theme3-share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.campaign-theme3-share a {
+  border: 1px solid var(--t3-amber);
+  border-radius: 2px;
+  color: var(--t3-paper);
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.campaign-theme3-share a:hover {
+  background: var(--t3-amber);
+  color: var(--t3-ink);
+}
+
+.campaign-theme-3 a:focus-visible,
+.campaign-theme-3 video:focus-visible {
+  outline: 2px solid var(--t3-amber);
+  outline-offset: 3px;
+}
+
+.campaign-theme3-footer {
+  padding: 40px 0 70px;
+  color: var(--t3-muted);
+  font-size: 13px;
+}
+
+.campaign-theme3-footer strong {
+  color: var(--t3-paper);
+}
+
+@media (max-width: 720px) {
+  .campaign-theme3-vid-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .campaign-theme3-claims li {
+    padding: 20px 18px;
+  }
+
+  .campaign-theme3-claims li::before {
+    position: static;
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-theme3-strip span {
+    animation: none;
+  }
+
+  .campaign-theme3-cta {
+    transition: none;
+  }
+}
