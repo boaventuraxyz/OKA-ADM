@@ -4,6 +4,7 @@ import { AICampaignCreator } from "@/features/ai/AICampaignCreator";
 import { requireAdmin } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Criar com IA" };
+export const dynamic = "force-dynamic";
 
 export default async function CreateCampaignWithAIPage() {
   await requireAdmin();

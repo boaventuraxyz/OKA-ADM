@@ -156,9 +156,9 @@ O modelo é configurado por `AI_MODEL` no formato `provedor/modelo`. A credencia
 
 As principais entradas públicas são:
 
-- `/p/[slug]`: campanha publicada por slug;
+- `/formulario/[idCampanha]`: campanha publicada por UUID (canônica);
+- `/p/[slug]`: redirecionamento compatível para a campanha por UUID;
 - `/c/[slug]`: hub do candidato;
-- `/formulario/[idCampanha]`: compatibilidade por UUID;
 - `/formularios`: índice usado na raiz de domínio personalizado;
 - `POST /api/assinaturas`: recebimento validado da assinatura.
 
@@ -204,9 +204,9 @@ Respostas que alteram sessão propagam corretamente `Set-Cookie` e headers de ca
 | Conteúdo | `/admin/campaigns`, `/admin/campaigns/new`, `/admin/campaigns/[id]/edit`, `/admin/campaigns/ai`, `/admin/themes`, `/admin/forms` |
 | Dados | `/admin/leads` |
 | Gestão | `/admin/users`, `/admin/settings` |
-| Público | `/p/[slug]`, `/c/[slug]` |
+| Público | `/formulario/[idCampanha]`, `/c/[slug]` |
 
-Páginas novas não devem apontar para `/campanhas`, `/assinaturas`, `/temas` ou rotas MVC. Esses caminhos existem somente como adapters de compatibilidade. `/candidatos/*` ainda é legado e deve permanecer isolado até uma migração dedicada.
+Páginas novas não devem apontar para `/p/[slug]`, `/campanhas`, `/assinaturas`, `/temas` ou rotas MVC. Esses caminhos existem somente como adapters de compatibilidade. `/candidatos/*` ainda é legado e deve permanecer isolado até uma migração dedicada.
 
 ## Contratos que não podem ser quebrados silenciosamente
 

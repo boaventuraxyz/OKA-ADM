@@ -174,10 +174,10 @@ O export usa UTF-8 com BOM, separador `;`, neutralização de fórmulas e cabeç
 | Leads | `/admin/leads` |
 | Usuários | `/admin/users` |
 | Configurações | `/admin/settings` |
-| Campanha pública por slug | `/p/[slug]` |
+| Campanha pública por UUID | `/formulario/[idCampanha]` |
 | Hub público de candidato | `/c/[slug]` |
 
-A raiz do hostname da plataforma redireciona para `/admin`. Rotas MVC antigas e caminhos administrativos em português são redirecionados quando necessário, mas não devem aparecer em novos links. `/candidatos/*` permanece como superfície legada de compatibilidade enquanto sua migração não for concluída.
+A raiz do hostname da plataforma redireciona para `/admin`. Rotas MVC antigas e caminhos administrativos em português são redirecionados quando necessário, mas não devem aparecer em novos links. `/p/[slug]` redireciona para a URL canônica por UUID. `/candidatos/*` permanece como superfície legada de compatibilidade enquanto sua migração não for concluída.
 
 Em um domínio público de candidato, `/` exibe o índice de formulários, `/{uuid}` abre a campanha e qualquer caminho administrativo retorna `404`. `/formulario/[idCampanha]` e o POST legado `/Formulario/Create` continuam disponíveis para links e integrações existentes.
 
@@ -212,7 +212,7 @@ next.config.mjs          headers de segurança e limites globais do Next.js
 | Catálogo de temas | `features/themes/registry.ts` | previews e componentes públicos que consomem cada chave |
 | Adicionar ou duplicar tema | `docs/THEMES.md` | registry, preview, renderer público e migration quando necessária |
 | Configuração de formulário | `features/forms/config.ts` | editor de campanha e `components/PublicSignatureForm.tsx` |
-| Página pública por slug | `app/p/[slug]/` | `lib/public-campaign.ts` e componentes de tema |
+| Página pública por UUID | `app/formulario/[idCampanha]/` | `lib/public-campaign.ts` e componentes de tema |
 | Assinatura pública | `app/api/assinaturas/route.ts` | validações, disponibilidade e RLS/grants |
 | Consulta ou exportação de leads | `features/leads/` | `app/admin/leads/` e `app/api/admin/leads/export/` |
 | Login, sessão e guards | `features/auth/` | `lib/auth.ts`, `lib/supabase/` e `proxy.ts` |

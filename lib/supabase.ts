@@ -155,8 +155,8 @@ export async function getPublishedCampaignIdBySlug(slug: string) {
 }
 
 export function listPublishedCampaignSitemap() {
-  return supabaseFetch<Array<{ slug: string; updated_at: string }>>(
-    "/campanhas?status=eq.published&slug=not.is.null&select=slug,updated_at&order=updated_at.desc&limit=5000"
+  return supabaseFetch<Array<{ id: string; updated_at: string }>>(
+    "/campanhas?status=eq.published&select=id,updated_at&order=updated_at.desc&limit=5000"
   );
 }
 

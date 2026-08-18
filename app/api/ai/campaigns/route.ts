@@ -17,6 +17,9 @@ import {
 
 const MAX_AI_BODY_BYTES = 16_384;
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 function generationError(error: CampaignGenerationError) {
   const messages = {
     AI_INVALID_INPUT: ["AI_INVALID_INPUT", "Revise o tema e o briefing.", 400],

@@ -53,7 +53,7 @@ export async function publicCampaignMetadata(idCampanha?: string): Promise<Metad
       type: "website",
       ...(campanha.ogImage ? { images: [campanha.ogImage] } : {})
     },
-    ...(campanha.slug ? { alternates: { canonical: `/p/${campanha.slug}` } } : {}),
+    alternates: { canonical: `/formulario/${encodeURIComponent(campanha.id)}` },
     title
   };
 }

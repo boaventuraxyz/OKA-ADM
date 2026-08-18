@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
-import { FormularioContent } from "@/app/formulario/page";
 import { normalizeCampaignSlug } from "@/features/campaigns/domain";
 import { publicCampaignMetadata } from "@/lib/public-campaign-metadata";
 import { getPublishedCampaignIdBySlug } from "@/lib/supabase";
@@ -12,7 +11,6 @@ export const dynamic = "force-dynamic";
 const resolveCampaign = cache(async function resolveCampaign(rawSlug: string) {
   const slug = normalizeCampaignSlug(rawSlug);
   if (!slug) return null;
-  if (slug !== rawSlug) redirect(`/p/${slug}`);
   return getPublishedCampaignIdBySlug(slug);
 });
 
@@ -36,5 +34,5 @@ export default async function PublicCampaignSlugPage({
   const { slug } = await params;
   const campaign = await resolveCampaign(slug);
   if (!campaign) notFound();
-  return <FormularioContent idCampanha={campaign.id} />;
+  redirect(`/formulario/${encodeURIComponent(campaign.id)}`);
 }
