@@ -202,6 +202,7 @@ export async function createCampaign(
 export async function updateCampaignDraft(
   idInput: unknown,
   input: unknown,
+  expectedUpdatedAt?: unknown,
 ): Promise<CampaignMutationResult> {
   const context = await requireActiveProfile();
   const id = campaignIdSchema.parse(idInput);
@@ -216,6 +217,17 @@ export async function updateCampaignDraft(
     throw new CampaignServiceError(
       "STATE_CONFLICT",
       "Somente campanhas em rascunho podem ser editadas.",
+    );
+  }
+  if (
+    expectedUpdatedAt !== undefined &&
+    (typeof expectedUpdatedAt !== "string" ||
+      !Number.isFinite(Date.parse(expectedUpdatedAt)) ||
+      current.updated_at !== expectedUpdatedAt)
+  ) {
+    throw new CampaignServiceError(
+      "STATE_CONFLICT",
+      "Esta campanha foi alterada em outra sessão. Recarregue a página antes de salvar novamente.",
     );
   }
 
@@ -233,6 +245,7 @@ export async function updateCampaignDraft(
       client,
       id,
       editPayload(parsed, context.user.id),
+      typeof expectedUpdatedAt === "string" ? expectedUpdatedAt : undefined,
     );
   } catch (error) {
     if (isCampaignUniqueViolation(error)) {

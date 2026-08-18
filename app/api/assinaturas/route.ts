@@ -28,9 +28,20 @@ import { formText, isUuid, singleLine } from "@/lib/validation";
 
 const MAX_BODY_BYTES = 32 * 1024;
 
-function jsonError(message: string, status: number, extraHeaders?: HeadersInit) {
+function jsonError(
+  code: string,
+  message: string,
+  status: number,
+  extraHeaders?: HeadersInit,
+) {
   return NextResponse.json(
-    { erro: message, sucesso: false },
+    {
+      success: false,
+      error: { code, message },
+      // Compatibility with public forms deployed before the API contract.
+      erro: message,
+      sucesso: false,
+    },
     {
       status,
       headers: {
@@ -38,6 +49,13 @@ function jsonError(message: string, status: number, extraHeaders?: HeadersInit) 
         ...extraHeaders
       }
     }
+  );
+}
+
+function jsonSuccess<T extends Record<string, unknown>>(data: T) {
+  return NextResponse.json(
+    { success: true, data, ...data, sucesso: true },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }
 
@@ -97,7 +115,7 @@ function parseConfiguredResponses(
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) {
-    return jsonError("Origem da requisicao nao permitida.", 403);
+    return jsonError("ORIGIN_NOT_ALLOWED", "Origem da requisicao nao permitida.", 403);
   }
 
   const contentType = request.headers.get("content-type") || "";
@@ -105,7 +123,7 @@ export async function POST(request: Request) {
     !contentType.toLowerCase().startsWith("multipart/form-data") ||
     !requestBodyWithinLimit(request, MAX_BODY_BYTES)
   ) {
-    return jsonError("Formato ou tamanho de requisicao invalido.", 413);
+    return jsonError("INVALID_REQUEST", "Formato ou tamanho de requisicao invalido.", 413);
   }
 
   const rateLimit = consumeRateLimit("assinatura", request.headers, {
@@ -113,18 +131,18 @@ export async function POST(request: Request) {
     windowMs: 60 * 1000
   });
   if (!rateLimit.allowed) {
-    return jsonError("Muitas tentativas. Aguarde um minuto.", 429, {
+    return jsonError("RATE_LIMITED", "Muitas tentativas. Aguarde um minuto.", 429, {
       "Retry-After": String(rateLimit.retryAfterSeconds)
     });
   }
 
   const formData = await readFormDataWithinLimit(request, MAX_BODY_BYTES);
   if (!formData) {
-    return jsonError("Dados do formulario invalidos.", 400);
+    return jsonError("INVALID_FORM_DATA", "Dados do formulario invalidos.", 400);
   }
 
   if (formText(formData, "website")) {
-    return NextResponse.json({ sucesso: true }, { headers: { "Cache-Control": "no-store" } });
+    return jsonSuccess({ accepted: true });
   }
 
   const campanhaId = singleLine(
@@ -174,12 +192,16 @@ export async function POST(request: Request) {
   const numero = numeroTexto ? Number(numeroTexto) : null;
 
   if (!campanhaId || !isUuid(campanhaId) || consentimento !== "sim") {
-    return jsonError("Confira os dados informados.", 400);
+    return jsonError("VALIDATION_ERROR", "Confira os dados informados.", 400);
   }
 
   const campanha = await getCampanhaSubmissionConfig(campanhaId);
   if (!campanha || !campaignAcceptsSignatures(campanha)) {
-    return jsonError("Esta campanha nao esta recebendo assinaturas.", 409);
+    return jsonError(
+      "CAMPAIGN_NOT_ACCEPTING_SIGNATURES",
+      "Esta campanha nao esta recebendo assinaturas.",
+      409,
+    );
   }
 
   const requestHostname = normalizeRequestHostname(
@@ -195,7 +217,11 @@ export async function POST(request: Request) {
       !candidato ||
       !candidateDomainMatches(requestHostname, candidato.dominio_formularios)
     ) {
-      return jsonError("Campanha nao encontrada neste dominio.", 404);
+      return jsonError(
+        "CAMPAIGN_NOT_FOUND",
+        "Campanha nao encontrada neste dominio.",
+        404,
+      );
     }
   }
 
@@ -236,7 +262,7 @@ export async function POST(request: Request) {
     !validConfiguredValue(fields.state, estado, (value) => statePattern.test(value)) ||
     !validAddress
   ) {
-    return jsonError("Confira os dados informados.", 400);
+    return jsonError("VALIDATION_ERROR", "Confira os dados informados.", 400);
   }
 
   const redirectUrl = normalizeCampaignWhatsappUrl(campanha.url_formulario);
@@ -271,12 +297,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof SupabaseRequestError && error.status === 409) {
-      return jsonError("Esta assinatura ja foi registrada.", 409);
+      return jsonError(
+        "DUPLICATE_SIGNATURE",
+        "Esta assinatura ja foi registrada.",
+        409,
+      );
     }
-    throw error;
+    return jsonError(
+      "SUBMISSION_FAILED",
+      "Nao foi possivel registrar a assinatura agora.",
+      502,
+    );
   }
-  return NextResponse.json(
-    { redirectUrl, sucesso: true },
-    { headers: { "Cache-Control": "no-store" } }
-  );
+  return jsonSuccess({ redirectUrl });
 }

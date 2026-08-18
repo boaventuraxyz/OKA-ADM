@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -43,6 +44,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import { THEME_REGISTRY } from "@/features/themes/registry";
 import { ThemePreview, type PreviewDevice } from "@/features/themes/ThemePreview";
 import { createCampaignAction, updateCampaignAction } from "./actions";
+import {
+  CAMPAIGN_AUTOSAVE_DELAY_MS,
+  shouldAutosaveCampaignDraft,
+} from "./autosave";
 import { normalizeCampaignSlug } from "./domain";
 import type { CampaignRow } from "./types";
 import styles from "./CampaignEditor.module.css";
@@ -1444,6 +1449,7 @@ export function CampaignEditor({
   const [fields, setFields] = useState(initial.snapshot.fields);
   const [settings, setSettings] = useState(initial.snapshot.settings);
   const [baseline, setBaseline] = useState(initial.snapshot);
+  const [campaignVersion, setCampaignVersion] = useState(initialCampaign?.updated_at);
   const [activeTab, setActiveTab] = useState<EditorTab>("content");
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(initialCampaign?.slug));
@@ -1553,6 +1559,99 @@ export function CampaignEditor({
     focusAfterPanelChange(controlId(prefix, firstField));
   }
 
+  useEffect(() => {
+    const snapshot: EditorSnapshot = { fields, settings, values };
+    const validationError = validateSnapshot(snapshot, prefix);
+
+    if (
+      !shouldAutosaveCampaignDraft({
+        dirty,
+        hasValidationError: Boolean(validationError),
+        isPending,
+        mode,
+        status: initialCampaign?.status,
+      })
+    ) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      const payload = editPayload(snapshot, baseline, initial);
+      if (Object.keys(payload).length === 0) return;
+
+      setFeedback("saving");
+      setActionError(null);
+      setFieldErrors(emptyFieldErrors);
+
+      startTransition(async () => {
+        try {
+          const result = await updateCampaignAction({
+            id: initialCampaign?.id,
+            expected_updated_at: campaignVersion,
+            ...payload,
+          });
+
+          if (!result.ok) {
+            setFeedback("error");
+            setActionError(result.error.message);
+            setFieldErrors(result.error.fieldErrors || emptyFieldErrors);
+            return;
+          }
+
+          const savedValues =
+            result.data.slug && result.data.slug !== snapshot.values.slug
+              ? { ...snapshot.values, slug: result.data.slug }
+              : snapshot.values;
+
+          if (savedValues !== snapshot.values) {
+            setValues((current) =>
+              current.slug === snapshot.values.slug
+                ? { ...current, slug: result.data.slug || current.slug }
+                : current,
+            );
+          }
+
+          setBaseline({ ...snapshot, values: savedValues });
+          setCampaignVersion(result.data.updated_at);
+          setFeedback("saved");
+        } catch {
+          setFeedback("error");
+          setActionError(
+            "O salvamento automático falhou. Use Salvar alterações para tentar novamente.",
+          );
+        }
+      });
+    }, CAMPAIGN_AUTOSAVE_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    baseline,
+    campaignVersion,
+    dirty,
+    fields,
+    initial,
+    initialCampaign?.id,
+    initialCampaign?.status,
+    isPending,
+    mode,
+    prefix,
+    settings,
+    startTransition,
+    values,
+  ]);
+
+  useEffect(() => {
+    if (!dirty) return;
+
+    function preventAccidentalExit(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    window.addEventListener("beforeunload", preventAccidentalExit);
+    return () => window.removeEventListener("beforeunload", preventAccidentalExit);
+  }, [dirty]);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isPending || !editableDraft || missingCampaign) return;
@@ -1582,7 +1681,11 @@ export function CampaignEditor({
       try {
         const result = mode === "create"
           ? await createCampaignAction(payload)
-          : await updateCampaignAction({ id: initialCampaign?.id, ...payload });
+          : await updateCampaignAction({
+              id: initialCampaign?.id,
+              expected_updated_at: campaignVersion,
+              ...payload,
+            });
 
         if (!result.ok) {
           setFeedback("error");
@@ -1603,6 +1706,7 @@ export function CampaignEditor({
           : snapshot.values;
         if (savedValues !== snapshot.values) setValues(savedValues);
         setBaseline({ ...snapshot, values: savedValues });
+        setCampaignVersion(result.data.updated_at);
         setFeedback("saved");
       } catch {
         setFeedback("error");
@@ -1632,10 +1736,12 @@ export function CampaignEditor({
     ? "Salvando…"
     : feedback === "saved"
       ? dirty ? "Alterações pendentes" : "Salvo"
-      : feedback === "error"
+        : feedback === "error"
         ? "Erro ao salvar"
         : dirty
-          ? "Alterações não salvas"
+          ? mode === "edit" && editableDraft
+            ? "Salvamento automático pendente"
+            : "Alterações não salvas"
           : mode === "edit"
             ? "Sem alterações"
             : "Novo rascunho";
@@ -1649,7 +1755,7 @@ export function CampaignEditor({
           <span>
             {mode === "create"
               ? "A criação será salva como rascunho."
-              : "O salvamento altera somente os campos editados deste rascunho."}
+              : "Alterações válidas deste rascunho são salvas automaticamente."}
           </span>
         </div>
         <Badge variant={editableDraft ? "warning" : "neutral"}>
@@ -1701,7 +1807,11 @@ export function CampaignEditor({
           )}
           <span>
             <strong>{feedbackLabel}</strong>
-            <small>Salvamento manual seguro</small>
+            <small>
+              {mode === "edit" && editableDraft
+                ? "Autosave ativo; o botão manual continua disponível"
+                : "Primeiro salvamento manual e seguro"}
+            </small>
           </span>
         </div>
         <Button disabled={!editableDraft || missingCampaign} loading={isPending} size="large" type="submit" variant="primary">

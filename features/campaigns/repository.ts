@@ -151,12 +151,19 @@ export async function updateDraftCampaignRow(
   client: CampaignDatabaseClient,
   id: string,
   payload: CampaignUpdate,
+  expectedUpdatedAt?: string,
 ): Promise<CampaignRow | null> {
-  const { data, error } = await client
+  let query = client
     .from("campanhas")
     .update(payload)
     .eq("id", id)
-    .eq("status", "draft")
+    .eq("status", "draft");
+
+  if (expectedUpdatedAt) {
+    query = query.eq("updated_at", expectedUpdatedAt);
+  }
+
+  const { data, error } = await query
     .select("*")
     .maybeSingle();
 

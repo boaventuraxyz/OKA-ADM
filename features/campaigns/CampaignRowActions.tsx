@@ -84,26 +84,33 @@ export function CampaignRowActions({
         {pending === "duplicate" ? "Duplicando…" : "Duplicar"}
       </Button>
       {status === "draft" ? (
-        <Button
-          disabled={pending !== null}
-          onClick={() => void run("publish", publishCampaignAction)}
-          size="small"
-          variant="ghost"
-        >
-          <Globe2 aria-hidden="true" size={15} />
-          {pending === "publish" ? "Publicando…" : "Publicar"}
-        </Button>
+        <AlertDialog
+          confirmLabel="Publicar campanha"
+          confirmVariant="primary"
+          description="Revise conteúdo, formulário, tema, SEO e preview. Depois da confirmação, a campanha ficará disponível publicamente."
+          onConfirm={() => run("publish", publishCampaignAction, false, true)}
+          title="Publicar esta campanha?"
+          trigger={
+            <>
+              <Globe2 aria-hidden="true" size={15} /> Publicar
+            </>
+          }
+          triggerVariant="ghost"
+        />
       ) : null}
       {status === "published" ? (
-        <Button
-          disabled={pending !== null}
-          onClick={() => void run("unpublish", unpublishCampaignAction)}
-          size="small"
-          variant="ghost"
-        >
-          <Undo2 aria-hidden="true" size={15} />
-          {pending === "unpublish" ? "Alterando…" : "Despublicar"}
-        </Button>
+        <AlertDialog
+          confirmLabel="Retirar do ar"
+          description="A página pública deixará de aceitar acessos e assinaturas. A campanha voltará para rascunho sem perder conteúdo ou leads."
+          onConfirm={() => run("unpublish", unpublishCampaignAction, false, true)}
+          title="Retirar esta campanha do ar?"
+          trigger={
+            <>
+              <Undo2 aria-hidden="true" size={15} /> Despublicar
+            </>
+          }
+          triggerVariant="ghost"
+        />
       ) : null}
       {status !== "archived" ? (
         <AlertDialog

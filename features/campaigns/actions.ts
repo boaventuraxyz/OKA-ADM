@@ -53,7 +53,21 @@ function idFromActionInput(value: unknown) {
 function mutationInputWithoutId(value: unknown) {
   const input = actionInput(value);
   delete input.id;
+  delete input.expected_updated_at;
   return input;
+}
+
+function expectedUpdatedAtFromActionInput(value: unknown) {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "expected_updated_at" in value
+  ) {
+    return (value as { expected_updated_at?: unknown }).expected_updated_at;
+  }
+
+  if (value instanceof FormData) return value.get("expected_updated_at");
+  return undefined;
 }
 
 function validationError(error: ZodError): CampaignActionError {
@@ -112,9 +126,6 @@ function revalidateCampaign(result: CampaignMutationResult) {
   revalidatePath(`/admin/campaigns/${result.id}/edit`);
   revalidatePath("/campanhas");
   revalidatePath(`/campanhas/${result.id}/editar`);
-  revalidatePath("/admin");
-  revalidatePath("/admin/campaigns");
-  revalidatePath(`/admin/campaigns/${result.id}/edit`);
   revalidatePath(`/formulario/${result.id}`);
 }
 
@@ -143,6 +154,7 @@ export async function updateCampaignAction(
     updateCampaignDraft(
       idFromActionInput(input),
       mutationInputWithoutId(input),
+      expectedUpdatedAtFromActionInput(input),
     ),
   );
 }

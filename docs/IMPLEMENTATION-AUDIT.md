@@ -23,7 +23,7 @@ A `master` concentrava painel, regras e acesso privilegiado ao Supabase em pági
 | Auth | Supabase Auth SSR, refresh por proxy, logout, sessão expirada, perfis e papéis `master/admin/editor` |
 | Campanhas | Busca, filtros, paginação, ordenação, draft/publicação/arquivo, duplicação, slug e SEO |
 | IA | Backend autenticado, rate limit, catálogo fechado de temas, saída Zod, fallback/timeout e criação somente em draft |
-| Editor | Tabs, validação cliente/servidor, estado de salvamento e preview ao vivo de tema, cor, textos, CTA e campos |
+| Editor | Tabs, validação cliente/servidor, autosave seguro de drafts persistidos e preview ao vivo de tema, cor, textos, CTA e campos |
 | Temas | Registry único, quatro previews reais e comparação desktop/tablet/celular em `/admin/themes` e `/theme-library` |
 | Formulários | Configuração por campanha, nove tipos de campo, consentimento obrigatório, validação e compatibilidade legada |
 | Leads | FK de campanha, busca, filtros, paginação e CSV limitado/protegido contra fórmula |
@@ -35,7 +35,7 @@ A `master` concentrava painel, regras e acesso privilegiado ao Supabase em pági
 ## Decisões deliberadas
 
 - campanhas são arquivadas, não excluídas; isso preserva leads e histórico;
-- autosave não é ativado: o salvamento explícito evita conflitos silenciosos com edição concorrente e arquivos grandes;
+- campanhas novas exigem o primeiro salvamento explícito; depois disso, drafts persistidos usam autosave com debounce, validação prévia, uma gravação por vez e controle otimista por `updated_at` contra sobrescrita entre sessões;
 - temas ficam em registry tipado, não em tabela editável, porque também dependem de componentes React versionados;
 - configuração simples de formulário fica em JSON validado por campanha, evitando um page builder e tabelas desnecessárias;
 - colunas legadas não são removidas enquanto ainda houver consumidores ou uso remoto não comprovado.

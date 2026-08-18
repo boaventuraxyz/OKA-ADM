@@ -272,12 +272,13 @@ export function PublicSignatureForm({
       });
 
       const result = (await response.json()) as {
+        error?: { message?: string };
         erro?: string;
         redirectUrl?: string | null;
         sucesso?: boolean;
       };
       if (!response.ok || !result.sucesso) {
-        throw new Error(result.erro || "Erro ao salvar");
+        throw new Error(result.error?.message || result.erro || "Erro ao salvar");
       }
 
       showToast("Assinatura realizada com sucesso!", "s");

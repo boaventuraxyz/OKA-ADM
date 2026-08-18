@@ -55,3 +55,23 @@ test("bloqueia geração por IA sem sessão", async ({ request, baseURL }) => {
     error: { code: "AUTHENTICATION_REQUIRED" },
   });
 });
+
+test("padroniza erros da assinatura sem quebrar clientes legados", async ({
+  request,
+  baseURL,
+}) => {
+  const response = await request.post("/api/assinaturas", {
+    data: {},
+    headers: {
+      Origin: baseURL ?? "http://localhost:3000",
+    },
+  });
+
+  expect(response.status()).toBe(413);
+  await expect(response.json()).resolves.toMatchObject({
+    success: false,
+    error: { code: "INVALID_REQUEST" },
+    sucesso: false,
+    erro: expect.any(String),
+  });
+});

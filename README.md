@@ -2,13 +2,16 @@
 
 Painel administrativo em Next.js para criar e publicar campanhas cívicas, configurar formulários, receber assinaturas e administrar acessos com Supabase Auth e RBAC.
 
-> **Estado do projeto:** a reformulação está implementada no repositório, mas o deploy de produção e a validação final ainda não estão declarados como concluídos. Use o checklist de [DEPLOY.md](DEPLOY.md) e registre ali as evidências antes de promover uma versão.
+> **Estado do projeto:** a reformulação está implementada e publicada no projeto Vercel vinculado. Validações que exigem uma conta Master ou dados descartáveis continuam identificadas no checklist, sem testar sobre dados reais.
 
 ## Documentação
 
 - [Arquitetura e contratos](docs/ARCHITECTURE.md)
 - [Banco de dados](docs/DATABASE.md)
 - [Migrations e procedimento de mudança](docs/MIGRATION.md)
+- [Auditoria da reformulação](docs/IMPLEMENTATION-AUDIT.md)
+- [Checklist dos 75 requisitos](docs/REQUIREMENTS-CHECKLIST.md)
+- [Criação e manutenção de temas](docs/THEMES.md)
 - [Deploy e operação na Vercel](DEPLOY.md)
 - [Segurança](SECURITY.md)
 
@@ -142,6 +145,9 @@ Somente `master` e `admin` podem publicar, retirar publicação ou arquivar. Alt
 
 O catálogo canônico de temas fica em [`features/themes/registry.ts`](features/themes/registry.ts). As chaves atuais são `cover`, `editorial`, `manifesto` e `impact-dark`. Adicione ou desative temas no registro e mantenha os componentes de renderização compatíveis com as chaves persistidas.
 
+O procedimento completo para duplicar, adicionar, testar, depreciar e remover
+um tema está em [`docs/THEMES.md`](docs/THEMES.md).
+
 Cada campanha guarda `form_config` e `settings`. A normalização do formulário fica em [`features/forms/config.ts`](features/forms/config.ts):
 
 - até 24 campos configurados;
@@ -204,6 +210,7 @@ next.config.mjs          headers de segurança e limites globais do Next.js
 | Campos e preview do editor | `features/campaigns/CampaignEditor.tsx` | schemas, actions e renderização pública |
 | Prompt, schema ou modelo de IA | `features/ai/` | `app/api/ai/campaigns/route.ts` e testes de geração |
 | Catálogo de temas | `features/themes/registry.ts` | previews e componentes públicos que consomem cada chave |
+| Adicionar ou duplicar tema | `docs/THEMES.md` | registry, preview, renderer público e migration quando necessária |
 | Configuração de formulário | `features/forms/config.ts` | editor de campanha e `components/PublicSignatureForm.tsx` |
 | Página pública por slug | `app/p/[slug]/` | `lib/public-campaign.ts` e componentes de tema |
 | Assinatura pública | `app/api/assinaturas/route.ts` | validações, disponibilidade e RLS/grants |
