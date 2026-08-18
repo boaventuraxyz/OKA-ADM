@@ -84,7 +84,7 @@ export function CampaignImportDialog() {
         : null;
 
       if (response.status === 401) {
-        window.location.assign("/login");
+        router.replace("/login");
         return;
       }
       if (!response.ok || !body) {

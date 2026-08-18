@@ -1,0 +1,243 @@
+.page,
+.loading {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.headerActions,
+.filterActions,
+.paginationLinks {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.primaryLink,
+.secondaryLink,
+.filterButton,
+.pageLink,
+.pageLinkDisabled {
+  align-items: center;
+  border-radius: 0.65rem;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.625rem 0.9rem;
+  text-decoration: none;
+}
+
+.primaryLink,
+.filterButton {
+  background: var(--color-accent, #e2382b);
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.filterButton {
+  cursor: pointer;
+  font: inherit;
+}
+
+.secondaryLink,
+.pageLink,
+.pageLinkDisabled {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d9dde5);
+  color: var(--color-text, #171a21);
+}
+
+.pageLinkDisabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.filters {
+  align-items: end;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d9dde5);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(15rem, 2fr) repeat(3, minmax(9rem, 1fr)) auto;
+  padding: 1rem;
+}
+
+.field,
+.searchField {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.field label,
+.searchField label {
+  color: var(--color-muted, #626b7a);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.optionNotice {
+  color: var(--color-muted, #626b7a);
+  font-size: 0.8125rem;
+  margin: -0.7rem 0 0;
+}
+
+.tableCard {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d9dde5);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.tableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  min-width: 74rem;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--color-border, #e4e7ec);
+  padding: 0.85rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--color-surface-subtle, #f7f8fa);
+  color: var(--color-muted, #626b7a);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table td {
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.pagination {
+  align-items: center;
+  border-top: 1px solid var(--color-border, #d9dde5);
+  color: var(--color-muted, #626b7a);
+  display: flex;
+  font-size: 0.85rem;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+}
+
+.srOnly {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+@media (max-width: 1100px) {
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .searchField {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .searchField {
+    grid-column: auto;
+  }
+
+  .filterActions,
+  .filterActions > *,
+  .headerActions,
+  .headerActions > * {
+    width: 100%;
+  }
+
+  .table {
+    min-width: 0;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    border-bottom: 1px solid var(--color-border, #d9dde5);
+    padding: 0.55rem 0.8rem;
+  }
+
+  .table td {
+    border: 0;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(6.5rem, 35%) 1fr;
+    padding: 0.45rem 0;
+  }
+
+  .table td::before {
+    color: var(--color-muted, #626b7a);
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .paginationLinks > * {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .primaryLink,
+  .secondaryLink,
+  .filterButton,
+  .pageLink {
+    transition: border-color 150ms ease, opacity 150ms ease, transform 150ms ease;
+  }
+
+  .primaryLink:hover,
+  .secondaryLink:hover,
+  .filterButton:hover,
+  .pageLink:hover {
+    transform: translateY(-1px);
+  }
+}

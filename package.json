@@ -2,12 +2,23 @@
   "name": "adm-vercel",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app components lib scripts",
-    "test:security": "node scripts/security-smoke.mjs"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:database": "node scripts/compare-database-setup.mjs",
+    "test:security": "node scripts/security-smoke.mjs",
+    "test:e2e": "playwright test",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:database && pnpm build && pnpm test:security"
   },
   "overrides": {
     "brace-expansion": "5.0.9",
@@ -19,23 +30,34 @@
     "@fontsource/anton": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/sora": "5.3.0",
     "@fontsource/source-serif-4": "^5.3.0",
+    "@supabase/ssr": "0.12.4",
+    "@supabase/supabase-js": "2.112.3",
+    "ai": "7.0.66",
     "csv-parse": "^7.0.2",
     "lucide-react": "^0.468.0",
     "next": "^16.2.12",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "read-excel-file": "^9.3.5",
-    "sanitize-html": "^2.17.6"
+    "sanitize-html": "^2.17.6",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@playwright/test": "1.62.1",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.2",
     "@types/node": "^22.10.6",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@types/sanitize-html": "^2.16.1",
+    "@vitest/coverage-v8": "4.1.10",
     "eslint": "^9.18.0",
     "eslint-config-next": "^16.2.12",
-    "typescript": "^5.7.3"
+    "jsdom": "30.0.1",
+    "typescript": "^5.7.3",
+    "vitest": "4.1.10"
   }
 }

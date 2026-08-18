@@ -3,6 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
+import { normalizeCampaignTheme } from "@/lib/campaign-themes";
 import {
   getCampanha,
   getCandidato,
@@ -48,7 +49,7 @@ export function getPublicCampaignView(id: string) {
         fimEm: campanha.fim_em,
         imagemFundoVersao: background?.version ?? null,
         imagemLateralVersao: sideImage?.version ?? null,
-        tema: campanha.tema === 2 ? 2 : campanha.tema === 3 ? 3 : 1,
+        tema: normalizeCampaignTheme(campanha.tema),
         textoConclusao: campanha.texto_conclusao,
         textoContexto: campanha.texto_contexto,
         textoDot: campanha.texto_dot,
@@ -71,7 +72,15 @@ export function getPublicCampaignView(id: string) {
         notaVideo: campanha.nota_video,
         tituloAssinar: campanha.titulo_assinar,
         textoAssinar: campanha.texto_assinar,
-        textoCompartilhar: campanha.texto_compartilhar
+        textoCompartilhar: campanha.texto_compartilhar,
+        slug: campanha.slug ?? null,
+        metaTitle: campanha.meta_title ?? null,
+        metaDescription: campanha.meta_description ?? null,
+        ogTitle: campanha.og_title ?? null,
+        ogDescription: campanha.og_description ?? null,
+        ogImage: campanha.og_image ?? null,
+        formConfig: campanha.form_config ?? null,
+        settings: campanha.settings ?? null
       };
     },
     ["campanha-publica", id],

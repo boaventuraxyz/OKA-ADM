@@ -1,0 +1,73 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e0e8e3;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.15rem;
+}
+
+.card h2 {
+  color: #1a3026;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.card p {
+  color: #65776f;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.statusList {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.statusItem {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.statusOk,
+.statusMissing {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 780;
+  padding: 0.3rem 0.55rem;
+}
+
+.statusOk {
+  background: #e1f5e9;
+  color: #17603e;
+}
+
+.statusMissing {
+  background: #fff0df;
+  color: #8a4b0c;
+}
+
+.code {
+  background: #f3f6f4;
+  border-radius: 0.5rem;
+  color: #28483b;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  padding: 0.4rem 0.55rem;
+}

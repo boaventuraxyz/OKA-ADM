@@ -3,6 +3,7 @@ import "server-only";
 import { parse as parseCsv } from "csv-parse/sync";
 import { readSheet } from "read-excel-file/node";
 import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
+import { normalizeCampaignTheme } from "@/lib/campaign-themes";
 import type { Campanha, Candidato } from "@/lib/types";
 import { isUuid, multiline, singleLine } from "@/lib/validation";
 
@@ -200,7 +201,8 @@ function themeValue(value: Cell | undefined, line: number, issues: CampaignImpor
   if (!normalized || ["1", "tema_1", "tema1"].includes(normalized)) return 1;
   if (["2", "tema_2", "tema2", "editorial"].includes(normalized)) return 2;
   if (["3", "tema_3", "tema3", "manifesto"].includes(normalized)) return 3;
-  addIssue(issues, line, "Tema inválido; use 1, 2 ou 3.");
+  if (["4", "tema_4", "tema4", "censura", "contra_a_censura"].includes(normalized)) return 4;
+  addIssue(issues, line, "Tema inválido; use 1, 2, 3 ou 4.");
   return 1;
 }
 
@@ -469,7 +471,7 @@ export function campaignImportModelCsv(campaigns: Campanha[], candidates: Candid
       campaign.descricao,
       campaign.candidato_id ? candidateNames.get(campaign.candidato_id) : "",
       campaign.ativa ? "Sim" : "Não",
-      campaign.tema === 2 || campaign.tema === 3 ? campaign.tema : 1,
+      normalizeCampaignTheme(campaign.tema),
       campaign.inicio_em,
       campaign.fim_em,
       campaign.assinaturas_meta,

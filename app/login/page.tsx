@@ -1,5 +1,6 @@
 import { LockKeyhole } from "lucide-react";
 import { redirect } from "next/navigation";
+
 import { isAuthenticated } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -7,13 +8,30 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ erro?: string }>;
+  searchParams: Promise<{
+    auth_error?: string;
+    erro?: string;
+    mensagem?: string;
+  }>;
 }) {
   if (await isAuthenticated()) {
-    redirect("/");
+    redirect("/admin");
   }
 
-  const { erro } = await searchParams;
+  const { auth_error: authError, erro, mensagem } = await searchParams;
+
+  const errorMessage =
+    erro === "credenciais" || erro === "senha"
+      ? "E-mail ou senha inválidos."
+      : erro === "limite"
+        ? "Muitas tentativas. Aguarde alguns minutos e tente novamente."
+        : erro === "acesso"
+          ? "Este acesso ainda não está liberado."
+          : erro === "indisponivel" || erro === "config"
+            ? "Não foi possível entrar agora. Tente novamente mais tarde."
+            : authError === "invalid_or_expired_link"
+              ? "O link de autenticação é inválido ou expirou."
+              : null;
 
   return (
     <main className="login-page">
@@ -22,27 +40,47 @@ export default async function LoginPage({
           <LockKeyhole size={18} />
         </div>
         <h1>Acesso</h1>
-        <p>Entre com a senha administrativa.</p>
+        <p>Entre com seu e-mail e senha.</p>
 
-        {erro === "senha" ? (
-          <div className="alert error">Senha incorreta.</div>
-        ) : erro === "limite" ? (
-          <div className="alert error">Muitas tentativas. Aguarde 15 minutos.</div>
-        ) : erro === "config" ? (
-          <div className="alert error">Configuração de autenticação inválida.</div>
+        {errorMessage ? (
+          <div aria-live="polite" className="alert error" role="alert">
+            {errorMessage}
+          </div>
+        ) : mensagem === "senha_atualizada" ? (
+          <div aria-live="polite" className="alert success" role="status">
+            Senha definida com sucesso. Você já pode entrar.
+          </div>
         ) : null}
 
-        <div className="field">
-          <label htmlFor="senha">Senha</label>
-          <input
-            autoFocus
-            className="input"
-            id="senha"
-            name="senha"
-            placeholder="Digite sua senha"
-            required
-            type="password"
-          />
+        <div className="form-grid">
+          <div className="field">
+            <label htmlFor="email">E-mail</label>
+            <input
+              autoComplete="email"
+              autoFocus
+              className="input"
+              id="email"
+              inputMode="email"
+              maxLength={320}
+              name="email"
+              placeholder="voce@exemplo.com"
+              required
+              type="email"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="senha">Senha</label>
+            <input
+              autoComplete="current-password"
+              className="input"
+              id="senha"
+              maxLength={256}
+              name="senha"
+              placeholder="Digite sua senha"
+              required
+              type="password"
+            />
+          </div>
         </div>
         <button className="button primary" style={{ marginTop: 18, width: "100%" }} type="submit">
           Entrar

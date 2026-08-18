@@ -3,11 +3,11 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { normalizeCandidateDomain } from "@/lib/candidate-domain";
 import { normalizeCandidateSlug } from "@/lib/candidate-slug";
 import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
+import { normalizeCampaignTheme } from "@/lib/campaign-themes";
 import {
   campaignCacheTag,
   publicCandidatesCacheTag
@@ -114,21 +114,38 @@ function campaignImage(formData: FormData, name: "imagem_fundo" | "imagem_latera
 
 function campaignTheme(formData: FormData) {
   const value = text(formData, "tema") || "1";
-  if (value !== "1" && value !== "2" && value !== "3") {
+  const theme = normalizeCampaignTheme(value);
+  if (String(theme) !== value) {
     throw new Error("Tema invalido.");
   }
-  return Number(value);
+  return theme;
 }
 
 class CampaignVideoInputError extends Error {}
 
-function campaignVideoUrl(formData: FormData) {
-  const raw = text(formData, "video_url");
+function campaignVideoUrl(formData: FormData, name = "video_url") {
+  const raw = text(formData, name);
   if (!raw) return null;
   if (raw.length > 2048 || !/^(https:\/\/|\/)/i.test(raw)) {
     throw new CampaignVideoInputError("Link do video invalido.");
   }
   return raw;
+}
+
+function campaignTheme4Fields(formData: FormData) {
+  return {
+    texto_faixa: nullableText(formData, "tema4_marca", 500),
+    texto_contexto: nullableLongText(formData, "tema4_titulo_principal", 8000),
+    texto_impacto: nullableText(formData, "tema4_impacto", 300),
+    texto_impacto_apoio: nullableText(formData, "tema4_impacto_apoio", 500),
+    titulo_topicos: nullableText(formData, "tema4_relato_titulo", 200),
+    texto_topicos: nullableLongText(formData, "tema4_relato_texto", 8000),
+    video_url: campaignVideoUrl(formData, "tema4_video_principal"),
+    legenda_video: nullableText(formData, "tema4_video_legenda", 300),
+    titulo_assinar: nullableText(formData, "tema4_assinar_titulo", 200),
+    texto_assinar: nullableLongText(formData, "tema4_assinar_texto", 2000),
+    texto_compartilhar: nullableText(formData, "tema4_compartilhar", 500)
+  };
 }
 
 function campaignTheme3Fields(formData: FormData) {
@@ -242,6 +259,7 @@ export async function deleteCandidatoAction(formData: FormData) {
 export async function createCampanhaAction(formData: FormData) {
   await requireAdmin();
   try {
+    const theme = campaignTheme(formData);
     await createCampanha({
       titulo: nullableText(formData, "titulo", 200),
       descricao: nullableLongText(formData, "descricao", 5000),
@@ -257,13 +275,13 @@ export async function createCampanhaAction(formData: FormData) {
       cor_destaque: campaignColor(formData),
       imagem_fundo: campaignImage(formData, "imagem_fundo"),
       imagem_lateral: campaignImage(formData, "imagem_lateral"),
-      tema: campaignTheme(formData),
+      tema: theme,
       texto_contexto: nullableLongText(formData, "texto_contexto", 8000),
       texto_proposta: nullableLongText(formData, "texto_proposta", 4000),
       texto_conclusao: nullableLongText(formData, "texto_conclusao", 4000),
       texto_impacto: nullableText(formData, "texto_impacto", 300),
       texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
-      ...campaignTheme3Fields(formData),
+      ...(theme === 4 ? campaignTheme4Fields(formData) : campaignTheme3Fields(formData)),
       url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {
@@ -279,6 +297,7 @@ export async function updateCampanhaAction(formData: FormData) {
   await requireAdmin();
   const id = requiredUuid(formData);
   try {
+    const theme = campaignTheme(formData);
     await updateCampanha(id, {
       titulo: nullableText(formData, "titulo", 200),
       descricao: nullableLongText(formData, "descricao", 5000),
@@ -294,13 +313,13 @@ export async function updateCampanhaAction(formData: FormData) {
       cor_destaque: campaignColor(formData),
       imagem_fundo: campaignImage(formData, "imagem_fundo"),
       imagem_lateral: campaignImage(formData, "imagem_lateral"),
-      tema: campaignTheme(formData),
+      tema: theme,
       texto_contexto: nullableLongText(formData, "texto_contexto", 8000),
       texto_proposta: nullableLongText(formData, "texto_proposta", 4000),
       texto_conclusao: nullableLongText(formData, "texto_conclusao", 4000),
       texto_impacto: nullableText(formData, "texto_impacto", 300),
       texto_impacto_apoio: nullableText(formData, "texto_impacto_apoio", 500),
-      ...campaignTheme3Fields(formData),
+      ...(theme === 4 ? campaignTheme4Fields(formData) : campaignTheme3Fields(formData)),
       url_formulario: campaignRedirectUrl(formData)
     });
   } catch (error) {
@@ -340,7 +359,6 @@ export async function deleteAssinaturaAction(formData: FormData) {
 
   await deleteAssinatura(id);
   const campanhaId = assinatura.campanha_id;
-  updateTag(campaignSignaturesCacheTag(campanhaId));
   revalidatePath(`/assinaturas?campanhaId=${campanhaId}`);
   redirect(`/assinaturas?campanhaId=${campanhaId}`);
 }

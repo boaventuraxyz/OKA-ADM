@@ -1,8 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Columns2, LayoutTemplate, Megaphone } from "lucide-react";
+import { Columns2, LayoutTemplate, Megaphone, ShieldAlert } from "lucide-react";
 import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
+import {
+  CAMPAIGN_THEME_LIBRARY,
+  normalizeCampaignTheme,
+  type CampaignThemeId
+} from "@/lib/campaign-themes";
+
+const campaignThemeIcons = {
+  1: LayoutTemplate,
+  2: Columns2,
+  3: Megaphone,
+  4: ShieldAlert
+} satisfies Record<CampaignThemeId, typeof LayoutTemplate>;
 
 type CampaignThemeFieldsProps = {
   defaultBackground?: string | null;
@@ -55,9 +67,7 @@ export function CampaignThemeFields({
   defaultSignText = null,
   defaultShareText = null
 }: CampaignThemeFieldsProps) {
-  const [theme, setTheme] = useState(
-    defaultTheme === 2 ? 2 : defaultTheme === 3 ? 3 : 1
-  );
+  const [theme, setTheme] = useState<CampaignThemeId>(normalizeCampaignTheme(defaultTheme));
 
   return (
     <>
@@ -65,33 +75,21 @@ export function CampaignThemeFields({
         <label>Tema da página pública</label>
         <input name="tema" readOnly type="hidden" value={theme} />
         <div aria-label="Tema do formulário público" className="campaign-theme-selector" role="group">
-          <button
-            aria-pressed={theme === 1}
-            className={theme === 1 ? "selected" : ""}
-            onClick={() => setTheme(1)}
-            type="button"
-          >
-            <LayoutTemplate aria-hidden="true" size={18} />
-            <span>Tema 1 - Capa</span>
-          </button>
-          <button
-            aria-pressed={theme === 2}
-            className={theme === 2 ? "selected" : ""}
-            onClick={() => setTheme(2)}
-            type="button"
-          >
-            <Columns2 aria-hidden="true" size={18} />
-            <span>Tema 2 - Editorial</span>
-          </button>
-          <button
-            aria-pressed={theme === 3}
-            className={theme === 3 ? "selected" : ""}
-            onClick={() => setTheme(3)}
-            type="button"
-          >
-            <Megaphone aria-hidden="true" size={18} />
-            <span>Tema 3 - Manifesto</span>
-          </button>
+          {CAMPAIGN_THEME_LIBRARY.map((definition) => {
+            const ThemeIcon = campaignThemeIcons[definition.id];
+            return (
+              <button
+                aria-pressed={theme === definition.id}
+                className={theme === definition.id ? "selected" : ""}
+                key={definition.id}
+                onClick={() => setTheme(definition.id)}
+                type="button"
+              >
+                <ThemeIcon aria-hidden="true" size={18} />
+                <span>Tema {definition.id} - {definition.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -353,6 +351,133 @@ export function CampaignThemeFields({
             maxLength={500}
             name="texto_compartilhar"
             placeholder="Ex.: Eu assinei este abaixo-assinado. Assine você também:"
+          />
+        </div>
+      </div>
+
+      <div className="campaign-theme-two-fields" hidden={theme !== 4}>
+        <div className="field">
+          <label htmlFor="tema4_marca">Tema 4 - 1. Marca do movimento</label>
+          <input
+            className="input"
+            defaultValue={defaultStrip ?? ""}
+            id="tema4_marca"
+            maxLength={500}
+            name="tema4_marca"
+            placeholder="Ex.: CONTRA A CENSURA"
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="tema4_titulo_principal">Tema 4 - 2. Chamada principal</label>
+          <textarea
+            className="textarea"
+            defaultValue={defaultContext ?? ""}
+            id="tema4_titulo_principal"
+            maxLength={8000}
+            name="tema4_titulo_principal"
+            rows={3}
+          />
+        </div>
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="tema4_video_principal">Tema 4 - 3. Vídeo principal (MP4)</label>
+            <input
+              className="input"
+              defaultValue={defaultVideoUrl ?? ""}
+              id="tema4_video_principal"
+              maxLength={2048}
+              name="tema4_video_principal"
+              placeholder="/video-principal.mp4"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="tema4_video_legenda">Tema 4 - 4. Legenda do vídeo principal</label>
+            <input
+              className="input"
+              defaultValue={defaultVideoCaption ?? ""}
+              id="tema4_video_legenda"
+              maxLength={300}
+              name="tema4_video_legenda"
+              placeholder="Ex.: Lucas Pavanato"
+            />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="tema4_relato_titulo">Tema 4 - 5. Título do relato</label>
+          <input
+            className="input"
+            defaultValue={defaultTopicsTitle ?? ""}
+            id="tema4_relato_titulo"
+            maxLength={200}
+            name="tema4_relato_titulo"
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="tema4_relato_texto">
+            {"Tema 4 - 6. Texto do relato (separe parágrafos com uma linha em branco; use <strong>texto</strong> para destacar)"}
+          </label>
+          <textarea
+            className="textarea"
+            defaultValue={defaultTopics ?? ""}
+            id="tema4_relato_texto"
+            maxLength={8000}
+            name="tema4_relato_texto"
+            rows={10}
+          />
+        </div>
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="tema4_impacto">Tema 4 - 7. Frase de impacto</label>
+            <input
+              className="input"
+              defaultValue={defaultImpact ?? ""}
+              id="tema4_impacto"
+              maxLength={300}
+              name="tema4_impacto"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="tema4_impacto_apoio">Tema 4 - 8. Complemento da frase</label>
+            <input
+              className="input"
+              defaultValue={defaultImpactSupport ?? ""}
+              id="tema4_impacto_apoio"
+              maxLength={500}
+              name="tema4_impacto_apoio"
+            />
+          </div>
+        </div>
+        <div className="two-cols">
+          <div className="field">
+            <label htmlFor="tema4_assinar_titulo">Tema 4 - 9. Título da última chamada</label>
+            <input
+              className="input"
+              defaultValue={defaultSignTitle ?? ""}
+              id="tema4_assinar_titulo"
+              maxLength={200}
+              name="tema4_assinar_titulo"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="tema4_assinar_texto">Tema 4 - 10. Texto da última chamada</label>
+            <textarea
+              className="textarea"
+              defaultValue={defaultSignText ?? ""}
+              id="tema4_assinar_texto"
+              maxLength={2000}
+              name="tema4_assinar_texto"
+              rows={3}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="tema4_compartilhar">Tema 4 - 11. Texto para compartilhamento (opcional)</label>
+          <input
+            className="input"
+            defaultValue={defaultShareText ?? ""}
+            id="tema4_compartilhar"
+            maxLength={500}
+            name="tema4_compartilhar"
           />
         </div>
       </div>

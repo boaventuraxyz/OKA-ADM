@@ -33,6 +33,8 @@ type Theme3Campaign = {
   tituloAssinar: string | null;
   textoAssinar: string | null;
   textoCompartilhar: string | null;
+  formConfig: Record<string, unknown> | null;
+  settings: Record<string, unknown> | null;
   candidato: {
     cargo: string | null;
     estado: string | null;
@@ -198,10 +200,12 @@ export function CampaignTheme3({
           <div className="campaign-theme3-form">
             <PublicSignatureForm
               campanhaId={campanha.id}
+              formConfig={campanha.formConfig}
               meta={campanha.assinaturasMeta}
               textoDot={campanha.textoDot}
               textoForm={campanha.textoForm || title}
               totalAssinaturas={totalAssinaturas}
+              settings={campanha.settings}
             />
           </div>
           <CampaignShareButtons shareText={shareText} />

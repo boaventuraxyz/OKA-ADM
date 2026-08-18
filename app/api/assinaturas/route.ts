@@ -1,7 +1,11 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
-import { campaignSignaturesCacheTag } from "@/lib/campaign-download";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
+import {
+  isValidCampaignFormResponse,
+  normalizePublicFormConfiguration,
+  resolveStandardFormFields,
+  type CampaignFormField,
+} from "@/features/forms/config";
 import {
   candidateDomainMatches,
   isPlatformHostname,
@@ -43,7 +47,52 @@ function validPhone(value: string) {
     return false;
   }
   const ddd = Number(numbers.slice(0, 2));
-  return ddd >= 11 && ddd <= 99 && (numbers.length === 10 || numbers[2] === "9");
+  if (ddd < 11 || ddd > 99) return false;
+  return numbers.length === 11 ? numbers[2] === "9" : /^[1-8]$/.test(numbers[2]);
+}
+
+function validConfiguredValue(
+  field: CampaignFormField | null,
+  value: string | null | undefined,
+  validator: (candidate: string) => boolean,
+) {
+  if (!field) return true;
+  if (!value) return !field.required;
+  return validator(value);
+}
+
+function parseConfiguredResponses(
+  rawValue: string,
+  fields: CampaignFormField[],
+): Record<string, string | boolean> | null {
+  let source: Record<string, unknown> = {};
+
+  if (rawValue) {
+    if (rawValue.length > 10_000) return null;
+    try {
+      const parsed = JSON.parse(rawValue) as unknown;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+      source = parsed as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+
+  const responses: Record<string, string | boolean> = {};
+  for (const field of fields) {
+    const raw = source[field.key];
+    const value =
+      field.type === "checkbox"
+        ? raw === true
+        : typeof raw === "string"
+          ? raw.trim().slice(0, field.type === "textarea" ? 2000 : 200)
+          : "";
+
+    if (!isValidCampaignFormResponse(field, value)) return null;
+    if (value !== "" && value !== false) responses[field.key] = value;
+  }
+
+  return responses;
 }
 
 export async function POST(request: Request) {
@@ -105,7 +154,7 @@ export async function POST(request: Request) {
   const complemento = singleLine(
     formText(formData, "complemento_assinante", "ComplementoAssinante"),
     120
-  ) || "casa";
+  ) || null;
   const cidade = singleLine(
     formText(formData, "cidade_assinante", "CidadeAssinante"),
     100
@@ -118,30 +167,13 @@ export async function POST(request: Request) {
     formText(formData, "estado_assinante", "EstadoAssinante"),
     2
   )?.toUpperCase();
-  const numero = Number(numeroTexto);
+  const consentimento = singleLine(
+    formText(formData, "consentimento", "Consentimento"),
+    16
+  );
+  const numero = numeroTexto ? Number(numeroTexto) : null;
 
-  if (
-    !campanhaId ||
-    !isUuid(campanhaId) ||
-    !nome ||
-    nome.length < 5 ||
-    nome.split(" ").length < 2 ||
-    !telefone ||
-    !validPhone(telefone) ||
-    !email ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-    !endereco ||
-    endereco.length < 3 ||
-    !Number.isSafeInteger(numero) ||
-    numero < 1 ||
-    numero > 99_999_999 ||
-    !cidade ||
-    cidade.length < 2 ||
-    !cep ||
-    !/^\d{5}-?\d{3}$/.test(cep) ||
-    !estado ||
-    !/^[A-Z]{2}$/.test(estado)
-  ) {
+  if (!campanhaId || !isUuid(campanhaId) || consentimento !== "sim") {
     return jsonError("Confira os dados informados.", 400);
   }
 
@@ -166,6 +198,47 @@ export async function POST(request: Request) {
       return jsonError("Campanha nao encontrada neste dominio.", 404);
     }
   }
+
+  const configuration = normalizePublicFormConfiguration(
+    campanha.form_config,
+    campanha.settings
+  );
+  const fields = resolveStandardFormFields(configuration);
+  const responses = parseConfiguredResponses(
+    formText(formData, "responses"),
+    fields.custom
+  );
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const cepPattern = /^\d{5}-?\d{3}$/;
+  const statePattern = /^[A-Z]{2}$/;
+  const validAddress =
+    !configuration.collectAddress ||
+    (Boolean(endereco && endereco.length >= 3) &&
+      Number.isSafeInteger(numero) &&
+      numero !== null &&
+      numero >= 1 &&
+      numero <= 99_999_999 &&
+      Boolean(cidade && cidade.length >= 2) &&
+      Boolean(cep && cepPattern.test(cep)) &&
+      Boolean(estado && statePattern.test(estado)));
+
+  if (
+    responses === null ||
+    !validConfiguredValue(
+      fields.name,
+      nome,
+      (value) => value.length >= 5 && value.trim().split(/\s+/).length >= 2
+    ) ||
+    !validConfiguredValue(fields.phone, telefone, validPhone) ||
+    !validConfiguredValue(fields.email, email, (value) => emailPattern.test(value)) ||
+    !validConfiguredValue(fields.cep, cep, (value) => cepPattern.test(value)) ||
+    !validConfiguredValue(fields.city, cidade, (value) => value.length >= 2) ||
+    !validConfiguredValue(fields.state, estado, (value) => statePattern.test(value)) ||
+    !validAddress
+  ) {
+    return jsonError("Confira os dados informados.", 400);
+  }
+
   const redirectUrl = normalizeCampaignWhatsappUrl(campanha.url_formulario);
 
   const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -174,17 +247,27 @@ export async function POST(request: Request) {
   try {
     await createAssinatura({
       campanha_id: campanhaId,
-      nome_assinante: nome,
-      numero_assinante: telefone,
-      email_assinante: email,
-      endereco_assinante: endereco,
-      n_assinante: numero,
-      complemento_assinante: complemento,
-      cidade_assinante: cidade,
-      cep_assinante: cep,
-      estado_assinante: estado,
+      nome_assinante: fields.name ? nome || null : null,
+      numero_assinante: fields.phone ? telefone || null : null,
+      email_assinante: fields.email ? email || null : null,
+      endereco_assinante: configuration.collectAddress ? endereco || null : null,
+      n_assinante: configuration.collectAddress ? numero : null,
+      complemento_assinante: configuration.collectAddress ? complemento : null,
+      cidade_assinante:
+        fields.city || configuration.collectAddress ? cidade || null : null,
+      cep_assinante: fields.cep || configuration.collectAddress ? cep || null : null,
+      estado_assinante:
+        fields.state || configuration.collectAddress ? estado || null : null,
       ip_origem: (forwardedFor || realIp || null)?.slice(0, 64) || null,
-      assinado_em: new Date().toISOString()
+      assinado_em: new Date().toISOString(),
+      consented_at: new Date().toISOString(),
+      metadata: {
+        form_version: configuration.legacy ? 0 : 1,
+        legacy_form: configuration.legacy,
+      },
+      responses,
+      source: "public_form",
+      user_agent: singleLine(request.headers.get("user-agent") || "", 512) || null
     });
   } catch (error) {
     if (error instanceof SupabaseRequestError && error.status === 409) {
@@ -192,8 +275,6 @@ export async function POST(request: Request) {
     }
     throw error;
   }
-  revalidateTag(campaignSignaturesCacheTag(campanhaId), { expire: 0 });
-
   return NextResponse.json(
     { redirectUrl, sucesso: true },
     { headers: { "Cache-Control": "no-store" } }

@@ -34,11 +34,7 @@ export class SupabaseRequestError extends Error {
 
 function getSupabaseConfig() {
   const baseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
-  const configuredSecret = process.env.SUPABASE_SECRET_KEY;
-  const developmentFallback =
-    process.env.NODE_ENV !== "production" ? process.env.SUPABASE_KEY : undefined;
-  const key = configuredSecret || developmentFallback;
-  const usingDevelopmentFallback = !configuredSecret && Boolean(developmentFallback);
+  const key = process.env.SUPABASE_SECRET_KEY;
 
   if (!baseUrl || !key) {
     throw new Error(
@@ -57,7 +53,6 @@ function getSupabaseConfig() {
   })();
 
   if (
-    !usingDevelopmentFallback &&
     !key.startsWith("sb_secret_") &&
     legacyRole !== "service_role"
   ) {
@@ -152,16 +147,33 @@ export async function getCampanha(id: string) {
   return rows[0] ?? null;
 }
 
+export async function getPublishedCampaignIdBySlug(slug: string) {
+  const rows = await supabaseFetch<Array<{ id: string; slug: string }>>(
+    `/campanhas?slug=eq.${qs(slug)}&status=eq.published&select=id,slug&limit=1`
+  );
+  return rows[0] ?? null;
+}
+
+export function listPublishedCampaignSitemap() {
+  return supabaseFetch<Array<{ slug: string; updated_at: string }>>(
+    "/campanhas?status=eq.published&slug=not.is.null&select=slug,updated_at&order=updated_at.desc&limit=5000"
+  );
+}
+
 export async function getCampanhaBackground(id: string) {
-  const rows = await supabaseFetch<Pick<Campanha, "id" | "imagem_fundo">[]>(
-    `/campanhas?id=eq.${qs(id)}&select=id,imagem_fundo`
+  const rows = await supabaseFetch<
+    Pick<Campanha, "ativa" | "fim_em" | "id" | "imagem_fundo" | "inicio_em">[]
+  >(
+    `/campanhas?id=eq.${qs(id)}&select=id,imagem_fundo,ativa,inicio_em,fim_em`
   );
   return rows[0] ?? null;
 }
 
 export async function getCampanhaSideImage(id: string) {
-  const rows = await supabaseFetch<Pick<Campanha, "id" | "imagem_lateral">[]>(
-    `/campanhas?id=eq.${qs(id)}&select=id,imagem_lateral`
+  const rows = await supabaseFetch<
+    Pick<Campanha, "ativa" | "fim_em" | "id" | "imagem_lateral" | "inicio_em">[]
+  >(
+    `/campanhas?id=eq.${qs(id)}&select=id,imagem_lateral,ativa,inicio_em,fim_em`
   );
   return rows[0] ?? null;
 }
@@ -177,10 +189,17 @@ export async function getCampanhaSubmissionConfig(id: string) {
   const rows = await supabaseFetch<
     Pick<
       Campanha,
-      "ativa" | "candidato_id" | "fim_em" | "id" | "inicio_em" | "url_formulario"
+      | "ativa"
+      | "candidato_id"
+      | "fim_em"
+      | "form_config"
+      | "id"
+      | "inicio_em"
+      | "settings"
+      | "url_formulario"
     >[]
   >(
-    `/campanhas?id=eq.${qs(id)}&select=id,candidato_id,ativa,inicio_em,fim_em,url_formulario`
+    `/campanhas?id=eq.${qs(id)}&select=id,candidato_id,ativa,inicio_em,fim_em,url_formulario,form_config,settings`
   );
   return rows[0] ?? null;
 }

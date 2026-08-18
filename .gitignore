@@ -370,3 +370,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+.vercel
+.env*
+
+# TypeScript and test artifacts
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/

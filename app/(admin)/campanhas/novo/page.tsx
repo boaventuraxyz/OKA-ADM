@@ -145,8 +145,8 @@ export default async function NovaCampanhaPage({
           </div>
         </div>
         <label className="checkbox-row">
-          <input defaultChecked name="ativa" type="checkbox" />
-          Campanha ativa
+          <input name="ativa" type="checkbox" />
+          Publicar imediatamente (o padrão seguro é salvar como rascunho)
         </label>
         <div className="page-actions">
           <button className="button primary" type="submit">

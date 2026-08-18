@@ -1,9 +1,26 @@
 /** @type {import('next').NextConfig} */
+const isDevelopment = process.env.NODE_ENV === "development";
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "object-src 'none'",
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "media-src 'self' blob: https:",
+  "manifest-src 'self'",
+  "worker-src 'self' blob:",
+  "upgrade-insecure-requests"
+].join("; ");
+
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
-    value:
-      "base-uri 'self'; frame-ancestors 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+    value: contentSecurityPolicy
   },
   {
     key: "Cross-Origin-Opener-Policy",
@@ -35,7 +52,7 @@ const securityHeaders = [
   },
   {
     key: "X-Frame-Options",
-    value: "SAMEORIGIN"
+    value: "DENY"
   },
   {
     key: "X-Permitted-Cross-Domain-Policies",
@@ -66,7 +83,15 @@ const nextConfig = {
         source: "/:path*",
         headers: securityHeaders
       },
-      ...["/login", "/campanhas/:path*", "/candidatos/:path*", "/assinaturas/:path*"].map(
+      ...[
+        "/login",
+        "/auth/:path*",
+        "/admin/:path*",
+        "/campanhas/:path*",
+        "/candidatos/:path*",
+        "/assinaturas/:path*",
+        "/temas/:path*"
+      ].map(
         (source) => ({
           source,
           headers: privatePageHeaders

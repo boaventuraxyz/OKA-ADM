@@ -744,8 +744,8 @@ html.route-loading .route-progress {
 
 .campaign-theme-selector {
   display: grid;
-  width: min(640px, 100%);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(860px, 100%);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
@@ -786,6 +786,12 @@ html.route-loading .route-progress {
   outline-offset: 1px;
 }
 
+@media (max-width: 720px) {
+  .campaign-theme-selector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .campaign-theme-two-fields {
   display: grid;
   gap: 18px;
@@ -794,6 +800,110 @@ html.route-loading .route-progress {
 .campaign-theme-two-fields[hidden],
 .form-grid > div[hidden] {
   display: none;
+}
+
+.theme-library-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  border: 1px solid #bad5c4;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  padding: 13px 15px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.theme-library-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.theme-library-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.theme-library-preview {
+  display: flex;
+  min-height: 118px;
+  align-items: flex-end;
+  gap: 9px;
+  padding: 18px;
+  background: linear-gradient(135deg, #173f2a, #2f7b51);
+  color: #fff;
+}
+
+.theme-library-preview span {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.theme-library-preview-2 {
+  background: linear-gradient(135deg, #e7ddd0, #a8543f);
+}
+
+.theme-library-preview-3 {
+  background: linear-gradient(135deg, #111827, #e2382b);
+}
+
+.theme-library-preview-4 {
+  background: linear-gradient(135deg, #0b0b0c 20%, #d81f26);
+}
+
+.theme-library-card-body {
+  padding: 18px;
+}
+
+.theme-library-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.theme-library-card-title h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.theme-library-card-body p {
+  min-height: 40px;
+  margin: 10px 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.theme-library-capabilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.theme-library-capabilities span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .theme-library-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .campaign-background-control {

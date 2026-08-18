@@ -1,93 +1,256 @@
-# Deploy na Vercel
+# Deploy e operação na Vercel
 
-Este repositorio esta em Next.js na raiz e pode ser importado direto pela Vercel. O ASP.NET MVC 5 legado foi removido do projeto ativo e as campanhas publicas usam um template padrao sincronizado com os dados do Supabase.
+Este é o procedimento canônico para preparar Supabase, validar um Preview e, somente depois, promover o OKA Admin para produção.
 
-## Variaveis obrigatorias
+> **Status:** este documento não confirma que migrations, Firewall, Preview ou produção já foram aplicados. Preencha a seção [Registro da promoção](#registro-da-promoção) com evidências reais ao concluir cada etapa.
 
-Configure estas variaveis em Vercel > Project > Settings > Environment Variables:
+## Ordem de execução
+
+1. validar o repositório localmente;
+2. aplicar as migrations em um ambiente Supabase de teste/preview;
+3. configurar Auth, callbacks, SMTP e o primeiro Master;
+4. criar ou vincular o projeto Vercel e configurar variáveis por ambiente;
+5. validar um Preview completo;
+6. observar e publicar regras do Firewall;
+7. aplicar migrations de produção com operador único;
+8. promover o mesmo commit para produção;
+9. executar smoke/E2E limitados a dados descartáveis e registrar evidências.
+
+Não inverta banco e aplicação quando o novo código depender de mudanças de schema ainda ausentes.
+
+## Pré-requisitos
+
+- Node.js `>=22`;
+- pnpm `11.19.0` via Corepack;
+- Supabase CLI instalado por um [método oficial](https://supabase.com/docs/guides/local-development/cli/getting-started);
+- Vercel CLI autenticado ou integração GitHub autorizada;
+- acesso administrativo aos projetos Supabase e Vercel corretos;
+- backup e plano de restauração adequados ao ambiente;
+- um projeto/branch de preview separado sempre que possível.
+
+## 1. Validação local
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+pnpm verify
+```
+
+`pnpm verify` executa lint, typecheck, unitários, equivalência do banco, build e security smoke. Execute também o E2E; os testes públicos não gravam dados e os fluxos autenticados futuros devem usar registros descartáveis:
+
+```bash
+pnpm test:e2e
+```
+
+Não use dados pessoais reais nos testes. A configuração Playwright está no repositório, mas a disponibilidade da suíte e das credenciais deve ser confirmada no momento do deploy.
+
+## 2. Banco e migrations
+
+A fonte canônica é exclusivamente [`supabase/migrations`](supabase/migrations). Consulte [docs/MIGRATION.md](docs/MIGRATION.md) para ordem, pré-checks e rollback operacional.
+
+Arquivos `.sql` diretamente em `supabase/` são históricos. Não execute `campaign-template.sql`, `candidate-domain.sql`, `candidate-hubs.sql`, `security-hardening.sql` ou outro script avulso como etapa de um deploy novo. Tudo que ainda for necessário deve virar uma migration versionada, revisada e testada.
+
+No ambiente de preview/staging:
+
+```bash
+supabase login
+supabase link
+supabase migration list
+supabase db push --dry-run
+supabase db push
+supabase migration list
+```
+
+Revise o projeto exibido pelo CLI antes do push. Um único operador deve aplicar migrations por ambiente. Não execute `db reset --linked` em um banco remoto com dados.
+
+Depois do push:
+
+- confirme tabelas, funções, triggers, grants e policies descritos em [docs/DATABASE.md](docs/DATABASE.md);
+- valide que `anon` não consegue listar ou gravar dados administrativos;
+- valide que uma submissão pública legítima funciona apenas pelo endpoint do servidor;
+- regenere e compare tipos se o schema mudou;
+- registre os timestamps aplicados e o ambiente.
+
+## 3. Supabase Auth e primeiro Master
+
+Em **Authentication → URL Configuration**, configure:
+
+- **Site URL:** a origem canônica do painel no ambiente;
+- **Redirect URLs:** `${APP_URL}/auth/callback` e somente callbacks de Preview explicitamente aprovados;
+- SMTP e templates de convite/recuperação compatíveis com o ambiente.
+
+Evite wildcards amplos em callbacks de produção. O fluxo de convite termina em `/auth/set-password` e exige senha forte.
+
+O primeiro Master precisa de bootstrap controlado:
+
+1. crie ou convide a identidade no Supabase Auth;
+2. altere apenas o perfil correspondente em `public.profiles` para `role = 'master'` e `is_active = true`;
+3. nunca defina papel ou ativação em `user_metadata`;
+4. confirme o login, a definição de senha e o acesso a `/admin/users`;
+5. registre operador e horário.
+
+Depois do bootstrap, convites e mudanças de acesso devem passar por `/admin/users`. O sistema impede auto-desativação e a remoção do último Master ativo.
+
+## 4. Variáveis na Vercel
+
+Configure as variáveis em **Project → Settings → Environment Variables**. Separe Development, Preview e Production; uma alteração só chega a deployments novos.
+
+### Application
+
+```text
+APP_URL=https://painel.exemplo.com
+```
+
+`APP_URL` precisa ser HTTPS em ambientes compartilhados e corresponder à origem usada nos callbacks. Para Preview com convite/Auth, use uma URL estável e autorizada ou adicione exatamente a URL do Preview ao Supabase.
+
+### Supabase
 
 ```text
 SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_SECRET_KEY=sb_secret_sua-chave-secreta
-SENHA_ADMIN=uma-senha-forte-com-12-ou-mais-caracteres
-SESSION_SECRET=uma-chave-aleatoria-com-pelo-menos-32-bytes
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
-Crie uma Secret key exclusiva para o backend em Supabase > Settings > API Keys. Nao
-use a chave `anon`/publishable e nunca exponha `SUPABASE_SECRET_KEY` no navegador.
-A `SENHA_ADMIN` define a senha do painel. Gere `SESSION_SECRET` com um gerador
-criptografico, por exemplo `openssl rand -base64 48`.
+- `SUPABASE_PUBLISHABLE_KEY` é usada pelo cliente SSR sujeito a RLS;
+- `SUPABASE_SECRET_KEY` é server-only, contorna RLS e é necessária nos fluxos controlados de usuário e definição de senha; configure-a somente no runtime do servidor de cada ambiente funcional;
+- use projetos/chaves diferentes entre Preview e Production;
+- nunca crie variáveis `NEXT_PUBLIC_*` para a Secret key.
 
-Depois de configurar a Secret key, execute
-[`supabase/security-hardening.sql`](supabase/security-hardening.sql) no SQL Editor
-do Supabase. O script remove o acesso direto de `anon` e `authenticated` aos dados;
-o navegador passa a acessar o banco somente pelas rotas validadas deste projeto.
+### Auth
 
-Para migrar campanhas que ainda possuem HTML em Base64, execute tambem
-[`supabase/campaign-template.sql`](supabase/campaign-template.sql). Ele adiciona
-os campos de destaque do template padrao e remove definitivamente a coluna `html`.
+Não há senha administrativa global nem segredo de sessão próprio. O Auth usa as variáveis Supabase e cookies SSR. A configuração essencial fica nas URLs e templates do Supabase Auth.
 
-Para usar dominios exclusivos por candidato, execute tambem
-[`supabase/candidate-domain.sql`](supabase/candidate-domain.sql). O script cria o
-campo `dominio_formularios` e tenta associar `tieminevoeiro.com` ao primeiro
-candidato cujo nome contenha "Tiemi Nevoeiro". O dominio tambem pode ser definido
-ou alterado em **Candidatos > Editar**.
+### IA e AI Gateway
 
-Para criar um hub publico para todos os candidatos, inclusive os que nao possuem
-dominio proprio, execute [`supabase/candidate-hubs.sql`](supabase/candidate-hubs.sql).
-O script gera um `slug_publico` unico para cada cadastro existente.
+```text
+AI_MODEL=openai/gpt-5.6-luna
+```
 
-## Dominio dos formularios
+Escolha uma estratégia:
 
-1. Adicione o dominio raiz e o `www` em Vercel > Project > Settings > Domains.
-2. No provedor DNS, copie exatamente os registros exibidos pela Vercel.
-3. No cadastro do candidato, informe somente o dominio raiz, sem `https://` e sem
-   caminho, por exemplo `tieminevoeiro.com`.
-4. Faca um novo deploy depois de executar a migracao do Supabase.
+1. **OIDC na Vercel (preferencial):** habilite Secure Backend Access/OIDC no projeto e não configure `AI_GATEWAY_API_KEY` nem `AI_API_KEY`;
+2. **chave explícita do Gateway:** configure `AI_GATEWAY_API_KEY` no ambiente necessário;
+3. **alias de compatibilidade:** use `AI_API_KEY` somente se a integração existente exigir esse nome.
 
-A raiz do dominio lista somente as campanhas ativas daquele candidato. Os links
-gerados na tela de campanhas usam automaticamente o dominio configurado. Tanto o
-endereco raiz quanto o `www` sao reconhecidos pela aplicacao.
-Em dominios personalizados, os formularios usam a URL curta `/{idCampanha}`. As
-URLs antigas em `/formulario/{idCampanha}` continuam funcionando.
+O código prioriza `AI_GATEWAY_API_KEY`, depois `AI_API_KEY`; sem ambas, usa o provider padrão do AI SDK, que pode autenticar no AI Gateway pelo OIDC da Vercel.
 
-## Firewall
+`VERCEL_OIDC_TOKEN` é temporário e fornecido pela plataforma. Para desenvolvimento vinculado:
 
-No Vercel Firewall, configure rate limiting por IP:
+```bash
+vercel link
+vercel env pull .env.local
+```
 
-- `/api/login`: 5 requisicoes a cada 10 minutos.
-- `/api/assinaturas`: 10 requisicoes por minuto.
+Repita o pull quando o token expirar. Não copie o token para `.env.example`, documentação, logs ou Git. Consulte [OIDC na Vercel](https://vercel.com/docs/oidc) e [autenticação do AI Gateway](https://vercel.com/docs/ai-gateway/authentication-and-byok).
 
-O codigo possui uma segunda camada local de limite, mas o Firewall e necessario
-para aplicar a regra globalmente entre todas as funcoes serverless.
+## 5. Preview
 
-## Deploy
+Pela integração Git, abra/atualize o pull request e use o Preview gerado. Pela CLI:
 
-1. Envie o repositorio para o GitHub.
-2. Importe o repositorio na Vercel.
-3. Framework Preset: `Next.js`.
-4. Build Command: deixe vazio ou use `npm run build`.
-5. Output Directory: deixe vazio.
-6. Adicione as variaveis de ambiente.
-7. Clique em Deploy.
+```bash
+vercel link
+vercel
+```
 
-## Rotas migradas
+Valide no Preview, sem dados pessoais reais:
 
-- `/login`
-- `/`
-- `/campanhas`
-- `/campanhas/novo`
-- `/campanhas/[id]/editar`
-- `/candidatos`
-- `/candidatos/novo`
-- `/candidatos/[id]/editar`
-- `/assinaturas?campanhaId=...`
-- `/assinaturas/[id]`
-- `/formulario?idCampanha=...`
-- `/formulario/[idCampanha]`
-- `/formularios` (indice publico usado na raiz do dominio do candidato)
-- `/c/[slug]` (hub publico de candidato sem dominio proprio)
-- `/grupo-wpp`
-- `/grupo-wpp/tias`
+- `/` redireciona para `/admin` no hostname da plataforma;
+- usuário anônimo é enviado para `/login`;
+- login inválido devolve mensagem genérica;
+- convite/recovery chega ao callback e exige definição de senha;
+- `editor`, `admin` e `master` veem somente as áreas permitidas;
+- criação manual e por IA resultam em `draft` inativo;
+- somente `master`/`admin` publica e acessa leads/CSV;
+- somente `master` gerencia usuários;
+- página `/p/[slug]` publicada e submissão pública funcionam;
+- um domínio de candidato não expõe `/admin`;
+- redirects legados ainda chegam ao destino esperado;
+- logs não exibem credenciais, tokens, senhas ou corpo de leads.
 
-As URLs antigas com letras maiusculas, como `/Formulario` e `/Campanha`, foram redirecionadas para as novas rotas. O POST antigo `/Formulario/Create` tambem funciona e aponta para `/api/assinaturas`.
+Rode testes E2E somente com usuários e registros criados para a verificação e remova/desative esses dados ao final.
+
+## 6. Firewall
+
+Os limites em `lib/rate-limit.ts` vivem na memória de uma instância. Eles são defesa complementar, não um limite global em serverless. Configure Vercel Firewall/WAF para a camada distribuída.
+
+Comece cada regra com ação **Log**, observe tráfego legítimo, ajuste e só então publique `Rate Limit`, `Challenge` ou `Deny`. A [documentação oficial](https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules) recomenda essa progressão.
+
+Baseline a validar:
+
+| Caminho e método | Limite no aplicativo | Baseline do Firewall |
+| --- | --- | --- |
+| `POST /api/login` | 5 / 15 min | 5 / 15 min por IP, resposta `429` ou challenge |
+| `POST /api/auth/set-password` | 5 / 15 min | 5 / 15 min por IP, com cuidado para não bloquear recovery legítimo |
+| `POST /api/assinaturas` | 10 / min | 10 / min por IP, resposta `429` |
+| `POST /api/ai/campaigns` | 8 / hora por contexto | observe e adote teto defensivo por IP sem prejudicar redes compartilhadas |
+| `GET /api/admin/leads/export` | 5 / 5 min | observe usuários administrativos antes de limitar por IP |
+
+Também revise Managed Rulesets e alertas. Mudanças de Firewall só contam depois de **Review Changes → Publish**; salvar um rascunho não prova que a proteção está ativa.
+
+## 7. Domínios
+
+### Painel
+
+1. adicione o domínio canônico em **Project → Settings → Domains**;
+2. configure DNS exatamente como a Vercel indicar;
+3. use esse HTTPS em `APP_URL` e no Site URL/Redirect URLs do Supabase;
+4. confirme que a raiz redireciona para `/admin`.
+
+### Domínio público de candidato
+
+1. adicione domínio raiz e `www` à Vercel;
+2. configure DNS e aguarde verificação/TLS;
+3. associe somente o hostname raiz, sem protocolo ou caminho, ao candidato correspondente;
+4. confirme que `www` redireciona para o raiz e HTTP para HTTPS;
+5. confirme que `/` lista campanhas e `/{uuid}` abre o formulário;
+6. confirme que `/admin`, `/login` e APIs administrativas respondem `404` nesse hostname.
+
+## 8. Produção
+
+Só promova o mesmo commit validado em Preview. Pela integração Git, faça merge conforme a proteção da branch. Pela CLI, quando autorizado:
+
+```bash
+vercel --prod
+```
+
+Antes da aplicação, execute `supabase db push --dry-run` no projeto de produção, revise a lista e faça o push com operador único. Depois do deploy:
+
+- repita o smoke das rotas críticas;
+- valide Auth e um fluxo completo com registros descartáveis;
+- confirme migrations e headers;
+- publique/revise o Firewall;
+- monitore logs, erros, Auth, banco e uso/custo do AI Gateway;
+- revogue ou remova dados e acessos temporários.
+
+Não faça rollback destrutivo de migration. Em incidente, reverta a aplicação quando compatível e crie uma migration aditiva de correção.
+
+## Registro da promoção
+
+Preencha no relatório da entrega; não marque sem evidência.
+
+- [ ] Commit/branch validado: `PREENCHER`
+- [ ] `pnpm verify`: `PREENCHER`
+- [ ] `pnpm test:e2e`: `PREENCHER` ou justificativa
+- [ ] Projeto Supabase Preview: `PREENCHER`
+- [ ] Migrations Preview aplicadas: `PREENCHER`
+- [ ] URL do Preview: `PREENCHER`
+- [ ] Auth/callback/SMTP no Preview: `PREENCHER`
+- [ ] Primeiro Master validado: `PREENCHER`
+- [ ] Regras de Firewall observadas/publicadas: `PREENCHER`
+- [ ] Projeto Supabase Production: `PREENCHER`
+- [ ] Migrations Production aplicadas: `PREENCHER`
+- [ ] URL de produção: `PREENCHER`
+- [ ] Smoke pós-deploy: `PREENCHER`
+- [ ] Monitoramento e responsável: `PREENCHER`
+
+## Referências
+
+- [README](README.md)
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Banco de dados](docs/DATABASE.md)
+- [Migrations](docs/MIGRATION.md)
+- [Segurança](SECURITY.md)
+- [Supabase: database migrations](https://supabase.com/docs/guides/deployment/database-migrations)
+- [Vercel: environment variables](https://vercel.com/docs/environment-variables)
+- [Vercel: OIDC](https://vercel.com/docs/oidc)
+- [Vercel: Firewall](https://vercel.com/docs/vercel-firewall)

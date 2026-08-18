@@ -50,6 +50,16 @@ export type Campanha = {
   titulo_assinar: string | null;
   texto_assinar: string | null;
   texto_compartilhar: string | null;
+  slug?: string | null;
+  status?: "draft" | "published" | "archived" | null;
+  theme_key?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  og_title?: string | null;
+  og_description?: string | null;
+  og_image?: string | null;
+  form_config?: Record<string, unknown> | null;
+  settings?: Record<string, unknown> | null;
 };
 
 export type Assinatura = {
@@ -66,4 +76,9 @@ export type Assinatura = {
   estado_assinante: string | null;
   ip_origem: string | null;
   assinado_em: string | null;
+  source?: string;
+  consented_at?: string | null;
+  responses?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  user_agent?: string | null;
 };

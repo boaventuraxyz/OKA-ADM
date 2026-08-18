@@ -1,0 +1,215 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.primaryLink,
+.secondaryLink,
+.rowActionLink,
+.pageLink {
+  align-items: center;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  font-weight: 720;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.9rem;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.primaryLink {
+  background: #185d45;
+  color: #fff;
+}
+
+.secondaryLink,
+.pageLink,
+.rowActionLink {
+  background: #fff;
+  border: 1px solid #dce4df;
+  color: #263b32;
+}
+
+.filters {
+  align-items: end;
+  background: #fff;
+  border: 1px solid #e1e8e4;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: minmax(14rem, 2fr) repeat(3, minmax(10rem, 1fr)) auto;
+  padding: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field label {
+  color: #455a50;
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.filterActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filterButton {
+  align-items: center;
+  background: #163d30;
+  border: 0;
+  border-radius: 0.75rem;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 720;
+  gap: 0.4rem;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+}
+
+.tableCard {
+  background: #fff;
+  border: 1px solid #e1e8e4;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  min-width: 66rem;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #edf1ef;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: #f7f9f8;
+  color: #53675e;
+  font-size: 0.72rem;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.campaignIdentity {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 22rem;
+}
+
+.campaignIdentity strong {
+  color: #1a2b24;
+}
+
+.campaignIdentity code,
+.muted {
+  color: #697b73;
+  font-size: 0.78rem;
+}
+
+.rowActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 19rem;
+}
+
+.rowActionLink {
+  border-color: transparent;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.actionFeedback {
+  color: #8a332c;
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+.empty {
+  padding: 2rem;
+}
+
+.pagination {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.paginationLinks {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pageLink[aria-disabled="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .headerActions,
+  .filterActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryLink,
+  .secondaryLink,
+  .filterButton {
+    width: 100%;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .paginationLinks > * {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryLink,
+  .secondaryLink,
+  .rowActionLink,
+  .pageLink {
+    transition: none;
+  }
+}

@@ -1,13 +1,16 @@
 import type { CSSProperties } from "react";
+import type { Metadata } from "next";
 import { PenLine } from "lucide-react";
 import Image from "next/image";
 import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import {
   CampaignHeadline,
   splitCandidateName
 } from "@/components/CampaignHeadline";
 import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignTheme3 } from "@/components/CampaignTheme3";
+import { CampaignTheme4 } from "@/components/CampaignTheme4";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
@@ -17,10 +20,20 @@ import {
   normalizeRequestHostname
 } from "@/lib/candidate-domain";
 import { getPublicCampaignView } from "@/lib/public-campaign";
+import { publicCampaignMetadata } from "@/lib/public-campaign-metadata";
 import { countAssinaturasByCampanha } from "@/lib/supabase";
 import { isUuid } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  searchParams
+}: {
+  searchParams: Promise<{ idCampanha?: string }>;
+}): Promise<Metadata> {
+  const { idCampanha } = await searchParams;
+  return publicCampaignMetadata(idCampanha);
+}
 
 function CampaignUnavailable({ description, title }: { description: string; title: string }) {
   return (
@@ -42,7 +55,7 @@ export default async function FormularioPage({
   const { idCampanha } = await searchParams;
 
   if (!idCampanha) {
-    return <CampaignUnavailable description="Confira o endereço recebido." title="Formulário indisponível" />;
+    notFound();
   }
 
   return <FormularioContent idCampanha={idCampanha} />;
@@ -50,7 +63,7 @@ export default async function FormularioPage({
 
 export async function FormularioContent({ idCampanha }: { idCampanha: string }) {
   if (!isUuid(idCampanha)) {
-    return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
+    notFound();
   }
 
   const [campanha, assinaturas, requestHeaders] = await Promise.all([
@@ -60,8 +73,10 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
   ]);
 
   if (!campanha) {
-    return <CampaignUnavailable description="Confira o link e tente novamente." title="Campanha não encontrada" />;
+    notFound();
   }
+
+  if (!campanha.ativa) notFound();
 
   if (
     !campaignAcceptsSignatures({
@@ -88,12 +103,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
       campanha.candidato?.dominioFormularios
     )
   ) {
-    return (
-      <CampaignUnavailable
-        description="Esta campanha não pertence a este endereço."
-        title="Campanha não encontrada"
-      />
-    );
+    notFound();
   }
 
   const candidateName = campanha.candidato?.nome || "Campanha Cidadã";
@@ -109,6 +119,16 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
   const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
     .filter(Boolean)
     .join(" / ");
+
+  if (campanha.tema === 4) {
+    return (
+      <CampaignTheme4
+        accent={accent || "#D81F26"}
+        campanha={campanha}
+        totalAssinaturas={assinaturas}
+      />
+    );
+  }
 
   if (campanha.tema === 3) {
     return (
@@ -215,11 +235,13 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <div className="campaign-theme2-form-wrap">
             <PublicSignatureForm
               campanhaId={campanha.id}
+              formConfig={campanha.formConfig}
               meta={campanha.assinaturasMeta}
               textoDot={campanha.textoDot}
               textoForm={campanha.textoForm || campanha.descricao || campanha.titulo}
               totalAssinaturas={assinaturas}
               variant="editorial"
+              settings={campanha.settings}
             />
           </div>
         </section>
@@ -293,10 +315,12 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
           <aside className="campaign-form-column" id="assinar">
             <PublicSignatureForm
               campanhaId={campanha.id}
+              formConfig={campanha.formConfig}
               meta={campanha.assinaturasMeta}
               textoDot={campanha.textoDot}
               textoForm={campanha.textoForm || campanha.titulo}
               totalAssinaturas={assinaturas}
+              settings={campanha.settings}
             />
           </aside>
         </div>

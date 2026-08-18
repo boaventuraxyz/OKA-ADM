@@ -1,0 +1,1714 @@
+"use client";
+
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  CheckCircle2,
+  CircleAlert,
+  FileText,
+  FormInput,
+  Globe2,
+  LayoutTemplate,
+  Monitor,
+  Palette,
+  Plus,
+  RotateCcw,
+  Save,
+  Settings2,
+  Smartphone,
+  Tablet,
+  Trash2,
+  type LucideIcon
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  useId,
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+  type HTMLInputTypeAttribute,
+  type KeyboardEvent
+} from "react";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { FormField } from "@/components/ui/FormField";
+import { IconButton } from "@/components/ui/IconButton";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/Textarea";
+import { THEME_REGISTRY } from "@/features/themes/registry";
+import { ThemePreview, type PreviewDevice } from "@/features/themes/ThemePreview";
+import { createCampaignAction, updateCampaignAction } from "./actions";
+import { normalizeCampaignSlug } from "./domain";
+import type { CampaignRow } from "./types";
+import styles from "./CampaignEditor.module.css";
+
+export type CampaignEditorProps = {
+  candidates?: readonly { id: string; nome: string }[];
+  initialCampaign?: CampaignRow;
+  mode: "create" | "edit";
+};
+
+type EditorTab = "content" | "form" | "theme" | "seo" | "settings" | "preview";
+type SaveFeedback = "idle" | "saving" | "saved" | "error";
+type FieldErrors = Record<string, string[]>;
+type RegistryTheme = (typeof THEME_REGISTRY)[number];
+
+type CampaignFormFieldType =
+  | "text"
+  | "email"
+  | "phone"
+  | "cep"
+  | "city"
+  | "state"
+  | "select"
+  | "checkbox"
+  | "textarea";
+
+type CampaignFormField = {
+  id: string;
+  key: string;
+  label: string;
+  options: string[];
+  placeholder: string;
+  required: boolean;
+  type: CampaignFormFieldType;
+};
+
+type EditorSettings = {
+  allowSharing: boolean;
+  collectAddress: boolean;
+  requireConsent: true;
+};
+
+type MutableEditorSetting = Exclude<keyof EditorSettings, "requireConsent">;
+
+type EditorValues = {
+  assinaturasMeta: string;
+  candidatoId: string;
+  corDestaque: string;
+  descricao: string;
+  destaquePrimario: string;
+  destaqueSecundario: string;
+  fimEm: string;
+  idPlanilha: string;
+  inicioEm: string;
+  metaDescription: string;
+  metaTitle: string;
+  ogDescription: string;
+  ogImage: string;
+  ogTitle: string;
+  slug: string;
+  textoAssinar: string;
+  textoCitacao: string;
+  textoCompartilhar: string;
+  textoConclusao: string;
+  textoContexto: string;
+  textoDot: string;
+  textoFaixa: string;
+  textoForm: string;
+  textoImpacto: string;
+  textoImpactoApoio: string;
+  textoProposta: string;
+  textoTopicos: string;
+  textoTopicosIntro: string;
+  textoVideo: string;
+  themeKey: RegistryTheme["key"];
+  titulo: string;
+  tituloAssinar: string;
+  tituloCitacao: string;
+  tituloTopicos: string;
+  tituloVideo: string;
+  urlFormulario: string;
+  videoUrl: string;
+};
+
+type EditorValueKey = Exclude<keyof EditorValues, "themeKey">;
+
+type EditorSnapshot = {
+  fields: CampaignFormField[];
+  settings: EditorSettings;
+  values: EditorValues;
+};
+
+type InitialEditorState = {
+  formConfigBase: Record<string, unknown>;
+  preserveLegacyAddress: boolean;
+  settingsBase: Record<string, unknown>;
+  snapshot: EditorSnapshot;
+};
+
+type ClientValidationError = {
+  focusId?: string;
+  message: string;
+  tab: EditorTab;
+};
+
+const emptyCandidates: readonly { id: string; nome: string }[] = [];
+const emptyFieldErrors: FieldErrors = {};
+const maxFormFields = 24;
+
+const tabs = [
+  { icon: FileText, id: "content", label: "Conteúdo" },
+  { icon: FormInput, id: "form", label: "Formulário" },
+  { icon: Palette, id: "theme", label: "Tema" },
+  { icon: Globe2, id: "seo", label: "SEO" },
+  { icon: Settings2, id: "settings", label: "Configurações" },
+  { icon: LayoutTemplate, id: "preview", label: "Preview" }
+] as const satisfies readonly { icon: LucideIcon; id: EditorTab; label: string }[];
+
+const previewDevices = [
+  { icon: Monitor, id: "desktop", label: "Desktop" },
+  { icon: Tablet, id: "tablet", label: "Tablet" },
+  { icon: Smartphone, id: "mobile", label: "Celular" }
+] as const satisfies readonly { icon: LucideIcon; id: PreviewDevice; label: string }[];
+
+const formFieldTypeLabels: Record<CampaignFormFieldType, string> = {
+  cep: "CEP",
+  checkbox: "Checkbox",
+  city: "Cidade",
+  email: "E-mail",
+  phone: "Telefone",
+  select: "Lista de opções",
+  state: "Estado",
+  text: "Texto curto",
+  textarea: "Texto longo"
+};
+
+const editorValueKeys = [
+  "assinaturasMeta",
+  "candidatoId",
+  "corDestaque",
+  "descricao",
+  "destaquePrimario",
+  "destaqueSecundario",
+  "fimEm",
+  "idPlanilha",
+  "inicioEm",
+  "metaDescription",
+  "metaTitle",
+  "ogDescription",
+  "ogImage",
+  "ogTitle",
+  "slug",
+  "textoAssinar",
+  "textoCitacao",
+  "textoCompartilhar",
+  "textoConclusao",
+  "textoContexto",
+  "textoDot",
+  "textoFaixa",
+  "textoForm",
+  "textoImpacto",
+  "textoImpactoApoio",
+  "textoProposta",
+  "textoTopicos",
+  "textoTopicosIntro",
+  "textoVideo",
+  "titulo",
+  "tituloAssinar",
+  "tituloCitacao",
+  "tituloTopicos",
+  "tituloVideo",
+  "urlFormulario",
+  "videoUrl"
+] as const satisfies readonly EditorValueKey[];
+
+const actionKeyByEditorValue: Record<EditorValueKey, string> = {
+  assinaturasMeta: "assinaturas_meta",
+  candidatoId: "candidato_id",
+  corDestaque: "cor_destaque",
+  descricao: "descricao",
+  destaquePrimario: "destaque_primario",
+  destaqueSecundario: "destaque_secundario",
+  fimEm: "fim_em",
+  idPlanilha: "id_planilha",
+  inicioEm: "inicio_em",
+  metaDescription: "meta_description",
+  metaTitle: "meta_title",
+  ogDescription: "og_description",
+  ogImage: "og_image",
+  ogTitle: "og_title",
+  slug: "slug",
+  textoAssinar: "texto_assinar",
+  textoCitacao: "texto_citacao",
+  textoCompartilhar: "texto_compartilhar",
+  textoConclusao: "texto_conclusao",
+  textoContexto: "texto_contexto",
+  textoDot: "texto_dot",
+  textoFaixa: "texto_faixa",
+  textoForm: "texto_form",
+  textoImpacto: "texto_impacto",
+  textoImpactoApoio: "texto_impacto_apoio",
+  textoProposta: "texto_proposta",
+  textoTopicos: "texto_topicos",
+  textoTopicosIntro: "texto_topicos_intro",
+  textoVideo: "texto_video",
+  titulo: "titulo",
+  tituloAssinar: "titulo_assinar",
+  tituloCitacao: "titulo_citacao",
+  tituloTopicos: "titulo_topicos",
+  tituloVideo: "titulo_video",
+  urlFormulario: "url_formulario",
+  videoUrl: "video_url"
+};
+
+const defaultFormFields: CampaignFormField[] = [
+  {
+    id: "name",
+    key: "nome",
+    label: "Nome completo",
+    options: [],
+    placeholder: "Digite seu nome",
+    required: true,
+    type: "text"
+  },
+  {
+    id: "email",
+    key: "email",
+    label: "E-mail",
+    options: [],
+    placeholder: "voce@exemplo.com",
+    required: true,
+    type: "email"
+  }
+];
+
+const legacyAddressFormFields: CampaignFormField[] = [
+  {
+    id: "name",
+    key: "nome",
+    label: "Nome completo",
+    options: [],
+    placeholder: "Seu nome completo",
+    required: true,
+    type: "text"
+  },
+  {
+    id: "phone",
+    key: "telefone",
+    label: "WhatsApp",
+    options: [],
+    placeholder: "WhatsApp com DDD",
+    required: true,
+    type: "phone"
+  },
+  {
+    id: "email",
+    key: "email",
+    label: "E-mail",
+    options: [],
+    placeholder: "Seu melhor e-mail",
+    required: true,
+    type: "email"
+  },
+  {
+    id: "cep",
+    key: "cep",
+    label: "CEP",
+    options: [],
+    placeholder: "00000-000",
+    required: true,
+    type: "cep"
+  },
+  {
+    id: "city",
+    key: "cidade",
+    label: "Cidade",
+    options: [],
+    placeholder: "Cidade",
+    required: true,
+    type: "city"
+  },
+  {
+    id: "state",
+    key: "estado",
+    label: "UF",
+    options: [],
+    placeholder: "UF",
+    required: true,
+    type: "state"
+  }
+];
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? { ...(value as Record<string, unknown>) }
+    : {};
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function booleanValue(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function dateTimeLocalValue(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function actionValue(key: EditorValueKey, value: string): string | number {
+  if (key === "assinaturasMeta") return value ? Number(value) : "";
+  if ((key === "inicioEm" || key === "fimEm") && value) {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : value;
+  }
+  return value;
+}
+
+function isFormFieldType(value: unknown): value is CampaignFormFieldType {
+  return typeof value === "string" && value in formFieldTypeLabels;
+}
+
+function fieldKey(value: string) {
+  return normalizeCampaignSlug(value)?.replace(/-/g, "_").slice(0, 64) || "campo";
+}
+
+function fieldKeyInput(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+/g, "")
+    .slice(0, 64);
+}
+
+function safeDomPart(value: string) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
+function parseFormFields(
+  formConfig: Record<string, unknown>,
+  preserveLegacyAddress: boolean
+) {
+  if (!Array.isArray(formConfig.fields)) {
+    const fields = preserveLegacyAddress
+      ? legacyAddressFormFields
+      : defaultFormFields;
+    return fields.map((field) => ({ ...field, options: [...field.options] }));
+  }
+
+  const parsed = formConfig.fields.flatMap((value, index): CampaignFormField[] => {
+    const record = asRecord(value);
+    const label = stringValue(record.label).trim();
+    const type = isFormFieldType(record.type) ? record.type : "text";
+    if (!label) return [];
+    const key = fieldKey(stringValue(record.key) || label);
+    const options = Array.isArray(record.options)
+      ? record.options.filter((option): option is string => typeof option === "string").map((option) => option.trim()).filter(Boolean)
+      : [];
+
+    return [{
+      id: stringValue(record.id) || `field-${index + 1}`,
+      key,
+      label,
+      options,
+      placeholder: stringValue(record.placeholder),
+      required: record.required === true,
+      type
+    }];
+  });
+
+  return parsed.length > 0 ? parsed : defaultFormFields.map((field) => ({ ...field }));
+}
+
+function resolveTheme(campaign?: CampaignRow) {
+  return (
+    THEME_REGISTRY.find((theme) => theme.key === campaign?.theme_key) ||
+    THEME_REGISTRY.find((theme) => theme.id === campaign?.tema) ||
+    THEME_REGISTRY[0]
+  );
+}
+
+function createInitialState(campaign?: CampaignRow): InitialEditorState {
+  const theme = resolveTheme(campaign);
+  const formConfigBase = asRecord(campaign?.form_config);
+  const settingsBase = asRecord(campaign?.settings);
+  const preserveLegacyAddress = Boolean(campaign) && !Array.isArray(formConfigBase.fields);
+  const values: EditorValues = {
+    assinaturasMeta: campaign?.assinaturas_meta === null || campaign?.assinaturas_meta === undefined
+      ? ""
+      : String(campaign.assinaturas_meta),
+    candidatoId: campaign?.candidato_id || "",
+    corDestaque: campaign?.cor_destaque || theme.palette.accent,
+    descricao: campaign?.descricao || "",
+    destaquePrimario: campaign?.destaque_primario || "",
+    destaqueSecundario: campaign?.destaque_secundario || "",
+    fimEm: dateTimeLocalValue(campaign?.fim_em),
+    idPlanilha: campaign?.id_planilha || "",
+    inicioEm: dateTimeLocalValue(campaign?.inicio_em),
+    metaDescription: campaign?.meta_description || "",
+    metaTitle: campaign?.meta_title || "",
+    ogDescription: campaign?.og_description || "",
+    ogImage: campaign?.og_image || "",
+    ogTitle: campaign?.og_title || "",
+    slug: campaign?.slug || "",
+    textoAssinar: campaign?.texto_assinar || "",
+    textoCitacao: campaign?.texto_citacao || "",
+    textoCompartilhar: campaign?.texto_compartilhar || "",
+    textoConclusao: campaign?.texto_conclusao || "",
+    textoContexto: campaign?.texto_contexto || "",
+    textoDot: campaign?.texto_dot || "",
+    textoFaixa: campaign?.texto_faixa || "",
+    textoForm: campaign?.texto_form || "",
+    textoImpacto: campaign?.texto_impacto || "",
+    textoImpactoApoio: campaign?.texto_impacto_apoio || "",
+    textoProposta: campaign?.texto_proposta || "",
+    textoTopicos: campaign?.texto_topicos || "",
+    textoTopicosIntro: campaign?.texto_topicos_intro || "",
+    textoVideo: campaign?.texto_video || "",
+    themeKey: theme.key,
+    titulo: campaign?.titulo || "",
+    tituloAssinar: campaign?.titulo_assinar || "",
+    tituloCitacao: campaign?.titulo_citacao || "",
+    tituloTopicos: campaign?.titulo_topicos || "",
+    tituloVideo: campaign?.titulo_video || "",
+    urlFormulario: campaign?.url_formulario || "",
+    videoUrl: campaign?.video_url || ""
+  };
+
+  return {
+    formConfigBase,
+    preserveLegacyAddress,
+    settingsBase,
+    snapshot: {
+      fields: parseFormFields(formConfigBase, preserveLegacyAddress),
+      settings: {
+        allowSharing: booleanValue(settingsBase.allow_sharing, true),
+        collectAddress: preserveLegacyAddress
+          ? true
+          : booleanValue(settingsBase.collect_address, false),
+        requireConsent: true
+      },
+      values
+    }
+  };
+}
+
+function formConfigPayload(base: Record<string, unknown>, fields: CampaignFormField[]) {
+  return {
+    ...base,
+    fields: fields.map((field) => ({
+      id: field.id,
+      key: field.key,
+      label: field.label.trim(),
+      options: field.type === "select"
+        ? field.options.map((option) => option.trim()).filter(Boolean)
+        : [],
+      placeholder: field.placeholder.trim(),
+      required: field.required,
+      type: field.type
+    })),
+    version: 1
+  };
+}
+
+function settingsPayload(
+  base: Record<string, unknown>,
+  settings: EditorSettings,
+  preserveLegacyAddress: boolean
+) {
+  return {
+    ...base,
+    allow_sharing: settings.allowSharing,
+    collect_address: preserveLegacyAddress ? true : settings.collectAddress,
+    require_consent: true
+  };
+}
+
+function createPayload(snapshot: EditorSnapshot, initial: InitialEditorState) {
+  const payload: Record<string, unknown> = {};
+  for (const key of editorValueKeys) {
+    payload[actionKeyByEditorValue[key]] = actionValue(key, snapshot.values[key]);
+  }
+  const theme = THEME_REGISTRY.find((candidate) => candidate.key === snapshot.values.themeKey) || THEME_REGISTRY[0];
+  payload.tema = theme.id;
+  payload.theme_key = theme.key;
+  payload.form_config = formConfigPayload(initial.formConfigBase, snapshot.fields);
+  payload.settings = settingsPayload(
+    initial.settingsBase,
+    snapshot.settings,
+    initial.preserveLegacyAddress
+  );
+  return payload;
+}
+
+function editPayload(current: EditorSnapshot, baseline: EditorSnapshot, initial: InitialEditorState) {
+  const payload: Record<string, unknown> = {};
+  for (const key of editorValueKeys) {
+    if (current.values[key] !== baseline.values[key]) {
+      payload[actionKeyByEditorValue[key]] = actionValue(key, current.values[key]);
+    }
+  }
+
+  if (current.values.themeKey !== baseline.values.themeKey) {
+    const theme = THEME_REGISTRY.find((candidate) => candidate.key === current.values.themeKey) || THEME_REGISTRY[0];
+    payload.tema = theme.id;
+    payload.theme_key = theme.key;
+  }
+
+  if (JSON.stringify(current.fields) !== JSON.stringify(baseline.fields)) {
+    payload.form_config = formConfigPayload(initial.formConfigBase, current.fields);
+  }
+  const mustPersistInvariants =
+    initial.settingsBase.require_consent !== true ||
+    (initial.preserveLegacyAddress && initial.settingsBase.collect_address !== true);
+  if (
+    JSON.stringify(current.settings) !== JSON.stringify(baseline.settings) ||
+    mustPersistInvariants
+  ) {
+    payload.settings = settingsPayload(
+      initial.settingsBase,
+      current.settings,
+      initial.preserveLegacyAddress
+    );
+  }
+  return payload;
+}
+
+function snapshotsMatch(current: EditorSnapshot, baseline: EditorSnapshot) {
+  if (current.values.themeKey !== baseline.values.themeKey) return false;
+  if (editorValueKeys.some((key) => current.values[key] !== baseline.values[key])) return false;
+  return (
+    JSON.stringify(current.fields) === JSON.stringify(baseline.fields) &&
+    JSON.stringify(current.settings) === JSON.stringify(baseline.settings)
+  );
+}
+
+function firstFieldError(errors: FieldErrors, name: string) {
+  return errors[name]?.[0];
+}
+
+function controlId(prefix: string, actionField: string) {
+  return `${prefix}-${actionField.replace(/_/g, "-")}`;
+}
+
+function focusControl(id: string) {
+  const control = document.getElementById(id);
+  const details = control?.closest("details");
+  if (details instanceof HTMLDetailsElement) details.open = true;
+  control?.focus();
+}
+
+function focusAfterPanelChange(id: string) {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => focusControl(id));
+  });
+}
+
+function tabForActionField(field: string): EditorTab {
+  if (field === "form_config" || field === "texto_form" || field === "texto_dot") return "form";
+  if (field === "tema" || field === "theme_key") return "theme";
+  if (field.startsWith("meta_") || field.startsWith("og_")) return "seo";
+  if (
+    field === "settings" ||
+    field === "inicio_em" ||
+    field === "fim_em" ||
+    field === "assinaturas_meta" ||
+    field === "cor_destaque" ||
+    field === "id_planilha" ||
+    field === "url_formulario"
+  ) return "settings";
+  return "content";
+}
+
+function validateSnapshot(snapshot: EditorSnapshot, prefix: string): ClientValidationError | null {
+  if (!snapshot.values.titulo.trim()) {
+    return { focusId: controlId(prefix, "titulo"), message: "Informe o título da campanha.", tab: "content" };
+  }
+  if (snapshot.values.slug && normalizeCampaignSlug(snapshot.values.slug) !== snapshot.values.slug) {
+    return {
+      focusId: controlId(prefix, "slug"),
+      message: "Use apenas letras minúsculas, números e hífens no slug.",
+      tab: "content"
+    };
+  }
+  if (
+    snapshot.values.inicioEm &&
+    snapshot.values.fimEm &&
+    Date.parse(snapshot.values.fimEm) < Date.parse(snapshot.values.inicioEm)
+  ) {
+    return {
+      focusId: controlId(prefix, "fim_em"),
+      message: "A data final deve ser posterior à data inicial.",
+      tab: "settings"
+    };
+  }
+
+  const keys = new Set<string>();
+  for (const field of snapshot.fields) {
+    const rowPrefix = `${prefix}-field-${safeDomPart(field.id)}`;
+    if (!field.label.trim()) {
+      return { focusId: `${rowPrefix}-label`, message: "Todos os campos precisam de um rótulo.", tab: "form" };
+    }
+    if (!field.key.trim()) {
+      return { focusId: `${rowPrefix}-key`, message: "Todos os campos precisam de uma chave.", tab: "form" };
+    }
+    if (!/^[a-z][a-z0-9_]*$/.test(field.key)) {
+      return {
+        focusId: `${rowPrefix}-key`,
+        message: `A chave “${field.key}” deve começar com uma letra e usar somente letras, números ou _.`,
+        tab: "form"
+      };
+    }
+    if (keys.has(field.key)) {
+      return { focusId: `${rowPrefix}-key`, message: `A chave “${field.key}” está repetida.`, tab: "form" };
+    }
+    keys.add(field.key);
+    if (field.type === "select" && !field.options.some((option) => option.trim())) {
+      return {
+        focusId: `${rowPrefix}-options`,
+        message: `Adicione ao menos uma opção ao campo “${field.label}”.`,
+        tab: "form"
+      };
+    }
+  }
+  return null;
+}
+
+function EditorInputField({
+  description,
+  error,
+  id,
+  label,
+  maxLength,
+  min,
+  name,
+  onChange,
+  pattern,
+  placeholder,
+  required = false,
+  step,
+  type = "text",
+  value
+}: {
+  description?: string;
+  error?: string;
+  id: string;
+  label: string;
+  maxLength?: number;
+  min?: number;
+  name: string;
+  onChange: (value: string) => void;
+  pattern?: string;
+  placeholder?: string;
+  required?: boolean;
+  step?: number;
+  type?: HTMLInputTypeAttribute;
+  value: string;
+}) {
+  return (
+    <FormField description={description} error={error} id={id} label={label} required={required}>
+      {(controlProps) => (
+        <Input
+          {...controlProps}
+          maxLength={maxLength}
+          min={min}
+          name={name}
+          onChange={(event) => onChange(event.target.value)}
+          pattern={pattern}
+          placeholder={placeholder}
+          required={required}
+          step={step}
+          type={type}
+          value={value}
+        />
+      )}
+    </FormField>
+  );
+}
+
+function EditorTextareaField({
+  description,
+  error,
+  id,
+  label,
+  maxLength,
+  name,
+  onChange,
+  placeholder,
+  value
+}: {
+  description?: string;
+  error?: string;
+  id: string;
+  label: string;
+  maxLength: number;
+  name: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  value: string;
+}) {
+  return (
+    <FormField
+      description={description || `${value.length}/${maxLength} caracteres`}
+      error={error}
+      id={id}
+      label={label}
+    >
+      {(controlProps) => (
+        <Textarea
+          {...controlProps}
+          maxLength={maxLength}
+          name={name}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          value={value}
+        />
+      )}
+    </FormField>
+  );
+}
+
+function EditorTabList({
+  activeTab,
+  onChange,
+  prefix
+}: {
+  activeTab: EditorTab;
+  onChange: (tab: EditorTab) => void;
+  prefix: string;
+}) {
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let nextIndex: number | undefined;
+    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    onChange(nextTab.id);
+    tabRefs.current[nextIndex]?.focus();
+  }
+
+  return (
+    <div aria-label="Seções do editor" className={styles.tabList} role="tablist">
+      {tabs.map((tab, index) => {
+        const Icon = tab.icon;
+        const selected = activeTab === tab.id;
+        return (
+          <button
+            aria-controls={`${prefix}-${tab.id}-panel`}
+            aria-selected={selected}
+            className={`${styles.tab} ${selected ? styles.tabActive : ""}`}
+            id={`${prefix}-${tab.id}-tab`}
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            onKeyDown={(event) => handleKeyDown(event, index)}
+            ref={(element) => {
+              tabRefs.current[index] = element;
+            }}
+            role="tab"
+            tabIndex={selected ? 0 : -1}
+            type="button"
+          >
+            <Icon aria-hidden="true" size={17} />
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+type ValueChange = <Key extends keyof EditorValues>(key: Key, value: EditorValues[Key]) => void;
+
+function ContentPanel({
+  candidates,
+  errors,
+  onRegenerateSlug,
+  onSlugChange,
+  onTitleChange,
+  onValueChange,
+  prefix,
+  values
+}: {
+  candidates: readonly { id: string; nome: string }[];
+  errors: FieldErrors;
+  onRegenerateSlug: () => void;
+  onSlugChange: (value: string) => void;
+  onTitleChange: (value: string) => void;
+  onValueChange: ValueChange;
+  prefix: string;
+  values: EditorValues;
+}) {
+  return (
+    <div className={styles.panelStack}>
+      <div className={styles.panelIntro}>
+        <div>
+          <p>Mensagem principal</p>
+          <h2>Conteúdo da campanha</h2>
+        </div>
+        <span>Escreva para leitura rápida, com uma chamada clara para ação.</span>
+      </div>
+
+      <div className={styles.twoColumns}>
+        <EditorInputField
+          error={firstFieldError(errors, "titulo")}
+          id={controlId(prefix, "titulo")}
+          label="Título da campanha"
+          maxLength={200}
+          name="titulo"
+          onChange={onTitleChange}
+          placeholder="Ex.: Mobilidade segura para todos"
+          required
+          value={values.titulo}
+        />
+        <div className={styles.slugField}>
+          <EditorInputField
+            description="Endereço público; você pode ajustar a sugestão."
+            error={firstFieldError(errors, "slug")}
+            id={controlId(prefix, "slug")}
+            label="Slug"
+            maxLength={120}
+            name="slug"
+            onChange={onSlugChange}
+            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+            placeholder="mobilidade-segura"
+            value={values.slug}
+          />
+          <Button className={styles.regenerateButton} onClick={onRegenerateSlug} size="small" variant="ghost">
+            <RotateCcw aria-hidden="true" size={15} />
+            Gerar novamente
+          </Button>
+        </div>
+      </div>
+
+      <div className={styles.twoColumns}>
+        <FormField
+          error={firstFieldError(errors, "candidato_id")}
+          id={controlId(prefix, "candidato_id")}
+          label="Candidato ou responsável"
+        >
+          {(controlProps) => (
+            <Select
+              {...controlProps}
+              name="candidato_id"
+              onChange={(event) => onValueChange("candidatoId", event.target.value)}
+              value={values.candidatoId}
+            >
+              <option value="">Sem vínculo</option>
+              {candidates.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>{candidate.nome}</option>
+              ))}
+            </Select>
+          )}
+        </FormField>
+        <EditorTextareaField
+          error={firstFieldError(errors, "descricao")}
+          id={controlId(prefix, "descricao")}
+          label="Resumo"
+          maxLength={5000}
+          name="descricao"
+          onChange={(value) => onValueChange("descricao", value)}
+          placeholder="Explique a causa em poucas linhas."
+          value={values.descricao}
+        />
+      </div>
+
+      <div className={styles.twoColumns}>
+        <EditorInputField
+          error={firstFieldError(errors, "destaque_primario")}
+          id={controlId(prefix, "destaque_primario")}
+          label="Destaque principal"
+          maxLength={160}
+          name="destaque_primario"
+          onChange={(value) => onValueChange("destaquePrimario", value)}
+          placeholder="Frase curta de maior impacto"
+          value={values.destaquePrimario}
+        />
+        <EditorInputField
+          error={firstFieldError(errors, "destaque_secundario")}
+          id={controlId(prefix, "destaque_secundario")}
+          label="Destaque secundário"
+          maxLength={160}
+          name="destaque_secundario"
+          onChange={(value) => onValueChange("destaqueSecundario", value)}
+          placeholder="Complemento da mensagem principal"
+          value={values.destaqueSecundario}
+        />
+      </div>
+
+      <div className={styles.threeColumns}>
+        <EditorTextareaField
+          error={firstFieldError(errors, "texto_contexto")}
+          id={controlId(prefix, "texto_contexto")}
+          label="Contexto"
+          maxLength={8000}
+          name="texto_contexto"
+          onChange={(value) => onValueChange("textoContexto", value)}
+          placeholder="O que está acontecendo?"
+          value={values.textoContexto}
+        />
+        <EditorTextareaField
+          error={firstFieldError(errors, "texto_proposta")}
+          id={controlId(prefix, "texto_proposta")}
+          label="Proposta"
+          maxLength={4000}
+          name="texto_proposta"
+          onChange={(value) => onValueChange("textoProposta", value)}
+          placeholder="Qual mudança está sendo defendida?"
+          value={values.textoProposta}
+        />
+        <EditorTextareaField
+          error={firstFieldError(errors, "texto_conclusao")}
+          id={controlId(prefix, "texto_conclusao")}
+          label="Conclusão"
+          maxLength={4000}
+          name="texto_conclusao"
+          onChange={(value) => onValueChange("textoConclusao", value)}
+          placeholder="Feche a narrativa com a próxima ação."
+          value={values.textoConclusao}
+        />
+      </div>
+
+      <details className={styles.advanced}>
+        <summary>Conteúdo avançado para temas editoriais</summary>
+        <div className={styles.advancedGrid}>
+          <EditorInputField error={firstFieldError(errors, "texto_faixa")} id={controlId(prefix, "texto_faixa")} label="Texto da faixa" maxLength={500} name="texto_faixa" onChange={(value) => onValueChange("textoFaixa", value)} value={values.textoFaixa} />
+          <EditorInputField error={firstFieldError(errors, "texto_impacto")} id={controlId(prefix, "texto_impacto")} label="Frase de impacto" maxLength={300} name="texto_impacto" onChange={(value) => onValueChange("textoImpacto", value)} value={values.textoImpacto} />
+          <EditorInputField error={firstFieldError(errors, "texto_impacto_apoio")} id={controlId(prefix, "texto_impacto_apoio")} label="Apoio da frase de impacto" maxLength={500} name="texto_impacto_apoio" onChange={(value) => onValueChange("textoImpactoApoio", value)} value={values.textoImpactoApoio} />
+          <EditorInputField error={firstFieldError(errors, "titulo_topicos")} id={controlId(prefix, "titulo_topicos")} label="Título dos tópicos" maxLength={200} name="titulo_topicos" onChange={(value) => onValueChange("tituloTopicos", value)} value={values.tituloTopicos} />
+          <EditorTextareaField error={firstFieldError(errors, "texto_topicos_intro")} id={controlId(prefix, "texto_topicos_intro")} label="Introdução dos tópicos" maxLength={2000} name="texto_topicos_intro" onChange={(value) => onValueChange("textoTopicosIntro", value)} value={values.textoTopicosIntro} />
+          <EditorTextareaField description="Um tópico por linha." error={firstFieldError(errors, "texto_topicos")} id={controlId(prefix, "texto_topicos")} label="Tópicos" maxLength={8000} name="texto_topicos" onChange={(value) => onValueChange("textoTopicos", value)} value={values.textoTopicos} />
+          <EditorInputField error={firstFieldError(errors, "titulo_citacao")} id={controlId(prefix, "titulo_citacao")} label="Título da citação" maxLength={200} name="titulo_citacao" onChange={(value) => onValueChange("tituloCitacao", value)} value={values.tituloCitacao} />
+          <EditorTextareaField error={firstFieldError(errors, "texto_citacao")} id={controlId(prefix, "texto_citacao")} label="Citação" maxLength={2000} name="texto_citacao" onChange={(value) => onValueChange("textoCitacao", value)} value={values.textoCitacao} />
+          <EditorInputField error={firstFieldError(errors, "titulo_video")} id={controlId(prefix, "titulo_video")} label="Título do vídeo" maxLength={200} name="titulo_video" onChange={(value) => onValueChange("tituloVideo", value)} value={values.tituloVideo} />
+          <EditorInputField description="URL HTTPS ou caminho interno iniciado por /." error={firstFieldError(errors, "video_url")} id={controlId(prefix, "video_url")} label="Vídeo" maxLength={2048} name="video_url" onChange={(value) => onValueChange("videoUrl", value)} pattern="(?:https://.*|/.*)" value={values.videoUrl} />
+          <EditorTextareaField error={firstFieldError(errors, "texto_video")} id={controlId(prefix, "texto_video")} label="Texto de apoio do vídeo" maxLength={4000} name="texto_video" onChange={(value) => onValueChange("textoVideo", value)} value={values.textoVideo} />
+          <EditorInputField error={firstFieldError(errors, "titulo_assinar")} id={controlId(prefix, "titulo_assinar")} label="Título da assinatura" maxLength={200} name="titulo_assinar" onChange={(value) => onValueChange("tituloAssinar", value)} value={values.tituloAssinar} />
+          <EditorTextareaField error={firstFieldError(errors, "texto_assinar")} id={controlId(prefix, "texto_assinar")} label="Texto da assinatura" maxLength={2000} name="texto_assinar" onChange={(value) => onValueChange("textoAssinar", value)} value={values.textoAssinar} />
+          <EditorInputField error={firstFieldError(errors, "texto_compartilhar")} id={controlId(prefix, "texto_compartilhar")} label="Chamada para compartilhar" maxLength={500} name="texto_compartilhar" onChange={(value) => onValueChange("textoCompartilhar", value)} value={values.textoCompartilhar} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function FormPanel({
+  errors,
+  fields,
+  onAdd,
+  onMove,
+  onRemove,
+  onUpdate,
+  onValueChange,
+  prefix,
+  values
+}: {
+  errors: FieldErrors;
+  fields: CampaignFormField[];
+  onAdd: () => void;
+  onMove: (id: string, direction: -1 | 1) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (id: string, patch: Partial<CampaignFormField>) => void;
+  onValueChange: ValueChange;
+  prefix: string;
+  values: EditorValues;
+}) {
+  return (
+    <div className={styles.panelStack}>
+      <div className={styles.panelIntro}>
+        <div>
+          <p>Coleta objetiva</p>
+          <h2>Formulário da campanha</h2>
+        </div>
+        <span>Uma lista simples de campos, sem construtor de páginas.</span>
+      </div>
+
+      <div className={styles.twoColumns}>
+        <EditorInputField
+          error={firstFieldError(errors, "texto_form")}
+          id={controlId(prefix, "texto_form")}
+          label="Título do formulário"
+          maxLength={200}
+          name="texto_form"
+          onChange={(value) => onValueChange("textoForm", value)}
+          placeholder="Assine esta causa"
+          value={values.textoForm}
+        />
+        <EditorInputField
+          error={firstFieldError(errors, "texto_dot")}
+          id={controlId(prefix, "texto_dot")}
+          label="Texto do contador"
+          maxLength={80}
+          name="texto_dot"
+          onChange={(value) => onValueChange("textoDot", value)}
+          placeholder="pessoas já apoiaram"
+          value={values.textoDot}
+        />
+      </div>
+
+      {firstFieldError(errors, "form_config") ? (
+        <p className={styles.inlineError} role="alert">{firstFieldError(errors, "form_config")}</p>
+      ) : null}
+
+      <div className={styles.builderHeader} id={controlId(prefix, "form_config")} tabIndex={-1}>
+        <div>
+          <strong>Campos</strong>
+          <span>{fields.length} de {maxFormFields}</span>
+        </div>
+        <Button disabled={fields.length >= maxFormFields} onClick={onAdd} variant="secondary">
+          <Plus aria-hidden="true" size={17} />
+          Adicionar campo
+        </Button>
+      </div>
+
+      <div className={styles.fieldBuilder}>
+        {fields.map((field, index) => {
+          const rowPrefix = `${prefix}-field-${safeDomPart(field.id)}`;
+          return (
+            <fieldset className={styles.builderRow} key={field.id}>
+              <legend>Campo {index + 1}: {field.label || "sem rótulo"}</legend>
+              <div className={styles.builderToolbar}>
+                <Badge variant="neutral">{formFieldTypeLabels[field.type]}</Badge>
+                <div>
+                  <IconButton aria-label={`Mover ${field.label || "campo"} para cima`} disabled={index === 0} onClick={() => onMove(field.id, -1)} variant="ghost">
+                    <ArrowUp aria-hidden="true" size={17} />
+                  </IconButton>
+                  <IconButton aria-label={`Mover ${field.label || "campo"} para baixo`} disabled={index === fields.length - 1} onClick={() => onMove(field.id, 1)} variant="ghost">
+                    <ArrowDown aria-hidden="true" size={17} />
+                  </IconButton>
+                  <IconButton aria-label={`Remover ${field.label || "campo"}`} disabled={fields.length === 1} onClick={() => onRemove(field.id)} variant="danger">
+                    <Trash2 aria-hidden="true" size={17} />
+                  </IconButton>
+                </div>
+              </div>
+
+              <div className={styles.threeColumns}>
+                <FormField id={`${rowPrefix}-label`} label="Rótulo" required>
+                  {(controlProps) => (
+                    <Input
+                      {...controlProps}
+                      maxLength={120}
+                      onChange={(event) => {
+                        const nextLabel = event.target.value;
+                        const autoKey = !field.key || field.key === fieldKey(field.label);
+                        onUpdate(field.id, {
+                          ...(autoKey ? { key: fieldKey(nextLabel) } : {}),
+                          label: nextLabel
+                        });
+                      }}
+                      required
+                      value={field.label}
+                    />
+                  )}
+                </FormField>
+                <FormField id={`${rowPrefix}-type`} label="Tipo">
+                  {(controlProps) => (
+                    <Select
+                      {...controlProps}
+                      onChange={(event) => {
+                        const type = event.target.value as CampaignFormFieldType;
+                        onUpdate(field.id, {
+                          ...(type === "select" && field.options.length === 0
+                            ? { options: ["Opção 1", "Opção 2"] }
+                            : {}),
+                          type
+                        });
+                      }}
+                      value={field.type}
+                    >
+                      {Object.entries(formFieldTypeLabels).map(([type, label]) => (
+                        <option key={type} value={type}>{label}</option>
+                      ))}
+                    </Select>
+                  )}
+                </FormField>
+                <Checkbox
+                  checked={field.required}
+                  className={styles.builderCheckbox}
+                  label="Campo obrigatório"
+                  onChange={(event) => onUpdate(field.id, { required: event.target.checked })}
+                />
+              </div>
+
+              <details className={styles.fieldAdvanced}>
+                <summary>Configurações do campo</summary>
+                <div className={styles.twoColumns}>
+                  <FormField description="Usada para identificar a resposta." id={`${rowPrefix}-key`} label="Chave técnica" required>
+                    {(controlProps) => (
+                      <Input
+                        {...controlProps}
+                        maxLength={64}
+                        onChange={(event) => onUpdate(field.id, { key: fieldKeyInput(event.target.value) })}
+                        pattern="[a-z][a-z0-9_]*"
+                        required
+                        value={field.key}
+                      />
+                    )}
+                  </FormField>
+                  <FormField id={`${rowPrefix}-placeholder`} label="Placeholder">
+                    {(controlProps) => (
+                      <Input
+                        {...controlProps}
+                        maxLength={160}
+                        onChange={(event) => onUpdate(field.id, { placeholder: event.target.value })}
+                        value={field.placeholder}
+                      />
+                    )}
+                  </FormField>
+                </div>
+                {field.type === "select" ? (
+                  <FormField description="Uma opção por linha." id={`${rowPrefix}-options`} label="Opções" required>
+                    {(controlProps) => (
+                      <Textarea
+                        {...controlProps}
+                        onChange={(event) => onUpdate(field.id, {
+                          options: event.target.value.split("\n")
+                        })}
+                        required
+                        value={field.options.join("\n")}
+                      />
+                    )}
+                  </FormField>
+                ) : null}
+              </details>
+            </fieldset>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ThemePanel({
+  errors,
+  onThemeChange,
+  prefix,
+  selectedKey
+}: {
+  errors: FieldErrors;
+  onThemeChange: (key: RegistryTheme["key"]) => void;
+  prefix: string;
+  selectedKey: RegistryTheme["key"];
+}) {
+  return (
+    <div className={styles.panelStack}>
+      <div className={styles.panelIntro}>
+        <div>
+          <p>Direção visual</p>
+          <h2>Escolha um tema</h2>
+        </div>
+        <span>IDs legados e keys estáveis são salvos juntos.</span>
+      </div>
+      {firstFieldError(errors, "theme_key") || firstFieldError(errors, "tema") ? (
+        <p className={styles.inlineError} role="alert">
+          {firstFieldError(errors, "theme_key") || firstFieldError(errors, "tema")}
+        </p>
+      ) : null}
+      <fieldset className={styles.themeFieldset} id={controlId(prefix, "theme_key")} tabIndex={-1}>
+        <legend className={styles.srOnly}>Tema da campanha</legend>
+        <div className={styles.themeGrid}>
+          {THEME_REGISTRY.map((theme) => {
+            const selected = selectedKey === theme.key;
+            return (
+              <label className={`${styles.themeOption} ${selected ? styles.themeOptionSelected : ""}`} key={theme.key}>
+                <input
+                  checked={selected}
+                  name="theme_key"
+                  onChange={() => onThemeChange(theme.key)}
+                  type="radio"
+                  value={theme.key}
+                />
+                <span className={styles.themeOptionHeader}>
+                  <span>
+                    <small>Tema {theme.id}</small>
+                    <strong>{theme.name}</strong>
+                    <code>{theme.key}</code>
+                  </span>
+                  {selected ? <CheckCircle2 aria-hidden="true" size={21} /> : null}
+                </span>
+                <span className={styles.themeDescription}>{theme.description}</span>
+                <span aria-label={`Paleta de ${theme.name}`} className={styles.themePalette} role="group">
+                  {Object.entries(theme.palette).map(([name, color]) => (
+                    <span aria-label={`${name}: ${color}`} key={name} role="img" style={{ backgroundColor: color }} />
+                  ))}
+                </span>
+                <span className={styles.themeTags}>
+                  {theme.tags.map((tag) => <Badge key={tag}>{tag}</Badge>)}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+    </div>
+  );
+}
+
+function SeoPanel({ errors, onValueChange, prefix, values }: {
+  errors: FieldErrors;
+  onValueChange: ValueChange;
+  prefix: string;
+  values: EditorValues;
+}) {
+  return (
+    <div className={styles.panelStack}>
+      <div className={styles.panelIntro}>
+        <div>
+          <p>Descoberta e compartilhamento</p>
+          <h2>SEO</h2>
+        </div>
+        <span>Se estiverem vazios, o título e o resumo da campanha podem ser usados como fallback.</span>
+      </div>
+      <EditorInputField description={`${values.metaTitle.length}/120 caracteres`} error={firstFieldError(errors, "meta_title")} id={controlId(prefix, "meta_title")} label="Título para busca" maxLength={120} name="meta_title" onChange={(value) => onValueChange("metaTitle", value)} placeholder={values.titulo || "Título exibido nos buscadores"} value={values.metaTitle} />
+      <EditorTextareaField error={firstFieldError(errors, "meta_description")} id={controlId(prefix, "meta_description")} label="Descrição para busca" maxLength={320} name="meta_description" onChange={(value) => onValueChange("metaDescription", value)} placeholder="Resumo que ajuda a entender a página antes do clique." value={values.metaDescription} />
+      <div className={styles.searchSnippet} aria-label="Exemplo de resultado de busca">
+        <small>exemplo.org/c/{values.slug || "sua-campanha"}</small>
+        <strong>{values.metaTitle || values.titulo || "Título da campanha"}</strong>
+        <span>{values.metaDescription || values.descricao || "A descrição da campanha será exibida aqui."}</span>
+      </div>
+      <details className={styles.advanced}>
+        <summary>Open Graph e redes sociais</summary>
+        <div className={styles.advancedGrid}>
+          <EditorInputField description={`${values.ogTitle.length}/120 caracteres`} error={firstFieldError(errors, "og_title")} id={controlId(prefix, "og_title")} label="Título social" maxLength={120} name="og_title" onChange={(value) => onValueChange("ogTitle", value)} value={values.ogTitle} />
+          <EditorTextareaField error={firstFieldError(errors, "og_description")} id={controlId(prefix, "og_description")} label="Descrição social" maxLength={320} name="og_description" onChange={(value) => onValueChange("ogDescription", value)} value={values.ogDescription} />
+          <EditorInputField description="URL HTTPS ou caminho interno iniciado por /." error={firstFieldError(errors, "og_image")} id={controlId(prefix, "og_image")} label="Imagem social" maxLength={2048} name="og_image" onChange={(value) => onValueChange("ogImage", value)} pattern="(?:https://.*|/.*)" value={values.ogImage} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function SettingsPanel({
+  errors,
+  mode,
+  onSettingChange,
+  onValueChange,
+  prefix,
+  preserveLegacyAddress,
+  settings,
+  status,
+  values
+}: {
+  errors: FieldErrors;
+  mode: CampaignEditorProps["mode"];
+  onSettingChange: (key: MutableEditorSetting, value: boolean) => void;
+  onValueChange: ValueChange;
+  prefix: string;
+  preserveLegacyAddress: boolean;
+  settings: EditorSettings;
+  status?: CampaignRow["status"];
+  values: EditorValues;
+}) {
+  return (
+    <div className={styles.panelStack}>
+      <div className={styles.panelIntro}>
+        <div>
+          <p>Operação</p>
+          <h2>Configurações</h2>
+        </div>
+        <Badge variant={status === "draft" || mode === "create" ? "warning" : "neutral"}>
+          {mode === "create" ? "Novo rascunho" : status === "draft" ? "Rascunho" : status || "Sem status"}
+        </Badge>
+      </div>
+
+      <div className={styles.threeColumns}>
+        <EditorInputField error={firstFieldError(errors, "inicio_em")} id={controlId(prefix, "inicio_em")} label="Início" name="inicio_em" onChange={(value) => onValueChange("inicioEm", value)} type="datetime-local" value={values.inicioEm} />
+        <EditorInputField error={firstFieldError(errors, "fim_em")} id={controlId(prefix, "fim_em")} label="Fim" name="fim_em" onChange={(value) => onValueChange("fimEm", value)} type="datetime-local" value={values.fimEm} />
+        <EditorInputField error={firstFieldError(errors, "assinaturas_meta")} id={controlId(prefix, "assinaturas_meta")} label="Meta de assinaturas" min={0} name="assinaturas_meta" onChange={(value) => onValueChange("assinaturasMeta", value)} step={1} type="number" value={values.assinaturasMeta} />
+      </div>
+
+      <div className={styles.twoColumns}>
+        <FormField error={firstFieldError(errors, "cor_destaque")} id={controlId(prefix, "cor_destaque")} label="Cor de destaque">
+          {(controlProps) => (
+            <div className={styles.colorControl}>
+              <Input {...controlProps} name="cor_destaque" onChange={(event) => onValueChange("corDestaque", event.target.value)} type="color" value={values.corDestaque} />
+              <code>{values.corDestaque.toUpperCase()}</code>
+            </div>
+          )}
+        </FormField>
+        <EditorInputField description="Opcional; somente links oficiais do WhatsApp." error={firstFieldError(errors, "url_formulario")} id={controlId(prefix, "url_formulario")} label="Redirecionamento após envio" maxLength={2048} name="url_formulario" onChange={(value) => onValueChange("urlFormulario", value)} pattern="https://(?:wa\.me|(?:[a-z0-9-]+\.)*whatsapp\.com)(?:/.*)?" placeholder="https://wa.me/55..." type="url" value={values.urlFormulario} />
+      </div>
+
+      {firstFieldError(errors, "settings") ? (
+        <p className={styles.inlineError} role="alert">{firstFieldError(errors, "settings")}</p>
+      ) : null}
+      <div className={styles.checkboxGrid} id={controlId(prefix, "settings")} tabIndex={-1}>
+        <Checkbox checked={settings.requireConsent} description="Obrigatório em todas as campanhas e protegido contra desativação." disabled label="Consentimento obrigatório" />
+        <Checkbox checked={settings.allowSharing} description="Disponibiliza chamadas de compartilhamento quando o tema suportar." label="Permitir compartilhamento" onChange={(event) => onSettingChange("allowSharing", event.target.checked)} />
+        <Checkbox
+          checked={settings.collectAddress}
+          description={preserveLegacyAddress
+            ? "Esta campanha legada mantém seus campos de endereço para evitar perda de dados."
+            : "Desativado por padrão em novas campanhas; ative apenas quando a finalidade exigir."}
+          disabled={preserveLegacyAddress}
+          label="Coletar endereço completo"
+          onChange={(event) => onSettingChange("collectAddress", event.target.checked)}
+        />
+      </div>
+
+      <details className={styles.advanced}>
+        <summary>Integrações avançadas</summary>
+        <div className={styles.advancedGrid}>
+          <EditorInputField description="Identificador opcional para integrações legadas." error={firstFieldError(errors, "id_planilha")} id={controlId(prefix, "id_planilha")} label="ID da planilha" maxLength={200} name="id_planilha" onChange={(value) => onValueChange("idPlanilha", value)} value={values.idPlanilha} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function PreviewPanel({
+  device,
+  fields,
+  onDeviceChange,
+  theme,
+  values
+}: {
+  device: PreviewDevice;
+  fields: CampaignFormField[];
+  onDeviceChange: (device: PreviewDevice) => void;
+  theme: RegistryTheme;
+  values: EditorValues;
+}) {
+  return (
+    <div className={styles.panelStack}>
+      <div className={styles.panelIntro}>
+        <div>
+          <p>Conferência visual</p>
+          <h2>Preview</h2>
+        </div>
+        <span>Tema, cor, textos e campos acompanham as alterações ainda não salvas.</span>
+      </div>
+      <div aria-label="Dispositivo da prévia" className={styles.deviceControls} role="group">
+        {previewDevices.map((option) => {
+          const Icon = option.icon;
+          const selected = device === option.id;
+          return (
+            <Button aria-pressed={selected} key={option.id} onClick={() => onDeviceChange(option.id)} variant={selected ? "primary" : "secondary"}>
+              <Icon aria-hidden="true" size={17} />
+              {option.label}
+            </Button>
+          );
+        })}
+      </div>
+      <div className={styles.previewFrame}>
+        <ThemePreview
+          accent={values.corDestaque}
+          content={{
+            brand: values.textoFaixa,
+            cta: values.textoAssinar || values.textoDot,
+            eyebrow: values.textoDot,
+            fieldLabels: fields.map((field) => field.label),
+            formTitle: values.textoForm || values.tituloAssinar,
+            subtitle: values.descricao || values.destaqueSecundario,
+            title: values.destaquePrimario || values.titulo,
+          }}
+          device={device}
+          theme={theme}
+        />
+      </div>
+      <Card>
+        <CardHeader className={styles.previewSummaryHeader}>
+          <div>
+            <small>Tema {theme.id}</small>
+            <h3>{values.titulo || "Campanha sem título"}</h3>
+            <code>/c/{values.slug || "slug-gerado-ao-salvar"}</code>
+          </div>
+          <Badge variant="info">{theme.name}</Badge>
+        </CardHeader>
+        <CardContent className={styles.previewSummary}>
+          <p>{values.descricao || "Adicione um resumo para apresentar a causa com clareza."}</p>
+          <span>{fields.length} {fields.length === 1 ? "campo configurado" : "campos configurados"}</span>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function CampaignEditor({
+  candidates = emptyCandidates,
+  initialCampaign,
+  mode
+}: CampaignEditorProps) {
+  const router = useRouter();
+  const generatedId = useId().replace(/:/g, "");
+  const prefix = `campaign-editor-${generatedId}`;
+  const [initial] = useState(() => createInitialState(initialCampaign));
+  const [values, setValues] = useState(initial.snapshot.values);
+  const [fields, setFields] = useState(initial.snapshot.fields);
+  const [settings, setSettings] = useState(initial.snapshot.settings);
+  const [baseline, setBaseline] = useState(initial.snapshot);
+  const [activeTab, setActiveTab] = useState<EditorTab>("content");
+  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(initialCampaign?.slug));
+  const [feedback, setFeedback] = useState<SaveFeedback>("idle");
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>(emptyFieldErrors);
+  const [isPending, startTransition] = useTransition();
+  const currentSnapshot: EditorSnapshot = { fields, settings, values };
+  const dirty = !snapshotsMatch(currentSnapshot, baseline);
+  const selectedTheme = THEME_REGISTRY.find((theme) => theme.key === values.themeKey) || THEME_REGISTRY[0];
+  const missingCampaign = mode === "edit" && !initialCampaign;
+  const editableDraft = mode === "create" || initialCampaign?.status === "draft";
+
+  function markDirty() {
+    setFeedback("idle");
+    setActionError(null);
+    setFieldErrors(emptyFieldErrors);
+  }
+
+  function changeValue<Key extends keyof EditorValues>(key: Key, value: EditorValues[Key]) {
+    markDirty();
+    setValues((current) => ({ ...current, [key]: value }));
+  }
+
+  function changeTitle(title: string) {
+    markDirty();
+    setValues((current) => ({
+      ...current,
+      slug: slugManuallyEdited ? current.slug : normalizeCampaignSlug(title) || "",
+      titulo: title
+    }));
+  }
+
+  function changeSlug(slug: string) {
+    setSlugManuallyEdited(true);
+    changeValue("slug", slug.toLowerCase());
+  }
+
+  function regenerateSlug() {
+    setSlugManuallyEdited(false);
+    changeValue("slug", normalizeCampaignSlug(values.titulo) || "");
+  }
+
+  function changeSetting(key: MutableEditorSetting, value: boolean) {
+    markDirty();
+    setSettings((current) => ({ ...current, [key]: value }));
+  }
+
+  function addField() {
+    if (fields.length >= maxFormFields) return;
+    markDirty();
+    let sequence = fields.length + 1;
+    let id = `custom-${sequence}`;
+    while (fields.some((field) => field.id === id)) {
+      sequence += 1;
+      id = `custom-${sequence}`;
+    }
+    const label = `Novo campo ${sequence}`;
+    setFields((current) => [
+      ...current,
+      {
+        id,
+        key: fieldKey(label),
+        label,
+        options: [],
+        placeholder: "",
+        required: false,
+        type: "text"
+      }
+    ]);
+  }
+
+  function updateField(id: string, patch: Partial<CampaignFormField>) {
+    markDirty();
+    setFields((current) => current.map((field) => field.id === id ? { ...field, ...patch } : field));
+  }
+
+  function removeField(id: string) {
+    if (fields.length === 1) return;
+    markDirty();
+    setFields((current) => current.filter((field) => field.id !== id));
+  }
+
+  function moveField(id: string, direction: -1 | 1) {
+    const index = fields.findIndex((field) => field.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= fields.length) return;
+    markDirty();
+    setFields((current) => {
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
+  function focusValidationError(error: ClientValidationError) {
+    setActionError(error.message);
+    setFeedback("error");
+    setActiveTab(error.tab);
+    if (error.focusId) focusAfterPanelChange(error.focusId);
+  }
+
+  function focusFirstActionError(errors: FieldErrors) {
+    const firstField = Object.keys(errors)[0];
+    if (!firstField) return;
+    setActiveTab(tabForActionField(firstField));
+    focusAfterPanelChange(controlId(prefix, firstField));
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending || !editableDraft || missingCampaign) return;
+    if (!event.currentTarget.reportValidity()) return;
+    const snapshot: EditorSnapshot = { fields, settings, values };
+    const validationError = validateSnapshot(snapshot, prefix);
+    if (validationError) {
+      focusValidationError(validationError);
+      return;
+    }
+
+    const payload = mode === "create"
+      ? createPayload(snapshot, initial)
+      : editPayload(snapshot, baseline, initial);
+
+    if (mode === "edit" && Object.keys(payload).length === 0) {
+      setFeedback("saved");
+      setActionError(null);
+      return;
+    }
+
+    setFeedback("saving");
+    setActionError(null);
+    setFieldErrors(emptyFieldErrors);
+
+    startTransition(async () => {
+      try {
+        const result = mode === "create"
+          ? await createCampaignAction(payload)
+          : await updateCampaignAction({ id: initialCampaign?.id, ...payload });
+
+        if (!result.ok) {
+          setFeedback("error");
+          setActionError(result.error.message);
+          const nextFieldErrors = result.error.fieldErrors || emptyFieldErrors;
+          setFieldErrors(nextFieldErrors);
+          focusFirstActionError(nextFieldErrors);
+          return;
+        }
+
+        if (mode === "create") {
+          router.push(`/admin/campaigns/${result.data.id}/edit`);
+          return;
+        }
+
+        const savedValues = result.data.slug && result.data.slug !== snapshot.values.slug
+          ? { ...snapshot.values, slug: result.data.slug }
+          : snapshot.values;
+        if (savedValues !== snapshot.values) setValues(savedValues);
+        setBaseline({ ...snapshot, values: savedValues });
+        setFeedback("saved");
+      } catch {
+        setFeedback("error");
+        setActionError("Não foi possível salvar agora. Verifique sua conexão e tente novamente.");
+      }
+    });
+  }
+
+  const activePanel = (() => {
+    switch (activeTab) {
+      case "content":
+        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onValueChange={changeValue} prefix={prefix} values={values} />;
+      case "form":
+        return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
+      case "theme":
+        return <ThemePanel errors={fieldErrors} onThemeChange={(key) => changeValue("themeKey", key)} prefix={prefix} selectedKey={values.themeKey} />;
+      case "seo":
+        return <SeoPanel errors={fieldErrors} onValueChange={changeValue} prefix={prefix} values={values} />;
+      case "settings":
+        return <SettingsPanel errors={fieldErrors} mode={mode} onSettingChange={changeSetting} onValueChange={changeValue} prefix={prefix} preserveLegacyAddress={initial.preserveLegacyAddress} settings={settings} status={initialCampaign?.status} values={values} />;
+      case "preview":
+        return <PreviewPanel device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} theme={selectedTheme} values={values} />;
+    }
+  })();
+
+  const feedbackLabel = feedback === "saving" || isPending
+    ? "Salvando…"
+    : feedback === "saved"
+      ? dirty ? "Alterações pendentes" : "Salvo"
+      : feedback === "error"
+        ? "Erro ao salvar"
+        : dirty
+          ? "Alterações não salvas"
+          : mode === "edit"
+            ? "Sem alterações"
+            : "Novo rascunho";
+
+  return (
+    <form className={styles.editor} onSubmit={handleSubmit}>
+      <div className={styles.editorHeader}>
+        <div>
+          <p>{mode === "create" ? "Nova campanha" : "Editor de campanha"}</p>
+          <h1>{values.titulo || (mode === "create" ? "Campanha sem título" : "Editar campanha")}</h1>
+          <span>
+            {mode === "create"
+              ? "A criação será salva como rascunho."
+              : "O salvamento altera somente os campos editados deste rascunho."}
+          </span>
+        </div>
+        <Badge variant={editableDraft ? "warning" : "neutral"}>
+          {mode === "create" ? "Rascunho novo" : initialCampaign?.status || "Indisponível"}
+        </Badge>
+      </div>
+
+      {missingCampaign ? (
+        <div className={styles.alert} role="alert">
+          <CircleAlert aria-hidden="true" size={19} />
+          A campanha não foi fornecida para edição.
+        </div>
+      ) : !editableDraft ? (
+        <div className={styles.alert} role="status">
+          <CircleAlert aria-hidden="true" size={19} />
+          Somente campanhas em rascunho podem ser alteradas por este editor.
+        </div>
+      ) : null}
+
+      {actionError ? (
+        <div className={styles.alertError} role="alert">
+          <CircleAlert aria-hidden="true" size={19} />
+          <span>{actionError}</span>
+        </div>
+      ) : null}
+
+      <Card className={styles.editorCard}>
+        <EditorTabList activeTab={activeTab} onChange={setActiveTab} prefix={prefix} />
+        <CardContent className={styles.panelContent}>
+          <section
+            aria-labelledby={`${prefix}-${activeTab}-tab`}
+            id={`${prefix}-${activeTab}-panel`}
+            role="tabpanel"
+            tabIndex={0}
+          >
+            {activePanel}
+          </section>
+        </CardContent>
+      </Card>
+
+      <div className={styles.saveBar}>
+        <div aria-live="polite" className={styles.saveStatus} role="status">
+          {feedback === "saved" && !dirty ? (
+            <Check aria-hidden="true" size={17} />
+          ) : feedback === "error" ? (
+            <CircleAlert aria-hidden="true" size={17} />
+          ) : (
+            <Save aria-hidden="true" size={17} />
+          )}
+          <span>
+            <strong>{feedbackLabel}</strong>
+            <small>Salvamento manual seguro</small>
+          </span>
+        </div>
+        <Button disabled={!editableDraft || missingCampaign} loading={isPending} size="large" type="submit" variant="primary">
+          <Save aria-hidden="true" size={18} />
+          {mode === "create" ? "Salvar rascunho" : "Salvar alterações"}
+        </Button>
+      </div>
+    </form>
+  );
+}

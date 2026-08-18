@@ -1,4 +1,5 @@
 import { parseCampaignBackground } from "@/lib/campaign-background";
+import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
 import { getCampanhaBackground } from "@/lib/supabase";
 import { isUuid } from "@/lib/validation";
 
@@ -10,6 +11,9 @@ export async function GET(
   if (!isUuid(id)) return new Response(null, { status: 404 });
 
   const campanha = await getCampanhaBackground(id);
+  if (!campanha || !campaignAcceptsSignatures(campanha)) {
+    return new Response(null, { status: 404 });
+  }
   const background = parseCampaignBackground(campanha?.imagem_fundo);
   if (!background) return new Response(null, { status: 404 });
 
@@ -27,4 +31,3 @@ export async function GET(
 
   return new Response(new Uint8Array(background.bytes), { headers });
 }
-

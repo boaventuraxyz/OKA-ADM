@@ -5,6 +5,7 @@ import {
   LogOut,
   Menu,
   Megaphone,
+  Palette,
   UserRound,
   X
 } from "lucide-react";
@@ -35,6 +36,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         ? "Campanhas"
         : pathname.startsWith("/candidatos")
           ? "Candidatos"
+          : pathname.startsWith("/temas")
+            ? "Temas"
           : pathname.startsWith("/assinaturas")
             ? "Assinaturas"
             : "ADM";
@@ -62,6 +65,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <PendingLink className={navClass(pathname, "/candidatos")} href="/candidatos">
           <UserRound size={17} />
           Candidatos
+        </PendingLink>
+        <PendingLink className={navClass(pathname, "/temas")} href="/temas">
+          <Palette size={17} />
+          Temas
         </PendingLink>
 
         <div className="sidebar-footer">

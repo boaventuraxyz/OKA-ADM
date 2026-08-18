@@ -4,23 +4,28 @@ import {
   normalizeRequestHostname,
   requestHostnameUsesWww
 } from "@/lib/candidate-domain";
+import { refreshSupabaseSession } from "@/lib/supabase/proxy";
 
 const exactRedirects: Record<string, string> = {
   "/Login": "/login",
   "/Login/Index": "/login",
-  "/Campanha": "/campanhas",
-  "/Campanha/Index": "/campanhas",
-  "/Campanha/Create": "/campanhas/novo",
+  "/Campanha": "/admin/campaigns",
+  "/Campanha/Index": "/admin/campaigns",
+  "/Campanha/Create": "/admin/campaigns/new",
   "/Candidato": "/candidatos",
   "/Candidato/Index": "/candidatos",
   "/Candidato/Create": "/candidatos/novo",
-  "/Assinatura": "/assinaturas",
-  "/Assinatura/Index": "/assinaturas",
+  "/Assinatura": "/admin/leads",
+  "/Assinatura/Index": "/admin/leads",
   "/Formulario": "/formulario",
   "/Formulario/Index": "/formulario",
   "/GrupoWpp": "/grupo-wpp",
   "/GrupoWpp/Index": "/grupo-wpp",
-  "/GrupoWpp/Tias": "/grupo-wpp/tias"
+  "/GrupoWpp/Tias": "/grupo-wpp/tias",
+  "/campanhas": "/admin/campaigns",
+  "/campanhas/novo": "/admin/campaigns/new",
+  "/assinaturas": "/admin/leads",
+  "/temas": "/admin/themes"
 };
 
 const shortCampaignPath =
@@ -30,6 +35,7 @@ function isCandidatePublicPath(pathname: string) {
   return (
     pathname === "/formulario" ||
     pathname.startsWith("/formulario/") ||
+    pathname.startsWith("/p/") ||
     pathname === "/formularios" ||
     pathname === "/Formulario" ||
     pathname.startsWith("/Formulario/") ||
@@ -43,7 +49,18 @@ function isCandidatePublicPath(pathname: string) {
   );
 }
 
-export function proxy(request: NextRequest) {
+function configuredPlatformHostname() {
+  const appUrl = process.env.APP_URL;
+  if (!appUrl) return null;
+
+  try {
+    return normalizeRequestHostname(new URL(appUrl).host);
+  } catch {
+    return null;
+  }
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const exact = exactRedirects[pathname];
   const forwardedHost =
@@ -57,10 +74,14 @@ export function proxy(request: NextRequest) {
     request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
     request.nextUrl.protocol.replace(":", "")
   ).toLowerCase();
+  const configuredHostname = configuredPlatformHostname();
+  const platformRequest =
+    isPlatformHostname(hostname) ||
+    Boolean(configuredHostname && hostname === configuredHostname);
 
   if (
     hostname &&
-    !isPlatformHostname(hostname) &&
+    !platformRequest &&
     (protocol !== "https" || requestHostnameUsesWww(forwardedHost))
   ) {
     const secureUrl = request.nextUrl.clone();
@@ -70,7 +91,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(secureUrl, 308);
   }
 
-  if (!isPlatformHostname(hostname)) {
+  if (!platformRequest) {
     if (pathname === "/") {
       return NextResponse.rewrite(
         new URL(`/formularios${request.nextUrl.search}`, request.url)
@@ -102,52 +123,110 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  const refreshedSession = platformRequest
+    ? await refreshSupabaseSession(request)
+    : null;
+  const applySession = (response: NextResponse) =>
+    refreshedSession?.apply(response) ?? response;
+  const nextResponse = () =>
+    applySession(
+      refreshedSession
+        ? NextResponse.next({
+            request: { headers: refreshedSession.requestHeaders }
+          })
+        : NextResponse.next()
+    );
+  const rewriteResponse = (url: URL) =>
+    applySession(
+      refreshedSession
+        ? NextResponse.rewrite(url, {
+            request: { headers: refreshedSession.requestHeaders }
+          })
+        : NextResponse.rewrite(url)
+    );
+
   if (request.method === "POST" && pathname === "/Formulario/Create") {
-    return NextResponse.rewrite(new URL("/api/assinaturas", request.url));
+    return rewriteResponse(new URL("/api/assinaturas", request.url));
   }
 
   if (exact) {
-    return NextResponse.redirect(new URL(exact + request.nextUrl.search, request.url));
+    return applySession(
+      NextResponse.redirect(new URL(exact + request.nextUrl.search, request.url))
+    );
   }
 
   if (pathname === "/grupo-wpp" || pathname === "/grupo-wpp/") {
-    return NextResponse.rewrite(new URL("/legacy/grupo-wpp.html" + request.nextUrl.search, request.url));
+    return rewriteResponse(
+      new URL("/legacy/grupo-wpp.html" + request.nextUrl.search, request.url)
+    );
   }
 
   if (pathname === "/grupo-wpp/tias" || pathname === "/grupo-wpp/tias/") {
-    return NextResponse.rewrite(new URL("/legacy/tias-do-zap.html" + request.nextUrl.search, request.url));
+    return rewriteResponse(
+      new URL("/legacy/tias-do-zap.html" + request.nextUrl.search, request.url)
+    );
   }
 
   if (pathname === "/Scripts/cidades.js") {
-    return NextResponse.rewrite(new URL("/legacy/cidades.js" + request.nextUrl.search, request.url));
+    return rewriteResponse(
+      new URL("/legacy/cidades.js" + request.nextUrl.search, request.url)
+    );
   }
 
   const campanhaEdit = pathname.match(/^\/Campanha\/Edit\/([^/]+)$/);
   if (campanhaEdit) {
-    return NextResponse.redirect(new URL(`/campanhas/${campanhaEdit[1]}/editar`, request.url));
+    return applySession(
+      NextResponse.redirect(
+        new URL(`/admin/campaigns/${campanhaEdit[1]}/edit`, request.url)
+      )
+    );
+  }
+
+  const legacyCampaignEdit = pathname.match(/^\/campanhas\/([^/]+)\/editar$/);
+  if (legacyCampaignEdit) {
+    return applySession(
+      NextResponse.redirect(
+        new URL(`/admin/campaigns/${legacyCampaignEdit[1]}/edit`, request.url),
+        308
+      )
+    );
   }
 
   const candidatoEdit = pathname.match(/^\/Candidato\/Edit\/([^/]+)$/);
   if (candidatoEdit) {
-    return NextResponse.redirect(new URL(`/candidatos/${candidatoEdit[1]}/editar`, request.url));
+    return applySession(
+      NextResponse.redirect(
+        new URL(`/candidatos/${candidatoEdit[1]}/editar`, request.url)
+      )
+    );
   }
 
   const assinaturaDetails = pathname.match(/^\/Assinatura\/Details\/([^/]+)$/);
   if (assinaturaDetails) {
-    return NextResponse.redirect(new URL(`/assinaturas/${assinaturaDetails[1]}`, request.url));
+    return applySession(
+      NextResponse.redirect(
+        new URL(`/admin/leads?lead=${assinaturaDetails[1]}`, request.url)
+      )
+    );
   }
 
   const formularioId = pathname.match(/^\/Formulario\/([^/]+)$/);
   if (formularioId) {
-    return NextResponse.redirect(new URL(`/formulario/${formularioId[1]}`, request.url));
+    return applySession(
+      NextResponse.redirect(
+        new URL(`/formulario/${formularioId[1]}`, request.url)
+      )
+    );
   }
 
   if (pathname === "/") {
-    const response = NextResponse.next();
+    const response = applySession(
+      NextResponse.redirect(new URL("/admin", request.url), 308)
+    );
     response.headers.set("Cache-Control", "private, no-store");
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return response;
   }
 
-  return NextResponse.next();
+  return nextResponse();
 }
