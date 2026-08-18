@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { requireActiveProfile, requireRole } from "@/features/auth/guards";
+import { THEME_REGISTRY, themeContentFields, themeContentKeys, type CampaignThemeContentKey } from "@/features/themes/registry";
 import type { Json } from "@/lib/supabase/database.types";
 import { createServerClient } from "@/lib/supabase/server";
 
@@ -35,6 +36,19 @@ import type {
 } from "./types";
 
 const MANAGER_ROLES = ["master", "admin"] as const;
+const ALL_THEME_CONTENT_KEYS = new Set<CampaignThemeContentKey>(
+  THEME_REGISTRY.flatMap((theme) => [...themeContentKeys(theme.key)]),
+);
+
+function contentForTheme<T extends Record<string, unknown>>(input: T, themeKey: string): T {
+  const allowed = themeContentKeys(themeKey);
+  return Object.fromEntries(
+    Object.entries(input).filter(([key]) =>
+      !ALL_THEME_CONTENT_KEYS.has(key as CampaignThemeContentKey) ||
+      allowed.has(key as CampaignThemeContentKey),
+    ),
+  ) as T;
+}
 
 export type CampaignServiceErrorCode =
   | "NOT_FOUND"
@@ -132,7 +146,7 @@ function createPayload(
   id: string,
   userId: string,
 ): Omit<CampaignInsert, "slug"> {
-  const editableValues = { ...input };
+  const editableValues = contentForTheme({ ...input }, input.theme_key);
   delete editableValues.slug;
 
   return {
@@ -213,6 +227,20 @@ export async function updateCampaignDraft(
   if (!current) {
     throw new CampaignServiceError("NOT_FOUND", "Campanha não encontrada.");
   }
+  const effectiveTheme = parsed.theme_key ?? current.theme_key;
+  const themeScopedParsed = contentForTheme(parsed, effectiveTheme);
+  const themeDefinition = THEME_REGISTRY.find((theme) => theme.key === effectiveTheme) ?? THEME_REGISTRY[0];
+  for (const field of themeContentFields(themeDefinition)) {
+    const nextValue = field.key in themeScopedParsed
+      ? themeScopedParsed[field.key as keyof typeof themeScopedParsed]
+      : current[field.key];
+    if (field.required && (typeof nextValue !== "string" || !nextValue.trim())) {
+      throw new CampaignServiceError(
+        "STATE_CONFLICT",
+        `${field.label} é obrigatório no tema selecionado.`,
+      );
+    }
+  }
   if (current.status !== "draft") {
     throw new CampaignServiceError(
       "STATE_CONFLICT",
@@ -233,9 +261,9 @@ export async function updateCampaignDraft(
 
   // An explicitly cleared slug falls back to a normalized, non-null value;
   // existing slugs remain untouched when the field is omitted.
-  if ("slug" in parsed && parsed.slug === null) {
-    parsed.slug =
-      normalizeCampaignSlug(parsed.titulo ?? current.titulo) ??
+  if ("slug" in themeScopedParsed && themeScopedParsed.slug === null) {
+    themeScopedParsed.slug =
+      normalizeCampaignSlug(themeScopedParsed.titulo ?? current.titulo) ??
       slugWithSuffix("campanha", id.slice(0, 8));
   }
 
@@ -244,7 +272,7 @@ export async function updateCampaignDraft(
     row = await updateDraftCampaignRow(
       client,
       id,
-      editPayload(parsed, context.user.id),
+      editPayload(themeScopedParsed, context.user.id),
       typeof expectedUpdatedAt === "string" ? expectedUpdatedAt : undefined,
     );
   } catch (error) {
@@ -266,7 +294,7 @@ export async function updateCampaignDraft(
   }
 
   await recordActivity(client, row.id, context.user.id, "edited", {
-    fields: Object.keys(parsed).sort(),
+    fields: Object.keys(themeScopedParsed).sort(),
   });
 
   return mutationResult(row);

@@ -151,6 +151,121 @@
   width: 1px;
 }
 
+.importDialog {
+  background: transparent;
+  border: 0;
+  color: var(--color-text, #171a21);
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+  max-width: min(40rem, calc(100vw - 2rem));
+  padding: 0;
+  width: 100%;
+}
+
+.importDialog::backdrop {
+  background: rgba(12, 18, 28, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.importForm {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d9dde5);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.8rem;
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  padding: 1.1rem;
+}
+
+.importForm header,
+.importForm footer {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.importForm h2,
+.importForm p {
+  margin: 0;
+}
+
+.importForm header small,
+.importForm > label {
+  color: var(--color-muted, #626b7a);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-border, #d9dde5);
+  border-radius: 0.6rem;
+  cursor: pointer;
+  display: inline-flex;
+  height: 2.3rem;
+  justify-content: center;
+  width: 2.3rem;
+}
+
+.modelLink {
+  color: var(--color-accent, #b5302a);
+  font-size: 0.84rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.importError {
+  background: #fff1f0;
+  border: 1px solid #f3b5b0;
+  border-radius: 0.65rem;
+  color: #8f1f18;
+  padding: 0.75rem;
+}
+
+.importResult {
+  background: var(--color-surface-subtle, #f7f8fa);
+  border: 1px solid var(--color-border, #d9dde5);
+  border-radius: 0.8rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+}
+
+.importResult dl {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.importResult dl div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.importResult dt {
+  color: var(--color-muted, #626b7a);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.importResult dd {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.importResult ul {
+  font-size: 0.8rem;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
 @media (max-width: 1100px) {
   .filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -223,6 +338,10 @@
 
   .paginationLinks > * {
     flex: 1;
+  }
+
+  .importResult dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

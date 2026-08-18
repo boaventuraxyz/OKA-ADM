@@ -18,6 +18,7 @@ const migrations = await Promise.all([
   read("supabase/migrations/20260818123828_security_hotfix_lock_down_public_data_api.sql"),
   read("supabase/migrations/20260818123919_reconcile_authenticated_platform_grants.sql"),
   read("supabase/migrations/20260818132611_allow_optional_lead_name.sql"),
+  read("supabase/migrations/20260818194500_review_campaign_copy.sql"),
 ]);
 
 const baseline = `

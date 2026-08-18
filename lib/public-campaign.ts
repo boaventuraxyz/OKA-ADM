@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
-import { normalizeCampaignTheme } from "@/lib/campaign-themes";
+import { resolveCampaignTheme } from "@/lib/campaign-themes";
 import {
   getCampanha,
   getCandidato,
@@ -49,7 +49,7 @@ export function getPublicCampaignView(id: string) {
         fimEm: campanha.fim_em,
         imagemFundoVersao: background?.version ?? null,
         imagemLateralVersao: sideImage?.version ?? null,
-        tema: normalizeCampaignTheme(campanha.tema),
+        tema: resolveCampaignTheme(campanha.theme_key, campanha.tema),
         textoConclusao: campanha.texto_conclusao,
         textoContexto: campanha.texto_contexto,
         textoDot: campanha.texto_dot,

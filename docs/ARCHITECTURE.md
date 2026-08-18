@@ -166,7 +166,12 @@ A submissão valida origem, `multipart/form-data`, corpo de até 32 KiB, honeypo
 
 ## Leads e exportação
 
-`features/leads/` encapsula filtros, consultas e CSV. Apenas `master` e `admin` podem listar ou exportar.
+`features/leads/` encapsula filtros, consultas, importação e CSV. Apenas `master`
+e `admin` podem listar, importar ou exportar. Na importação, `campaignId` vem do
+controle administrativo e é aplicado pelo servidor a todas as linhas. A regra
+de duplicidade é e-mail normalizado ou telefone normalizado dentro da mesma
+campanha; conflitos concorrentes dos índices únicos são contabilizados como
+duplicados ignorados, sem sobrescrever dados.
 
 - paginação de tela: 25 registros;
 - busca higienizada antes de compor o filtro PostgREST;

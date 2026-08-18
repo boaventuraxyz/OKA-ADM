@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { THEME_REGISTRY } from "@/features/themes/registry";
+import { THEME_REGISTRY, themeContentFields } from "@/features/themes/registry";
 
 import { CAMPAIGN_STATUSES, normalizeCampaignSlug } from "./domain";
 import { CAMPAIGN_SORT_FIELDS } from "./types";
@@ -209,6 +209,27 @@ function validateThemePair(
   }
 }
 
+function validateRequiredThemeContent(
+  value: { tema?: number; theme_key?: string } & Record<string, unknown>,
+  context: z.RefinementCtx,
+) {
+  const theme =
+    THEME_REGISTRY.find((candidate) => candidate.key === value.theme_key) ??
+    THEME_REGISTRY.find((candidate) => candidate.id === value.tema) ??
+    THEME_REGISTRY[0];
+
+  for (const field of themeContentFields(theme)) {
+    const fieldValue = value[field.key];
+    if (field.required && (typeof fieldValue !== "string" || !fieldValue.trim())) {
+      context.addIssue({
+        code: "custom",
+        path: [field.key],
+        message: `${field.label} é obrigatório neste tema.`,
+      });
+    }
+  }
+}
+
 export const campaignCreateSchema = z
   .object({
     ...campaignEditableShape,
@@ -217,7 +238,10 @@ export const campaignCreateSchema = z
     settings: optionalJsonObject({}),
   })
   .strict()
-  .superRefine(validateThemePair)
+  .superRefine((value, context) => {
+    validateThemePair(value, context);
+    validateRequiredThemeContent(value, context);
+  })
   .transform((value) => {
     const selectedTheme =
       THEME_REGISTRY.find((theme) => theme.key === value.theme_key) ??

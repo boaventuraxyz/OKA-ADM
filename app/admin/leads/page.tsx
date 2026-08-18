@@ -18,6 +18,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 
 import styles from "./leads-admin.module.css";
+import { LeadImportDialog } from "./LeadImportDialog";
 
 export const metadata: Metadata = { title: "Leads" };
 export const dynamic = "force-dynamic";
@@ -83,7 +84,9 @@ function formatDate(valueToFormat: string | null) {
 }
 
 function originLabel(source: string) {
-  return source === "public_form" ? "Formulário público" : source;
+  if (source === "public_form") return "Formulário público";
+  if (source === "spreadsheet_import") return "Planilha importada";
+  return source;
 }
 
 function hrefWithPage(
@@ -153,6 +156,7 @@ export default async function AdminLeadsPage({
             <Link className={styles.secondaryLink} href="/admin">
               <ArrowLeft aria-hidden="true" size={17} /> Painel
             </Link>
+            <LeadImportDialog campaigns={campaignOptions.items} />
             <a className={styles.primaryLink} href={exportHref(filters)}>
               <Download aria-hidden="true" size={17} /> Exportar CSV
             </a>

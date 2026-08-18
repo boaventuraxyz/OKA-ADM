@@ -1,8 +1,21 @@
 # Temas: criação e manutenção
 
-`features/themes/registry.ts` é a única fonte de metadados usada pelo editor,
+`features/themes/registry.ts` é a única fonte de metadados e campos usada pelo editor,
 pela IA, pela galeria administrativa e por `/theme-library`. Não mantenha uma
-segunda lista em páginas ou componentes.
+segunda lista em páginas ou componentes. Cada entrada contém seções e campos
+com chave persistida, rótulo, tipo, limite, ajuda e obrigatoriedade. O editor
+filtra também o payload por essa definição; trocar de tema não apaga conteúdo
+legado, mas dados de outro tema não são gravados por engano.
+
+## Campos atuais
+
+- `cover`: slogan principal, complemento, descrição e imagem de fundo;
+- `editorial`: destaques, resumo, imagem lateral, contexto, proposta, conclusão
+  e chamada intermediária;
+- `manifesto`: abertura, faixa, tópicos, citação, vídeo, notas, assinatura e
+  compartilhamento;
+- `impact-dark`: marca, chamada principal, resumo, vídeo, relato, reforços e
+  chamada final.
 
 ## Adicionar um tema
 
@@ -10,7 +23,7 @@ segunda lista em páginas ou componentes.
 2. duplique e adapte a prévia correspondente em
    `features/themes/ThemePreview.tsx`;
 3. adicione uma entrada completa em `THEME_REGISTRY`, com `key` estável,
-   metadados, paleta, status, tags e capacidades;
+   metadados, paleta, status, tags, capacidades e `sections`;
 4. registre o renderer no roteamento público de `app/formulario/page.tsx`;
 5. se o novo tema precisar de outro identificador numérico legado, crie uma
    migration aditiva para ampliar a constraint e o trigger de sincronização;

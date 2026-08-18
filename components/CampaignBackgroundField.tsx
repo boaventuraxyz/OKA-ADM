@@ -86,17 +86,22 @@ type CampaignImageFieldProps = {
   inputId?: string;
   label?: string;
   name?: string;
+  onChange?: (value: string) => void;
+  value?: string;
 };
 
 export function CampaignBackgroundField({
   defaultValue = null,
   inputId = "campaign-background-file",
   label = "Foto de fundo desta campanha (opcional)",
-  name = "imagem_fundo"
+  name = "imagem_fundo",
+  onChange,
+  value: controlledValue
 }: CampaignImageFieldProps) {
   const fieldRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState(defaultValue || "");
+  const [internalValue, setInternalValue] = useState(defaultValue || "");
+  const value = controlledValue ?? internalValue;
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
 
@@ -120,7 +125,9 @@ export function CampaignBackgroundField({
     setProcessing(true);
 
     try {
-      setValue(await optimizeImage(file));
+      const nextValue = await optimizeImage(file);
+      setInternalValue(nextValue);
+      onChange?.(nextValue);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Nao foi possivel preparar a imagem.");
     } finally {
@@ -130,7 +137,8 @@ export function CampaignBackgroundField({
   }
 
   function removeImage() {
-    setValue("");
+    setInternalValue("");
+    onChange?.("");
     setError("");
   }
 

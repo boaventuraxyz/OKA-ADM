@@ -19,3 +19,10 @@ export function normalizeCampaignTheme(value: unknown): CampaignThemeId {
     ? (parsed as CampaignThemeId)
     : 1;
 }
+
+export function resolveCampaignTheme(themeKey: unknown, legacyId: unknown): CampaignThemeId {
+  const byKey = typeof themeKey === "string"
+    ? THEME_REGISTRY.find((theme) => theme.key === themeKey.trim())
+    : undefined;
+  return byKey?.id ?? normalizeCampaignTheme(legacyId);
+}

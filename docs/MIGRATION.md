@@ -15,6 +15,10 @@ Ordem confirmada no histórico remoto em 18 de agosto de 2026:
 3. `20260818123919_reconcile_authenticated_platform_grants.sql`
 4. `20260818132611_allow_optional_lead_name.sql`
 
+Migration nova, ainda a confirmar no histórico remoto:
+
+5. `20260818194500_review_campaign_copy.sql`
+
 As três primeiras migrations formam a baseline segura consolidada pelo
 bootstrap. A quarta é uma evolução aditiva posterior para compatibilizar o form
 builder: `assinaturas.nome_assinante` passou a aceitar `NULL`, sem modificar
@@ -76,6 +80,14 @@ alter table public.assinaturas
 Isso é necessário porque uma campanha pode remover o campo nome em
 `form_config`. A obrigatoriedade passa a ser validada no servidor para os campos
 configurados pela campanha. A migration não preenche, apaga ou reescreve leads.
+
+### 5. `review_campaign_copy`
+
+Corrige quatro problemas editoriais objetivos encontrados na revisão das
+campanhas existentes: uma tag HTML sem fechamento, um título com espaços
+invisíveis, capitalização de uma legenda e capitalização inconsistente de um
+título. Cada `UPDATE` exige o UUID e o valor anterior exato, portanto uma edição
+posterior não é sobrescrita ao reproduzir a migration.
 
 ## Bootstrap versus migrations
 

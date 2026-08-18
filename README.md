@@ -23,7 +23,7 @@ Painel administrativo em Next.js para criar e publicar campanhas cívicas, confi
 - mantém um catálogo de temas e configurações de formulário por campanha;
 - publica campanhas em URLs por slug e preserva URLs públicas legadas por compatibilidade;
 - recebe assinaturas com consentimento obrigatório e validação no servidor;
-- lista, filtra e exporta leads em CSV para usuários autorizados;
+- lista, filtra, importa CSV/XLSX e exporta leads para usuários autorizados;
 - permite que somente `master` convide e gerencie usuários;
 - isola o painel administrativo dos domínios públicos personalizados de candidatos.
 
@@ -158,7 +158,7 @@ Cada campanha guarda `form_config` e `settings`. A normalização do formulário
 
 ## Leads e CSV
 
-`/admin/leads` é restrito a `master` e `admin`. A tela aceita busca, campanha e intervalo de datas. O endpoint `/api/admin/leads/export` reutiliza os filtros, transmite o CSV em lotes e limita cada arquivo a 5.000 linhas.
+`/admin/leads` é restrito a `master` e `admin`. A tela aceita busca, campanha e intervalo de datas. O endpoint `/api/admin/leads/export` reutiliza os filtros, transmite o CSV em lotes e limita cada arquivo a 5.000 linhas. A importação exige que a campanha seja selecionada fora do arquivo, normaliza e-mail/telefone e ignora duplicados dentro da mesma campanha; ela nunca atualiza um lead de outra campanha.
 
 O export usa UTF-8 com BOM, separador `;`, neutralização de fórmulas e cabeçalhos `private, no-store`. Trate o arquivo como dado pessoal: armazene pelo menor tempo possível e compartilhe apenas por canal autorizado.
 

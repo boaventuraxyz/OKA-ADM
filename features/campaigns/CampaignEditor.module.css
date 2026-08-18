@@ -231,6 +231,94 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.identityGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+}
+
+.selectedThemeNote {
+  background: var(--editor-subtle);
+  border: 1px solid var(--editor-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px;
+}
+
+.selectedThemeNote small,
+.selectedThemeNote span,
+.themeSection header p {
+  color: var(--editor-muted);
+}
+
+.selectedThemeNote small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.selectedThemeNote strong {
+  color: var(--editor-text);
+  font-size: 14px;
+}
+
+.selectedThemeNote span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.themeSections {
+  display: grid;
+  gap: 18px;
+}
+
+.themeSection {
+  border: 1px solid var(--editor-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.themeSection > header {
+  background: var(--editor-subtle);
+  border-bottom: 1px solid var(--editor-border);
+  padding: 14px 16px;
+}
+
+.themeSection header h3,
+.themeSection header p {
+  margin: 0;
+}
+
+.themeSection header h3 {
+  color: var(--editor-text);
+  font-size: 15px;
+}
+
+.themeSection header p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+.themeSectionFields {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 18px;
+}
+
+.imageField {
+  min-width: 0;
+}
+
+.themeContinue {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .slugField {
   position: relative;
   display: grid;
@@ -684,7 +772,9 @@
   .twoColumns,
   .threeColumns,
   .checkboxGrid,
-  .themeGrid {
+  .themeGrid,
+  .identityGrid,
+  .themeSectionFields {
     grid-template-columns: 1fr;
   }
 

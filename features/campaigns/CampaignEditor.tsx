@@ -33,6 +33,7 @@ import {
   type KeyboardEvent
 } from "react";
 import { Badge } from "@/components/ui/Badge";
+import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -41,7 +42,13 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
-import { THEME_REGISTRY } from "@/features/themes/registry";
+import {
+  THEME_REGISTRY,
+  themeContentFields,
+  themeContentKeys,
+  type CampaignThemeContentKey,
+  type CampaignThemeField,
+} from "@/features/themes/registry";
 import { ThemePreview, type PreviewDevice } from "@/features/themes/ThemePreview";
 import { createCampaignAction, updateCampaignAction } from "./actions";
 import {
@@ -101,12 +108,17 @@ type EditorValues = {
   destaqueSecundario: string;
   fimEm: string;
   idPlanilha: string;
+  imagemFundo: string;
+  imagemLateral: string;
   inicioEm: string;
   metaDescription: string;
   metaTitle: string;
   ogDescription: string;
   ogImage: string;
   ogTitle: string;
+  legendaVideo: string;
+  notaCitacao: string;
+  notaVideo: string;
   slug: string;
   textoAssinar: string;
   textoCitacao: string;
@@ -193,12 +205,17 @@ const editorValueKeys = [
   "destaqueSecundario",
   "fimEm",
   "idPlanilha",
+  "imagemFundo",
+  "imagemLateral",
   "inicioEm",
   "metaDescription",
   "metaTitle",
   "ogDescription",
   "ogImage",
   "ogTitle",
+  "legendaVideo",
+  "notaCitacao",
+  "notaVideo",
   "slug",
   "textoAssinar",
   "textoCitacao",
@@ -232,12 +249,17 @@ const actionKeyByEditorValue: Record<EditorValueKey, string> = {
   destaqueSecundario: "destaque_secundario",
   fimEm: "fim_em",
   idPlanilha: "id_planilha",
+  imagemFundo: "imagem_fundo",
+  imagemLateral: "imagem_lateral",
   inicioEm: "inicio_em",
   metaDescription: "meta_description",
   metaTitle: "meta_title",
   ogDescription: "og_description",
   ogImage: "og_image",
   ogTitle: "og_title",
+  legendaVideo: "legenda_video",
+  notaCitacao: "nota_citacao",
+  notaVideo: "nota_video",
   slug: "slug",
   textoAssinar: "texto_assinar",
   textoCitacao: "texto_citacao",
@@ -261,6 +283,36 @@ const actionKeyByEditorValue: Record<EditorValueKey, string> = {
   urlFormulario: "url_formulario",
   videoUrl: "video_url"
 };
+
+const editorKeyByThemeContentKey: Record<CampaignThemeContentKey, EditorValueKey> = {
+  descricao: "descricao",
+  destaque_primario: "destaquePrimario",
+  destaque_secundario: "destaqueSecundario",
+  imagem_fundo: "imagemFundo",
+  imagem_lateral: "imagemLateral",
+  legenda_video: "legendaVideo",
+  nota_citacao: "notaCitacao",
+  nota_video: "notaVideo",
+  texto_assinar: "textoAssinar",
+  texto_citacao: "textoCitacao",
+  texto_compartilhar: "textoCompartilhar",
+  texto_conclusao: "textoConclusao",
+  texto_contexto: "textoContexto",
+  texto_faixa: "textoFaixa",
+  texto_impacto: "textoImpacto",
+  texto_impacto_apoio: "textoImpactoApoio",
+  texto_proposta: "textoProposta",
+  texto_topicos: "textoTopicos",
+  texto_topicos_intro: "textoTopicosIntro",
+  texto_video: "textoVideo",
+  titulo_assinar: "tituloAssinar",
+  titulo_citacao: "tituloCitacao",
+  titulo_topicos: "tituloTopicos",
+  titulo_video: "tituloVideo",
+  video_url: "videoUrl",
+};
+
+const themeContentEditorKeys = new Set(Object.values(editorKeyByThemeContentKey));
 
 const defaultFormFields: CampaignFormField[] = [
   {
@@ -452,12 +504,17 @@ function createInitialState(campaign?: CampaignRow): InitialEditorState {
     destaqueSecundario: campaign?.destaque_secundario || "",
     fimEm: dateTimeLocalValue(campaign?.fim_em),
     idPlanilha: campaign?.id_planilha || "",
+    imagemFundo: campaign?.imagem_fundo || "",
+    imagemLateral: campaign?.imagem_lateral || "",
     inicioEm: dateTimeLocalValue(campaign?.inicio_em),
     metaDescription: campaign?.meta_description || "",
     metaTitle: campaign?.meta_title || "",
     ogDescription: campaign?.og_description || "",
     ogImage: campaign?.og_image || "",
     ogTitle: campaign?.og_title || "",
+    legendaVideo: campaign?.legenda_video || "",
+    notaCitacao: campaign?.nota_citacao || "",
+    notaVideo: campaign?.nota_video || "",
     slug: campaign?.slug || "",
     textoAssinar: campaign?.texto_assinar || "",
     textoCitacao: campaign?.texto_citacao || "",
@@ -534,7 +591,12 @@ function settingsPayload(
 
 function createPayload(snapshot: EditorSnapshot, initial: InitialEditorState) {
   const payload: Record<string, unknown> = {};
+  const allowedContentKeys = themeContentKeys(snapshot.values.themeKey);
   for (const key of editorValueKeys) {
+    if (themeContentEditorKeys.has(key)) {
+      const actionKey = actionKeyByEditorValue[key] as CampaignThemeContentKey;
+      if (!allowedContentKeys.has(actionKey)) continue;
+    }
     payload[actionKeyByEditorValue[key]] = actionValue(key, snapshot.values[key]);
   }
   const theme = THEME_REGISTRY.find((candidate) => candidate.key === snapshot.values.themeKey) || THEME_REGISTRY[0];
@@ -551,8 +613,13 @@ function createPayload(snapshot: EditorSnapshot, initial: InitialEditorState) {
 
 function editPayload(current: EditorSnapshot, baseline: EditorSnapshot, initial: InitialEditorState) {
   const payload: Record<string, unknown> = {};
+  const allowedContentKeys = themeContentKeys(current.values.themeKey);
   for (const key of editorValueKeys) {
     if (current.values[key] !== baseline.values[key]) {
+      if (themeContentEditorKeys.has(key)) {
+        const actionKey = actionKeyByEditorValue[key] as CampaignThemeContentKey;
+        if (!allowedContentKeys.has(actionKey)) continue;
+      }
       payload[actionKeyByEditorValue[key]] = actionValue(key, current.values[key]);
     }
   }
@@ -651,6 +718,18 @@ function validateSnapshot(snapshot: EditorSnapshot, prefix: string): ClientValid
     };
   }
 
+  const theme = THEME_REGISTRY.find((candidate) => candidate.key === snapshot.values.themeKey) || THEME_REGISTRY[0];
+  for (const field of themeContentFields(theme)) {
+    const editorKey = editorKeyByThemeContentKey[field.key];
+    if (field.required && !snapshot.values[editorKey].trim()) {
+      return {
+        focusId: controlId(prefix, field.key),
+        message: `Informe ${field.label.toLocaleLowerCase("pt-BR")}.`,
+        tab: "content",
+      };
+    }
+  }
+
   const keys = new Set<string>();
   for (const field of snapshot.fields) {
     const rowPrefix = `${prefix}-field-${safeDomPart(field.id)}`;
@@ -743,6 +822,7 @@ function EditorTextareaField({
   name,
   onChange,
   placeholder,
+  required = false,
   value
 }: {
   description?: string;
@@ -753,6 +833,7 @@ function EditorTextareaField({
   name: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  required?: boolean;
   value: string;
 }) {
   return (
@@ -761,6 +842,7 @@ function EditorTextareaField({
       error={error}
       id={id}
       label={label}
+      required={required}
     >
       {(controlProps) => (
         <Textarea
@@ -769,6 +851,7 @@ function EditorTextareaField({
           name={name}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
+          required={required}
           value={value}
         />
       )}
@@ -832,6 +915,34 @@ function EditorTabList({
 
 type ValueChange = <Key extends keyof EditorValues>(key: Key, value: EditorValues[Key]) => void;
 
+function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values }: {
+  errors: FieldErrors;
+  field: CampaignThemeField;
+  onValueChange: ValueChange;
+  prefix: string;
+  values: EditorValues;
+}) {
+  const editorKey = editorKeyByThemeContentKey[field.key];
+  const value = values[editorKey];
+  const id = controlId(prefix, field.key);
+  const change = (nextValue: string) => onValueChange(editorKey, nextValue);
+
+  if (field.type === "image") {
+    return (
+      <div className={styles.imageField}>
+        <CampaignBackgroundField inputId={`${id}-file`} label={field.label} name={field.key} onChange={change} value={value} />
+        {firstFieldError(errors, field.key) ? <p className={styles.inlineError} role="alert">{firstFieldError(errors, field.key)}</p> : null}
+      </div>
+    );
+  }
+
+  if (field.type === "textarea") {
+    return <EditorTextareaField description={field.help} error={firstFieldError(errors, field.key)} id={id} label={field.label} maxLength={field.maxLength} name={field.key} onChange={change} placeholder={field.placeholder} required={field.required} value={value} />;
+  }
+
+  return <EditorInputField description={field.help} error={firstFieldError(errors, field.key)} id={id} label={field.label} maxLength={field.maxLength} name={field.key} onChange={change} pattern={field.type === "url" ? "(?:https://.*|/.*)" : undefined} placeholder={field.placeholder} required={field.required} type={field.type === "url" ? "url" : "text"} value={value} />;
+}
+
 function ContentPanel({
   candidates,
   errors,
@@ -851,6 +962,8 @@ function ContentPanel({
   prefix: string;
   values: EditorValues;
 }) {
+  const theme = THEME_REGISTRY.find((candidate) => candidate.key === values.themeKey) || THEME_REGISTRY[0];
+
   return (
     <div className={styles.panelStack}>
       <div className={styles.panelIntro}>
@@ -893,7 +1006,7 @@ function ContentPanel({
         </div>
       </div>
 
-      <div className={styles.twoColumns}>
+      <div className={styles.identityGrid}>
         <FormField
           error={firstFieldError(errors, "candidato_id")}
           id={controlId(prefix, "candidato_id")}
@@ -913,93 +1026,28 @@ function ContentPanel({
             </Select>
           )}
         </FormField>
-        <EditorTextareaField
-          error={firstFieldError(errors, "descricao")}
-          id={controlId(prefix, "descricao")}
-          label="Resumo"
-          maxLength={5000}
-          name="descricao"
-          onChange={(value) => onValueChange("descricao", value)}
-          placeholder="Explique a causa em poucas linhas."
-          value={values.descricao}
-        />
-      </div>
-
-      <div className={styles.twoColumns}>
-        <EditorInputField
-          error={firstFieldError(errors, "destaque_primario")}
-          id={controlId(prefix, "destaque_primario")}
-          label="Destaque principal"
-          maxLength={160}
-          name="destaque_primario"
-          onChange={(value) => onValueChange("destaquePrimario", value)}
-          placeholder="Frase curta de maior impacto"
-          value={values.destaquePrimario}
-        />
-        <EditorInputField
-          error={firstFieldError(errors, "destaque_secundario")}
-          id={controlId(prefix, "destaque_secundario")}
-          label="Destaque secundário"
-          maxLength={160}
-          name="destaque_secundario"
-          onChange={(value) => onValueChange("destaqueSecundario", value)}
-          placeholder="Complemento da mensagem principal"
-          value={values.destaqueSecundario}
-        />
-      </div>
-
-      <div className={styles.threeColumns}>
-        <EditorTextareaField
-          error={firstFieldError(errors, "texto_contexto")}
-          id={controlId(prefix, "texto_contexto")}
-          label="Contexto"
-          maxLength={8000}
-          name="texto_contexto"
-          onChange={(value) => onValueChange("textoContexto", value)}
-          placeholder="O que está acontecendo?"
-          value={values.textoContexto}
-        />
-        <EditorTextareaField
-          error={firstFieldError(errors, "texto_proposta")}
-          id={controlId(prefix, "texto_proposta")}
-          label="Proposta"
-          maxLength={4000}
-          name="texto_proposta"
-          onChange={(value) => onValueChange("textoProposta", value)}
-          placeholder="Qual mudança está sendo defendida?"
-          value={values.textoProposta}
-        />
-        <EditorTextareaField
-          error={firstFieldError(errors, "texto_conclusao")}
-          id={controlId(prefix, "texto_conclusao")}
-          label="Conclusão"
-          maxLength={4000}
-          name="texto_conclusao"
-          onChange={(value) => onValueChange("textoConclusao", value)}
-          placeholder="Feche a narrativa com a próxima ação."
-          value={values.textoConclusao}
-        />
-      </div>
-
-      <details className={styles.advanced}>
-        <summary>Conteúdo avançado para temas editoriais</summary>
-        <div className={styles.advancedGrid}>
-          <EditorInputField error={firstFieldError(errors, "texto_faixa")} id={controlId(prefix, "texto_faixa")} label="Texto da faixa" maxLength={500} name="texto_faixa" onChange={(value) => onValueChange("textoFaixa", value)} value={values.textoFaixa} />
-          <EditorInputField error={firstFieldError(errors, "texto_impacto")} id={controlId(prefix, "texto_impacto")} label="Frase de impacto" maxLength={300} name="texto_impacto" onChange={(value) => onValueChange("textoImpacto", value)} value={values.textoImpacto} />
-          <EditorInputField error={firstFieldError(errors, "texto_impacto_apoio")} id={controlId(prefix, "texto_impacto_apoio")} label="Apoio da frase de impacto" maxLength={500} name="texto_impacto_apoio" onChange={(value) => onValueChange("textoImpactoApoio", value)} value={values.textoImpactoApoio} />
-          <EditorInputField error={firstFieldError(errors, "titulo_topicos")} id={controlId(prefix, "titulo_topicos")} label="Título dos tópicos" maxLength={200} name="titulo_topicos" onChange={(value) => onValueChange("tituloTopicos", value)} value={values.tituloTopicos} />
-          <EditorTextareaField error={firstFieldError(errors, "texto_topicos_intro")} id={controlId(prefix, "texto_topicos_intro")} label="Introdução dos tópicos" maxLength={2000} name="texto_topicos_intro" onChange={(value) => onValueChange("textoTopicosIntro", value)} value={values.textoTopicosIntro} />
-          <EditorTextareaField description="Um tópico por linha." error={firstFieldError(errors, "texto_topicos")} id={controlId(prefix, "texto_topicos")} label="Tópicos" maxLength={8000} name="texto_topicos" onChange={(value) => onValueChange("textoTopicos", value)} value={values.textoTopicos} />
-          <EditorInputField error={firstFieldError(errors, "titulo_citacao")} id={controlId(prefix, "titulo_citacao")} label="Título da citação" maxLength={200} name="titulo_citacao" onChange={(value) => onValueChange("tituloCitacao", value)} value={values.tituloCitacao} />
-          <EditorTextareaField error={firstFieldError(errors, "texto_citacao")} id={controlId(prefix, "texto_citacao")} label="Citação" maxLength={2000} name="texto_citacao" onChange={(value) => onValueChange("textoCitacao", value)} value={values.textoCitacao} />
-          <EditorInputField error={firstFieldError(errors, "titulo_video")} id={controlId(prefix, "titulo_video")} label="Título do vídeo" maxLength={200} name="titulo_video" onChange={(value) => onValueChange("tituloVideo", value)} value={values.tituloVideo} />
-          <EditorInputField description="URL HTTPS ou caminho interno iniciado por /." error={firstFieldError(errors, "video_url")} id={controlId(prefix, "video_url")} label="Vídeo" maxLength={2048} name="video_url" onChange={(value) => onValueChange("videoUrl", value)} pattern="(?:https://.*|/.*)" value={values.videoUrl} />
-          <EditorTextareaField error={firstFieldError(errors, "texto_video")} id={controlId(prefix, "texto_video")} label="Texto de apoio do vídeo" maxLength={4000} name="texto_video" onChange={(value) => onValueChange("textoVideo", value)} value={values.textoVideo} />
-          <EditorInputField error={firstFieldError(errors, "titulo_assinar")} id={controlId(prefix, "titulo_assinar")} label="Título da assinatura" maxLength={200} name="titulo_assinar" onChange={(value) => onValueChange("tituloAssinar", value)} value={values.tituloAssinar} />
-          <EditorTextareaField error={firstFieldError(errors, "texto_assinar")} id={controlId(prefix, "texto_assinar")} label="Texto da assinatura" maxLength={2000} name="texto_assinar" onChange={(value) => onValueChange("textoAssinar", value)} value={values.textoAssinar} />
-          <EditorInputField error={firstFieldError(errors, "texto_compartilhar")} id={controlId(prefix, "texto_compartilhar")} label="Chamada para compartilhar" maxLength={500} name="texto_compartilhar" onChange={(value) => onValueChange("textoCompartilhar", value)} value={values.textoCompartilhar} />
+        <div className={styles.selectedThemeNote}>
+          <small>Tema selecionado</small>
+          <strong>Tema {theme.id} · {theme.name}</strong>
+          <span>{theme.description}</span>
         </div>
-      </details>
+      </div>
+
+      <div className={styles.themeSections}>
+        {theme.sections.map((section) => (
+          <section className={styles.themeSection} key={section.id}>
+            <header>
+              <h3>{section.title}</h3>
+              <p>{section.description}</p>
+            </header>
+            <div className={styles.themeSectionFields}>
+              {section.fields.map((field) => (
+                <ThemeContentFieldControl errors={errors} field={field} key={field.key} onValueChange={onValueChange} prefix={prefix} values={values} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1193,11 +1241,13 @@ function FormPanel({
 
 function ThemePanel({
   errors,
+  onContinue,
   onThemeChange,
   prefix,
   selectedKey
 }: {
   errors: FieldErrors;
+  onContinue: () => void;
   onThemeChange: (key: RegistryTheme["key"]) => void;
   prefix: string;
   selectedKey: RegistryTheme["key"];
@@ -1252,6 +1302,9 @@ function ThemePanel({
           })}
         </div>
       </fieldset>
+      <div className={styles.themeContinue}>
+        <Button onClick={onContinue} variant="primary">Editar conteúdo deste tema</Button>
+      </div>
     </div>
   );
 }
@@ -1450,7 +1503,7 @@ export function CampaignEditor({
   const [settings, setSettings] = useState(initial.snapshot.settings);
   const [baseline, setBaseline] = useState(initial.snapshot);
   const [campaignVersion, setCampaignVersion] = useState(initialCampaign?.updated_at);
-  const [activeTab, setActiveTab] = useState<EditorTab>("content");
+  const [activeTab, setActiveTab] = useState<EditorTab>(mode === "create" ? "theme" : "content");
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(initialCampaign?.slug));
   const [feedback, setFeedback] = useState<SaveFeedback>("idle");
@@ -1722,7 +1775,7 @@ export function CampaignEditor({
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":
-        return <ThemePanel errors={fieldErrors} onThemeChange={(key) => changeValue("themeKey", key)} prefix={prefix} selectedKey={values.themeKey} />;
+        return <ThemePanel errors={fieldErrors} onContinue={() => setActiveTab("content")} onThemeChange={(key) => changeValue("themeKey", key)} prefix={prefix} selectedKey={values.themeKey} />;
       case "seo":
         return <SeoPanel errors={fieldErrors} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "settings":

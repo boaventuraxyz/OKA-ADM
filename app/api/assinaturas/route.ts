@@ -274,7 +274,7 @@ export async function POST(request: Request) {
     await createAssinatura({
       campanha_id: campanhaId,
       nome_assinante: fields.name ? nome || null : null,
-      numero_assinante: fields.phone ? telefone || null : null,
+      numero_assinante: fields.phone ? telefone?.replace(/\D/g, "") || null : null,
       email_assinante: fields.email ? email || null : null,
       endereco_assinante: configuration.collectAddress ? endereco || null : null,
       n_assinante: configuration.collectAddress ? numero : null,
