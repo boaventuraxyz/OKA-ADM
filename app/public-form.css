@@ -1619,16 +1619,18 @@ select.form-input {
 .campaign-theme-3 h1 {
   margin: 0 0 26px;
   font-family: "Anton", Impact, sans-serif;
-  font-size: clamp(40px, 8.4vw, 86px);
+  font-size: clamp(36px, 7.6vw, 80px);
   font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 0.92;
+  letter-spacing: 0.012em;
+  line-height: 1.14;
+  text-wrap: balance;
   text-transform: uppercase;
 }
 
 .campaign-theme-3 h1 .campaign-headline-gold {
   background: var(--t3-amber);
   color: var(--t3-ink);
+  line-height: 0.94;
   padding: 0 0.12em;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
