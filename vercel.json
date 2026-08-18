@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "env": {
+    "APP_URL": "https://okaservices.vercel.app",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable__Al362TCPt_wAi0lo2jBkg_HpKjg7Rq"
+  }
+}

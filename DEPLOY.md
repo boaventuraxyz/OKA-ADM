@@ -116,6 +116,13 @@ SUPABASE_SECRET_KEY=sb_secret_...
 - use projetos/chaves diferentes entre Preview e Production;
 - nunca crie variáveis `NEXT_PUBLIC_*` para a Secret key.
 
+O projeto vinculado também declara `APP_URL` e a chave **publicável** em
+`vercel.json`, para que deployments acionados pelo Git preservem essa
+configuração pública. A Secret key continua exclusivamente nas variáveis
+protegidas do projeto e nunca deve ser adicionada ao arquivo. Se a URL ou o
+projeto Supabase mudar, atualize Project Settings e este arquivo no mesmo
+deploy.
+
 ### Auth
 
 Não há senha administrativa global nem segredo de sessão próprio. O Auth usa as variáveis Supabase e cookies SSR. A configuração essencial fica nas URLs e templates do Supabase Auth.
