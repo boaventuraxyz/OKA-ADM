@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AlertDialog } from "@/components/ui/AlertDialog";
 import { Button } from "@/components/ui/Button";
 
 import {
@@ -39,7 +38,6 @@ export function CampaignRowActions({
     name: string,
     action: CampaignMutationAction,
     navigateToResult = false,
-    reportErrorToCaller = false
   ) {
     setPending(name);
     setFeedback("");
@@ -58,7 +56,6 @@ export function CampaignRowActions({
       setFeedback(
         error instanceof Error ? error.message : "Não foi possível concluir a ação."
       );
-      if (reportErrorToCaller) throw error;
     } finally {
       setPending(null);
     }
@@ -84,47 +81,37 @@ export function CampaignRowActions({
         {pending === "duplicate" ? "Duplicando…" : "Duplicar"}
       </Button>
       {status === "draft" ? (
-        <AlertDialog
-          confirmLabel="Publicar campanha"
-          confirmVariant="primary"
-          description="Revise conteúdo, formulário, tema, SEO e preview. Depois da confirmação, a campanha ficará disponível publicamente."
-          onConfirm={() => run("publish", publishCampaignAction, false, true)}
-          title="Publicar esta campanha?"
-          trigger={
-            <>
-              <Globe2 aria-hidden="true" size={15} /> Publicar
-            </>
-          }
-          triggerVariant="ghost"
-        />
+        <Button
+          disabled={pending !== null}
+          onClick={() => void run("publish", publishCampaignAction)}
+          size="small"
+          variant="ghost"
+        >
+          <Globe2 aria-hidden="true" size={15} />
+          {pending === "publish" ? "Publicando…" : "Publicar"}
+        </Button>
       ) : null}
       {status === "published" ? (
-        <AlertDialog
-          confirmLabel="Retirar do ar"
-          description="A página pública deixará de aceitar acessos e assinaturas. A campanha voltará para rascunho sem perder conteúdo ou leads."
-          onConfirm={() => run("unpublish", unpublishCampaignAction, false, true)}
-          title="Retirar esta campanha do ar?"
-          trigger={
-            <>
-              <Undo2 aria-hidden="true" size={15} /> Despublicar
-            </>
-          }
-          triggerVariant="ghost"
-        />
+        <Button
+          disabled={pending !== null}
+          onClick={() => void run("unpublish", unpublishCampaignAction)}
+          size="small"
+          variant="ghost"
+        >
+          <Undo2 aria-hidden="true" size={15} />
+          {pending === "unpublish" ? "Despublicando…" : "Despublicar"}
+        </Button>
       ) : null}
       {status !== "archived" ? (
-        <AlertDialog
-          confirmLabel="Arquivar campanha"
-          description="A campanha sairá de circulação, mas seus dados e histórico serão preservados."
-          onConfirm={() => run("archive", archiveCampaignAction, false, true)}
-          title="Arquivar esta campanha?"
-          trigger={
-            <>
-              <Archive aria-hidden="true" size={15} /> Arquivar
-            </>
-          }
-          triggerVariant="ghost"
-        />
+        <Button
+          disabled={pending !== null}
+          onClick={() => void run("archive", archiveCampaignAction)}
+          size="small"
+          variant="ghost"
+        >
+          <Archive aria-hidden="true" size={15} />
+          {pending === "archive" ? "Arquivando…" : "Arquivar"}
+        </Button>
       ) : null}
       <span aria-live="polite" className={styles.actionFeedback}>
         {feedback}

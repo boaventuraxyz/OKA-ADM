@@ -1,5 +1,3 @@
-import "server-only";
-
 import sanitizeHtml from "sanitize-html";
 
 const allowedTags = ["b", "strong", "i", "em", "u", "br"];

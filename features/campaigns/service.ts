@@ -23,7 +23,7 @@ import {
   isCampaignUniqueViolation,
   listCampaignRows,
   transitionCampaignRow,
-  updateDraftCampaignRow,
+  updateEditableCampaignRow,
   type CampaignDatabaseClient,
 } from "./repository";
 import type {
@@ -213,7 +213,7 @@ export async function createCampaign(
   return mutationResult(row);
 }
 
-export async function updateCampaignDraft(
+export async function updateCampaign(
   idInput: unknown,
   input: unknown,
   expectedUpdatedAt?: unknown,
@@ -241,10 +241,10 @@ export async function updateCampaignDraft(
       );
     }
   }
-  if (current.status !== "draft") {
+  if (current.status !== "draft" && current.status !== "published") {
     throw new CampaignServiceError(
       "STATE_CONFLICT",
-      "Somente campanhas em rascunho podem ser editadas.",
+      "Campanhas arquivadas não podem ser editadas.",
     );
   }
   if (
@@ -269,7 +269,7 @@ export async function updateCampaignDraft(
 
   let row: CampaignRow | null;
   try {
-    row = await updateDraftCampaignRow(
+    row = await updateEditableCampaignRow(
       client,
       id,
       editPayload(themeScopedParsed, context.user.id),

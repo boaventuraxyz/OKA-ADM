@@ -62,10 +62,12 @@ function parseTopics(value?: string | null) {
 export function CampaignTheme3({
   accent,
   campanha,
+  preview = false,
   totalAssinaturas
 }: {
   accent: string;
   campanha: Theme3Campaign;
+  preview?: boolean;
   totalAssinaturas: number;
 }) {
   const title = campanha.titulo || "Participe deste abaixo-assinado";
@@ -202,6 +204,7 @@ export function CampaignTheme3({
               campanhaId={campanha.id}
               formConfig={campanha.formConfig}
               meta={campanha.assinaturasMeta}
+              preview={preview}
               textoDot={campanha.textoDot}
               textoForm={campanha.textoForm || title}
               totalAssinaturas={totalAssinaturas}

@@ -11,10 +11,10 @@ export type CampaignAutosaveState = {
 };
 
 /**
- * Autosave is intentionally limited to persisted drafts. New campaigns still
+ * Autosave applies to persisted editable campaigns. New campaigns still
  * require an explicit first save so an incomplete record is never created.
  */
-export function shouldAutosaveCampaignDraft({
+export function shouldAutosaveCampaign({
   dirty,
   hasValidationError,
   isPending,
@@ -23,7 +23,7 @@ export function shouldAutosaveCampaignDraft({
 }: CampaignAutosaveState) {
   return (
     mode === "edit" &&
-    status === "draft" &&
+    (status === "draft" || status === "published") &&
     dirty &&
     !hasValidationError &&
     !isPending

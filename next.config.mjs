@@ -10,7 +10,7 @@ const supabaseOrigin = (() => {
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
-  "frame-ancestors 'none'",
+  "frame-ancestors 'self'",
   "form-action 'self'",
   "object-src 'none'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
@@ -59,7 +59,7 @@ const securityHeaders = [
   },
   {
     key: "X-Frame-Options",
-    value: "DENY"
+    value: "SAMEORIGIN"
   },
   {
     key: "X-Permitted-Cross-Domain-Policies",

@@ -27,7 +27,7 @@ import {
   duplicateCampaign,
   publishCampaign,
   unpublishCampaign,
-  updateCampaignDraft,
+  updateCampaign,
 } from "./service";
 import type {
   ActionResult,
@@ -294,7 +294,7 @@ export async function updateCampaignAction(
   input: unknown,
 ): Promise<ActionResult<CampaignMutationResult>> {
   return runCampaignAction(() =>
-    updateCampaignDraft(
+    updateCampaign(
       idFromActionInput(input),
       mutationInputWithoutId(input),
       expectedUpdatedAtFromActionInput(input),

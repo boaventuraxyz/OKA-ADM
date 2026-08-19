@@ -153,14 +153,14 @@ try {
 
   const loginPage = await fetch(`${baseUrl}/login`, { redirect: "manual" });
   const csp = loginPage.headers.get("content-security-policy") || "";
-  assert(csp.includes("frame-ancestors 'none'"), "CSP frame protection is missing.");
+  assert(csp.includes("frame-ancestors 'self'"), "CSP same-origin frame protection is missing.");
   assert(csp.includes("upgrade-insecure-requests"), "Mixed-content protection is missing.");
   assert(!csp.includes("viacep.com.br"), "CSP still allows the retired browser CEP integration.");
   assert(
     loginPage.headers.get("strict-transport-security") === "max-age=63072000",
     "HSTS is missing."
   );
-  assert(loginPage.headers.get("x-frame-options") === "DENY", "X-Frame-Options is not DENY.");
+  assert(loginPage.headers.get("x-frame-options") === "SAMEORIGIN", "X-Frame-Options is not SAMEORIGIN.");
   assert(
     loginPage.headers.get("x-content-type-options") === "nosniff",
     "MIME sniffing protection is missing."

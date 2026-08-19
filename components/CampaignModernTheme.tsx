@@ -90,11 +90,13 @@ function topics(value?: string | null) {
 export function CampaignModernTheme({
   accent,
   campanha,
+  preview = false,
   themeId,
   totalAssinaturas,
 }: {
   accent: string;
   campanha: ModernCampaign;
+  preview?: boolean;
   themeId: ModernThemeId;
   totalAssinaturas: number;
 }) {
@@ -219,6 +221,7 @@ export function CampaignModernTheme({
               campanhaId={campanha.id}
               formConfig={campanha.formConfig}
               meta={campanha.assinaturasMeta}
+              preview={preview}
               settings={campanha.settings}
               textoDot={campanha.textoDot}
               textoForm={campanha.textoForm || title}

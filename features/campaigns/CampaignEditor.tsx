@@ -35,7 +35,6 @@ import {
 } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
-import { CampaignHeadline } from "@/components/CampaignHeadline";
 import { CampaignVideoCarouselField } from "@/components/CampaignVideoCarouselField";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -56,7 +55,7 @@ import { ThemePreview, type PreviewDevice } from "@/features/themes/ThemePreview
 import { createCampaignAction, updateCampaignAction } from "./actions";
 import {
   CAMPAIGN_AUTOSAVE_DELAY_MS,
-  shouldAutosaveCampaignDraft,
+  shouldAutosaveCampaign,
 } from "./autosave";
 import { normalizeCampaignSlug } from "./domain";
 import {
@@ -1609,6 +1608,7 @@ function SettingsPanel({
 }
 
 function PreviewPanel({
+  candidates,
   device,
   fields,
   onDeviceChange,
@@ -1616,6 +1616,7 @@ function PreviewPanel({
   theme,
   values
 }: {
+  candidates: readonly { id: string; nome: string }[];
   device: PreviewDevice;
   fields: CampaignFormField[];
   onDeviceChange: (device: PreviewDevice) => void;
@@ -1623,6 +1624,8 @@ function PreviewPanel({
   theme: RegistryTheme;
   values: EditorValues;
 }) {
+  const candidateName = candidates.find((candidate) => candidate.id === values.candidatoId)?.nome;
+
   return (
     <div className={styles.panelStack}>
       <div className={styles.panelIntro}>
@@ -1648,22 +1651,42 @@ function PreviewPanel({
         <ThemePreview
           accent={values.corDestaque}
           content={{
-            brand: values.textoFaixa,
-            cta: values.textoAssinar || values.textoDot,
-            eyebrow: values.textoDot,
-            fieldLabels: fields.map((field) => field.label),
-            formTitle: values.textoForm || values.tituloAssinar,
-            subtitle: values.descricao || values.destaqueSecundario,
-            title: theme.key === "cover" && values.titulo
-              ? (
-                  <CampaignHeadline
-                    highlights={settings.titleHighlights}
-                    primary={values.destaquePrimario}
-                    secondary={values.destaqueSecundario}
-                    text={values.titulo}
-                  />
-                )
-              : values.destaquePrimario || values.titulo,
+            assinaturasMeta: Number(values.assinaturasMeta) || 0,
+            candidateName,
+            descricao: values.descricao || null,
+            destaquePrimario: values.destaquePrimario || null,
+            destaqueSecundario: values.destaqueSecundario || null,
+            formConfig: formConfigPayload({}, fields),
+            imagemFundoUrl: values.imagemFundo || null,
+            imagemFundoVersao: null,
+            imagemLateralUrl: values.imagemLateral || null,
+            imagemLateralVersao: null,
+            legendaVideo: values.legendaVideo || null,
+            notaCitacao: values.notaCitacao || null,
+            notaVideo: values.notaVideo || null,
+            settings: { ...settings },
+            textoAssinar: values.textoAssinar || null,
+            textoCitacao: values.textoCitacao || null,
+            textoCompartilhar: values.textoCompartilhar || null,
+            textoConclusao: values.textoConclusao || null,
+            textoContexto: values.textoContexto || null,
+            textoDot: values.textoDot || null,
+            textoFaixa: values.textoFaixa || null,
+            textoForm: values.textoForm || null,
+            textoImpacto: values.textoImpacto || null,
+            textoImpactoApoio: values.textoImpactoApoio || null,
+            textoProposta: values.textoProposta || null,
+            textoTopicos: values.textoTopicos || null,
+            textoTopicosIntro: values.textoTopicosIntro || null,
+            textoVideo: values.textoVideo || null,
+            titleHighlights: settings.titleHighlights,
+            titulo: values.titulo || null,
+            tituloAssinar: values.tituloAssinar || null,
+            tituloCitacao: values.tituloCitacao || null,
+            tituloTopicos: values.tituloTopicos || null,
+            tituloVideo: values.tituloVideo || null,
+            videoCarousel: settings.videoCarousel,
+            videoUrl: values.videoUrl || null,
           }}
           device={device}
           theme={theme}
@@ -1713,7 +1736,16 @@ export function CampaignEditor({
   const dirty = !snapshotsMatch(currentSnapshot, baseline);
   const selectedTheme = THEME_REGISTRY.find((theme) => theme.key === values.themeKey) || THEME_REGISTRY[0];
   const missingCampaign = mode === "edit" && !initialCampaign;
-  const editableDraft = mode === "create" || initialCampaign?.status === "draft";
+  const editableCampaign =
+    mode === "create" ||
+    initialCampaign?.status === "draft" ||
+    initialCampaign?.status === "published";
+  const statusBadgeVariant =
+    mode === "create" || initialCampaign?.status === "draft"
+      ? "warning"
+      : initialCampaign?.status === "published"
+        ? "success"
+        : "neutral";
 
   function markDirty() {
     setFeedback("idle");
@@ -1849,7 +1881,7 @@ export function CampaignEditor({
     const validationError = validateSnapshot(snapshot, prefix);
 
     if (
-      !shouldAutosaveCampaignDraft({
+      !shouldAutosaveCampaign({
         dirty,
         hasValidationError: Boolean(validationError),
         isPending,
@@ -1939,7 +1971,7 @@ export function CampaignEditor({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isPending || !editableDraft || missingCampaign) return;
+    if (isPending || !editableCampaign || missingCampaign) return;
     if (!event.currentTarget.reportValidity()) return;
     const snapshot: EditorSnapshot = { fields, settings, values };
     const validationError = validateSnapshot(snapshot, prefix);
@@ -2013,7 +2045,7 @@ export function CampaignEditor({
       case "settings":
         return <SettingsPanel errors={fieldErrors} mode={mode} onSettingChange={changeSetting} onValueChange={changeValue} prefix={prefix} preserveLegacyAddress={initial.preserveLegacyAddress} settings={settings} status={initialCampaign?.status} values={values} />;
       case "preview":
-        return <PreviewPanel device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} settings={settings} theme={selectedTheme} values={values} />;
+        return <PreviewPanel candidates={candidates} device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} settings={settings} theme={selectedTheme} values={values} />;
     }
   })();
 
@@ -2024,7 +2056,7 @@ export function CampaignEditor({
         : feedback === "error"
         ? "Erro ao salvar"
         : dirty
-          ? mode === "edit" && editableDraft
+          ? mode === "edit" && editableCampaign
             ? "Salvamento automático pendente"
             : "Alterações não salvas"
           : mode === "edit"
@@ -2040,10 +2072,12 @@ export function CampaignEditor({
           <span>
             {mode === "create"
               ? "A criação será salva como rascunho."
-              : "Alterações válidas deste rascunho são salvas automaticamente."}
+              : initialCampaign?.status === "published"
+                ? "Alterações válidas são salvas automaticamente e atualizam a página publicada."
+                : "Alterações válidas deste rascunho são salvas automaticamente."}
           </span>
         </div>
-        <Badge variant={editableDraft ? "warning" : "neutral"}>
+        <Badge variant={statusBadgeVariant}>
           {mode === "create" ? "Rascunho novo" : initialCampaign?.status || "Indisponível"}
         </Badge>
       </div>
@@ -2053,10 +2087,10 @@ export function CampaignEditor({
           <CircleAlert aria-hidden="true" size={19} />
           A campanha não foi fornecida para edição.
         </div>
-      ) : !editableDraft ? (
+      ) : !editableCampaign ? (
         <div className={styles.alert} role="status">
           <CircleAlert aria-hidden="true" size={19} />
-          Somente campanhas em rascunho podem ser alteradas por este editor.
+          Campanhas arquivadas não podem ser alteradas por este editor.
         </div>
       ) : null}
 
@@ -2093,13 +2127,13 @@ export function CampaignEditor({
           <span>
             <strong>{feedbackLabel}</strong>
             <small>
-              {mode === "edit" && editableDraft
+              {mode === "edit" && editableCampaign
                 ? "Autosave ativo; o botão manual continua disponível"
                 : "Primeiro salvamento manual e seguro"}
             </small>
           </span>
         </div>
-        <Button disabled={!editableDraft || missingCampaign} loading={isPending} size="large" type="submit" variant="primary">
+        <Button disabled={!editableCampaign || missingCampaign} loading={isPending} size="large" type="submit" variant="primary">
           <Save aria-hidden="true" size={18} />
           {mode === "create" ? "Salvar rascunho" : "Salvar alterações"}
         </Button>

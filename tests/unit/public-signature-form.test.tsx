@@ -51,4 +51,32 @@ describe("PublicSignatureForm", () => {
     expect(screen.getByLabelText("CEP")).toBeRequired();
     expect(screen.getByLabelText("Endereço")).toBeRequired();
   });
+
+  it("renderiza a prévia com os mesmos campos sem criar um formulário enviável", () => {
+    const { container } = render(
+      <PublicSignatureForm
+        campanhaId="00000000-0000-4000-8000-000000000001"
+        formConfig={{
+          fields: [
+            {
+              id: "name",
+              key: "nome",
+              label: "Nome da prévia",
+              options: [],
+              placeholder: "Digite seu nome",
+              required: true,
+              type: "text",
+            },
+          ],
+        }}
+        preview
+        settings={{ collectAddress: false }}
+        totalAssinaturas={1284}
+      />
+    );
+
+    expect(screen.getByLabelText("Nome da prévia")).toBeInTheDocument();
+    expect(screen.getByLabelText("Demonstração do formulário de assinatura")).toBeInTheDocument();
+    expect(container.querySelector("form")).not.toBeInTheDocument();
+  });
 });

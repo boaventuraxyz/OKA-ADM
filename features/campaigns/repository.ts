@@ -147,8 +147,8 @@ export async function insertCampaignRow(
   return data;
 }
 
-/** The status predicate makes draft-only editing race safe. */
-export async function updateDraftCampaignRow(
+/** The status predicate prevents archived campaigns from being changed mid-save. */
+export async function updateEditableCampaignRow(
   client: CampaignDatabaseClient,
   id: string,
   payload: CampaignUpdate,
@@ -158,7 +158,7 @@ export async function updateDraftCampaignRow(
     .from("campanhas")
     .update(payload)
     .eq("id", id)
-    .eq("status", "draft");
+    .in("status", ["draft", "published"]);
 
   if (expectedUpdatedAt) {
     query = query.eq("updated_at", expectedUpdatedAt);
@@ -168,7 +168,7 @@ export async function updateDraftCampaignRow(
     .select("*")
     .maybeSingle();
 
-  assertNoError("update-draft", error);
+  assertNoError("update-editable", error);
   return data;
 }
 

@@ -1,0 +1,13 @@
+html:has(.campaign-preview-document),
+body:has(.campaign-preview-document) {
+  scrollbar-width: none;
+}
+
+html:has(.campaign-preview-document)::-webkit-scrollbar,
+body:has(.campaign-preview-document)::-webkit-scrollbar {
+  display: none;
+}
+
+.campaign-preview-document {
+  min-height: 100vh;
+}

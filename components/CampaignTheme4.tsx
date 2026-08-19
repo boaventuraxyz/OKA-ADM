@@ -88,10 +88,12 @@ function HighlightedTitle({
 export function CampaignTheme4({
   accent,
   campanha,
+  preview = false,
   totalAssinaturas
 }: {
   accent: string;
   campanha: Theme4Campaign;
+  preview?: boolean;
   totalAssinaturas: number;
 }) {
   const brand = campanha.textoFaixa?.trim() || "MOBILIZAÇÃO CIDADÃ";
@@ -207,6 +209,7 @@ export function CampaignTheme4({
                 campanhaId={campanha.id}
                 formConfig={campanha.formConfig}
                 meta={campanha.assinaturasMeta}
+                preview={preview}
                 textoDot={campanha.textoDot}
                 textoForm={campanha.textoForm || campanha.titulo}
                 totalAssinaturas={totalAssinaturas}

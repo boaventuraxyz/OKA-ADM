@@ -16,6 +16,7 @@ type Props = {
   meta?: number | null;
   formConfig?: Record<string, unknown> | null;
   settings?: Record<string, unknown> | null;
+  preview?: boolean;
   variant?: "default" | "editorial";
 };
 
@@ -96,6 +97,7 @@ export function PublicSignatureForm({
   meta,
   formConfig,
   settings,
+  preview = false,
   variant = "default"
 }: Props) {
   const [nome, setNome] = useState("");
@@ -136,6 +138,7 @@ export function PublicSignatureForm({
   const cityField = standardFields.city;
   const stateField = standardFields.state;
   const customFields = standardFields.custom;
+  const FormContainer = preview ? "div" : "form";
 
   useEffect(() => {
     return () => {
@@ -244,6 +247,7 @@ export function PublicSignatureForm({
 
   async function handleSign(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (preview) return;
     if (!validate()) return;
 
     setBusy(true);
@@ -369,7 +373,15 @@ export function PublicSignatureForm({
           </>
         ) : null}
 
-        <form className="form-fields" id="formAssinar" autoComplete="on" onSubmit={handleSign}>
+        <FormContainer
+          aria-label={preview ? "Demonstração do formulário de assinatura" : undefined}
+          autoComplete={preview ? undefined : "on"}
+          className="form-fields"
+          id={preview ? undefined : "formAssinar"}
+          onSubmit={preview ? undefined : (event) => {
+            void handleSign(event as React.FormEvent<HTMLFormElement>);
+          }}
+        >
           <input
             aria-hidden="true"
             autoComplete="off"
@@ -719,7 +731,7 @@ export function PublicSignatureForm({
           <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
             {busy ? "Enviando..." : "Assinar agora"}
           </button>
-        </form>
+        </FormContainer>
 
         {editorial ? (
           <p className="theme2-form-note">Seus dados não serão compartilhados com terceiros.</p>

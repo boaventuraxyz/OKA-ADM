@@ -1,185 +1,19 @@
-import type { CSSProperties, ReactNode } from "react";
+"use client";
+
+import { useCallback, useEffect, useId, useMemo, useRef } from "react";
 import type { CampaignThemeDefinition, ThemePalette } from "./registry";
+import { CAMPAIGN_PREVIEW_MESSAGE, createThemePreviewCampaign, type ThemePreviewContent } from "./theme-preview-data";
 import styles from "./ThemePreview.module.css";
 
 export type PreviewDevice = "desktop" | "tablet" | "mobile";
-
-export type ThemePreviewContent = {
-  brand?: string;
-  cta?: string;
-  eyebrow?: string;
-  fieldLabels?: readonly string[];
-  formTitle?: string;
-  subtitle?: string;
-  title?: ReactNode;
-};
-
-type ThemePreviewStyle = CSSProperties & {
-  "--preview-accent": string;
-  "--preview-bg": string;
-  "--preview-secondary": string;
-  "--preview-surface": string;
-  "--preview-text": string;
-};
-
-function PreviewForm({ content }: { content: ThemePreviewContent }) {
-  const fieldLabels = content.fieldLabels?.filter(Boolean).slice(0, 3) ?? [];
-
-  return (
-    <div className={styles.form}>
-      <p className={styles.formTitle}>{content.formTitle || "Assine esta causa"}</p>
-      {(fieldLabels.length ? fieldLabels : ["Nome", "E-mail", "WhatsApp"]).map(
-        (label) => <span className={styles.fakeInput} key={label}>{label}</span>,
-      )}
-      <span className={styles.fakeButton}>{content.cta || "Quero apoiar"}</span>
-    </div>
-  );
-}
-
-function PreviewTopbar({ label = "Campanha cidadã" }: { label?: string }) {
-  return (
-    <div className={styles.topbar}>
-      <span className={styles.brand}>{label}</span>
-      <span className={styles.miniCta}>Assinar agora</span>
-    </div>
-  );
-}
-
-function CoverPreview({ content }: { content: ThemePreviewContent }) {
-  return (
-    <div className={`${styles.page} ${styles.cover}`}>
-      <PreviewTopbar label={content.brand || "Campanha cidadã"} />
-      <div className={styles.coverHero}>
-        <div>
-          <span className={styles.eyebrow}>{content.eyebrow || "Mobilização aberta"}</span>
-          <h3 className={styles.headline}>{content.title || <>Uma causa que precisa da <span>sua voz</span></>}</h3>
-          <p className={styles.lede}>{content.subtitle || "Participe deste movimento e ajude a transformar apoio em ação concreta."}</p>
-          <span className={styles.cta}>{content.cta || "Conhecer a proposta"}</span>
-        </div>
-        <PreviewForm content={content} />
-      </div>
-    </div>
-  );
-}
-
-function EditorialPreview({ content }: { content: ThemePreviewContent }) {
-  return (
-    <div className={`${styles.page} ${styles.editorial}`}>
-      <PreviewTopbar label={content.brand || "Iniciativa pública"} />
-      <div className={styles.editorialHero}>
-        <div>
-          <span className={styles.eyebrow}>{content.eyebrow || "O caso e a proposta"}</span>
-          <h3 className={styles.headline}>{content.title || <>Informação para <span>mobilizar</span> pessoas</>}</h3>
-          <p className={styles.lede}>{content.subtitle || "Contexto, argumentos e uma chamada clara para quem deseja participar."}</p>
-          <span className={styles.cta}>{content.cta || "Ler e assinar"}</span>
-        </div>
-        <div aria-hidden="true" className={styles.editorialVisual} />
-      </div>
-    </div>
-  );
-}
-
-function ManifestoPreview({ content }: { content: ThemePreviewContent }) {
-  return (
-    <div className={`${styles.page} ${styles.manifesto}`}>
-      <div className={styles.ticker}>{content.brand || "Manifesto público • participe • compartilhe •"}</div>
-      <div className={styles.manifestoBody}>
-        <div>
-          <span className={styles.eyebrow}>{content.eyebrow || "Abaixo-assinado"}</span>
-          <h3 className={styles.headline}>{content.title || <>Não vamos <span>ficar em silêncio</span></>}</h3>
-          <p className={styles.lede}>{content.subtitle || "Uma declaração direta, organizada em pontos e pronta para circular."}</p>
-          <span className={styles.cta}>{content.cta || "Assinar o manifesto"}</span>
-        </div>
-        <div className={styles.claims}>
-          {["Uma pauta clara", "Contexto objetivo", "Ação coletiva"].map((claim, index) => (
-            <div className={styles.claim} key={claim}>
-              <span className={styles.claimNumber}>{String(index + 1).padStart(2, "0")}</span>
-              <span>{claim}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobilizationPreview({ content }: { content: ThemePreviewContent }) {
-  return (
-    <div className={`${styles.page} ${styles.mobilization}`}>
-      <PreviewTopbar label={content.brand || "Movimento cidadão"} />
-      <div className={styles.mobilizationBody}>
-        <div>
-          <span className={styles.eyebrow}>{content.eyebrow || "Caso em andamento"}</span>
-          <h3 className={styles.headline}>{content.title || "Coragem para defender o que importa"}</h3>
-          <p className={styles.lede}>{content.subtitle || "Uma apresentação sóbria, com relato, vídeo e chamada final."}</p>
-          <span className={styles.cta}>{content.cta || "Apoiar agora"}</span>
-        </div>
-        <div aria-label="Espaço para vídeo" className={styles.videoPanel}>
-          <span aria-hidden="true" className={styles.play}>▶</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModernPreview({
-  content,
-  variant,
-}: {
-  content: ThemePreviewContent;
-  variant: "community" | "horizon" | "pulse";
-}) {
-  return (
-    <div className={`${styles.page} ${styles.modern} ${styles[`modern${variant}`]}`}>
-      <PreviewTopbar label={content.brand || "Mobilização cidadã"} />
-      <div className={styles.modernBody}>
-        <div className={styles.modernCopy}>
-          <span className={styles.eyebrow}>{content.eyebrow || "Uma causa que nos une"}</span>
-          <h3 className={styles.headline}>{content.title || "Transformar participação em resultado"}</h3>
-          <p className={styles.lede}>{content.subtitle || "Contexto claro, proposta objetiva e uma chamada para agir agora."}</p>
-          <span className={styles.cta}>{content.cta || "Quero participar"}</span>
-        </div>
-        <div className={styles.modernCards} aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PreviewContent({
-  content,
-  theme,
-}: {
-  content: ThemePreviewContent;
-  theme: CampaignThemeDefinition;
-}) {
-  switch (theme.id) {
-    case 1:
-      return <CoverPreview content={content} />;
-    case 2:
-      return <EditorialPreview content={content} />;
-    case 3:
-      return <ManifestoPreview content={content} />;
-    case 4:
-      return <MobilizationPreview content={content} />;
-    case 5:
-      return <ModernPreview content={content} variant="horizon" />;
-    case 6:
-      return <ModernPreview content={content} variant="community" />;
-    case 7:
-      return <ModernPreview content={content} variant="pulse" />;
-  }
-}
+export type { ThemePreviewContent } from "./theme-preview-data";
 
 export function ThemePreview({
   accent,
   content = {},
   device = "desktop",
   palette,
-  theme
+  theme,
 }: {
   accent?: string;
   content?: ThemePreviewContent;
@@ -187,31 +21,57 @@ export function ThemePreview({
   palette?: ThemePalette;
   theme: CampaignThemeDefinition;
 }) {
-  const colors = palette ?? theme.palette;
-  const previewStyle: ThemePreviewStyle = {
-    "--preview-bg": colors.background,
-    "--preview-surface": colors.surface,
-    "--preview-text": colors.text,
-    "--preview-accent": accent || colors.accent,
-    "--preview-secondary": colors.secondary
-  };
+  const rawId = useId();
+  const instanceId = useMemo(() => rawId.replace(/[^a-zA-Z0-9_-]/g, ""), [rawId]);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const selectedAccent = accent || palette?.accent || theme.palette.accent;
+  const campaign = useMemo(
+    () => createThemePreviewCampaign({ accent: selectedAccent, content, theme }),
+    [content, selectedAccent, theme],
+  );
+  const deviceLabel = { desktop: "desktop", tablet: "tablet", mobile: "celular" }[device];
 
-  const deviceLabel = {
-    desktop: "desktop",
-    tablet: "tablet",
-    mobile: "celular"
-  }[device];
+  const sendPreview = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { instanceId, payload: campaign, type: CAMPAIGN_PREVIEW_MESSAGE },
+      window.location.origin,
+    );
+  }, [campaign, instanceId]);
+
+  useEffect(() => {
+    sendPreview();
+  }, [sendPreview]);
+
+  useEffect(() => {
+    function handleReady(event: MessageEvent<{ instanceId?: string; type?: string }>) {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== `${CAMPAIGN_PREVIEW_MESSAGE}:ready`) return;
+      if (event.data.instanceId !== instanceId) return;
+      sendPreview();
+    }
+
+    window.addEventListener("message", handleReady);
+    return () => window.removeEventListener("message", handleReady);
+  }, [instanceId, sendPreview]);
 
   return (
     <div
-      aria-label={`Prévia do tema ${theme.name} em ${deviceLabel}`}
+      aria-label={`Prévia renderizada do tema ${theme.name} em ${deviceLabel}`}
       className={`${styles.preview} ${styles[device]}`}
       role="img"
-      style={previewStyle}
     >
       <div className={styles.frame}>
         <div className={styles.viewport}>
-          <PreviewContent content={content} theme={theme} />
+          <iframe
+            aria-hidden="true"
+            className={styles.render}
+            onLoad={sendPreview}
+            ref={iframeRef}
+            sandbox="allow-same-origin allow-scripts"
+            src={`/theme-preview?theme=${theme.id}&instance=${encodeURIComponent(instanceId)}`}
+            tabIndex={-1}
+            title={`Render do tema ${theme.name}`}
+          />
         </div>
       </div>
     </div>
