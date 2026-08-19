@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CAMPAIGN_VIDEO_MIME_TYPES,
+  campaignVideoBucketNeedsUpdate,
   legacyCampaignVideoCarousel,
+  MAX_CAMPAIGN_VIDEO_BYTES,
   MAX_CAMPAIGN_VIDEOS,
   parseCampaignVideoCarousel,
 } from "@/lib/campaign-video-carousel";
@@ -37,5 +40,19 @@ describe("carrossel de vídeos da campanha", () => {
       caption: "Relato principal",
       url: "/videos/relato.mp4",
     }]);
+  });
+
+  it("não reconfigura o bucket quando ele já aceita os vídeos", () => {
+    expect(campaignVideoBucketNeedsUpdate({
+      allowed_mime_types: [...CAMPAIGN_VIDEO_MIME_TYPES],
+      file_size_limit: MAX_CAMPAIGN_VIDEO_BYTES,
+      public: true,
+    })).toBe(false);
+
+    expect(campaignVideoBucketNeedsUpdate({
+      allowed_mime_types: ["video/mp4"],
+      file_size_limit: MAX_CAMPAIGN_VIDEO_BYTES,
+      public: true,
+    })).toBe(true);
   });
 });

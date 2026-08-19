@@ -2,6 +2,7 @@
 
 import {
   Check,
+  GalleryHorizontalEnd,
   Monitor,
   Palette,
   RotateCcw,
@@ -11,6 +12,7 @@ import {
   Users,
   type LucideIcon
 } from "lucide-react";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -321,7 +323,15 @@ export function AdminThemeLibrary({ usageCounts = emptyUsageCounts }: AdminTheme
   return (
     <section aria-label="Biblioteca administrativa de temas" className={styles.library}>
       <PageHeader
-        actions={<Badge variant="info">{THEME_REGISTRY.length} temas registrados</Badge>}
+        actions={
+          <div className={styles.headerActions}>
+            <Link className={styles.carouselLink} href="/admin/themes/gallery">
+              <GalleryHorizontalEnd aria-hidden="true" size={17} />
+              Visualizar carrossel
+            </Link>
+            <Badge variant="info">{THEME_REGISTRY.length} temas registrados</Badge>
+          </div>
+        }
         description="Pesquise, compare a identidade visual e veja onde cada tema já está sendo usado."
         eyebrow="Aparência das campanhas"
         title="Biblioteca de temas"

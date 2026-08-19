@@ -91,6 +91,7 @@ export type CampaignActionErrorCode =
   | "SLUG_CONFLICT"
   | "AUDIT_FAILED"
   | "DATABASE_ERROR"
+  | "VIDEO_STORAGE_ERROR"
   | "INTERNAL_ERROR";
 
 export type CampaignActionError = {

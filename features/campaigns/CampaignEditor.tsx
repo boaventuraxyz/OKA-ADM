@@ -76,6 +76,7 @@ import styles from "./CampaignEditor.module.css";
 export type CampaignEditorProps = {
   candidates?: readonly { id: string; nome: string }[];
   initialCampaign?: CampaignRow;
+  initialThemeKey?: RegistryTheme["key"];
   mode: "create" | "edit";
 };
 
@@ -506,16 +507,20 @@ function parseFormFields(
   return parsed.length > 0 ? parsed : defaultFormFields.map((field) => ({ ...field }));
 }
 
-function resolveTheme(campaign?: CampaignRow) {
+function resolveTheme(campaign?: CampaignRow, initialThemeKey?: RegistryTheme["key"]) {
   return (
     THEME_REGISTRY.find((theme) => theme.key === campaign?.theme_key) ||
     THEME_REGISTRY.find((theme) => theme.id === campaign?.tema) ||
+    THEME_REGISTRY.find((theme) => theme.key === initialThemeKey) ||
     THEME_REGISTRY[0]
   );
 }
 
-function createInitialState(campaign?: CampaignRow): InitialEditorState {
-  const theme = resolveTheme(campaign);
+function createInitialState(
+  campaign?: CampaignRow,
+  initialThemeKey?: RegistryTheme["key"],
+): InitialEditorState {
+  const theme = resolveTheme(campaign, initialThemeKey);
   const formConfigBase = asRecord(campaign?.form_config);
   const settingsBase = asRecord(campaign?.settings);
   const preserveLegacyAddress = Boolean(campaign) && !Array.isArray(formConfigBase.fields);
@@ -1685,12 +1690,13 @@ function PreviewPanel({
 export function CampaignEditor({
   candidates = emptyCandidates,
   initialCampaign,
+  initialThemeKey,
   mode
 }: CampaignEditorProps) {
   const router = useRouter();
   const generatedId = useId().replace(/:/g, "");
   const prefix = `campaign-editor-${generatedId}`;
-  const [initial] = useState(() => createInitialState(initialCampaign));
+  const [initial] = useState(() => createInitialState(initialCampaign, initialThemeKey));
   const [values, setValues] = useState(initial.snapshot.values);
   const [fields, setFields] = useState(initial.snapshot.fields);
   const [settings, setSettings] = useState(initial.snapshot.settings);

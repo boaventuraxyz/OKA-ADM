@@ -12,11 +12,12 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import {
-  createCampaignVideoUploadAction,
+  createCampaignVideoUploadTicketsAction,
 } from "@/features/campaigns/actions";
 import {
   CAMPAIGN_VIDEO_MIME_TYPES,
   MAX_CAMPAIGN_VIDEO_BYTES,
+  MAX_CAMPAIGN_VIDEO_MEGABYTES,
   MAX_CAMPAIGN_VIDEOS,
   type CampaignVideoItem,
 } from "@/lib/campaign-video-carousel";
@@ -71,7 +72,9 @@ export function CampaignVideoCarouselField({
       !acceptedVideoTypes.has(file.type) || file.size > MAX_CAMPAIGN_VIDEO_BYTES
     ));
     if (invalid) {
-      setError("Selecione vídeos MP4, WebM ou MOV de até 100 MB cada.");
+      setError(
+        `Selecione vídeos MP4, WebM ou MOV de até ${MAX_CAMPAIGN_VIDEO_MEGABYTES} MB cada.`,
+      );
       return;
     }
 
@@ -79,16 +82,21 @@ export function CampaignVideoCarouselField({
     let nextItems = [...items];
 
     try {
-      for (const file of files) {
-        const ticket = await createCampaignVideoUploadAction({
+      const ticketResult = await createCampaignVideoUploadTicketsAction({
+        files: files.map((file) => ({
           contentType: file.type,
           size: file.size,
-        });
-        if (!ticket.ok) throw new Error(ticket.error.message);
+        })),
+      });
+      if (!ticketResult.ok) throw new Error(ticketResult.error.message);
+
+      for (const [index, file] of files.entries()) {
+        const ticket = ticketResult.data[index];
+        if (!ticket) throw new Error("Não foi possível preparar o envio dos vídeos.");
 
         const supabase = createClient(
-          ticket.data.supabaseUrl,
-          ticket.data.publishableKey,
+          ticket.supabaseUrl,
+          ticket.publishableKey,
           {
             auth: {
               autoRefreshToken: false,
@@ -98,8 +106,8 @@ export function CampaignVideoCarouselField({
           },
         );
         const { error: uploadError } = await supabase.storage
-          .from(ticket.data.bucket)
-          .uploadToSignedUrl(ticket.data.path, ticket.data.token, file, {
+          .from(ticket.bucket)
+          .uploadToSignedUrl(ticket.path, ticket.token, file, {
             cacheControl: "31536000",
             contentType: file.type,
             upsert: false,
@@ -108,7 +116,7 @@ export function CampaignVideoCarouselField({
 
         nextItems = [
           ...nextItems,
-          { caption: fileLabel(file.name), url: ticket.data.publicUrl },
+          { caption: fileLabel(file.name), url: ticket.publicUrl },
         ];
         onChange(nextItems);
       }
@@ -144,7 +152,10 @@ export function CampaignVideoCarouselField({
       <div className={styles.heading}>
         <div>
           <h4>Vídeos do carrossel</h4>
-          <p>Envie até {MAX_CAMPAIGN_VIDEOS} arquivos MP4, WebM ou MOV, com no máximo 100 MB cada.</p>
+          <p>
+            Envie até {MAX_CAMPAIGN_VIDEOS} arquivos MP4, WebM ou MOV, com no
+            máximo {MAX_CAMPAIGN_VIDEO_MEGABYTES} MB cada.
+          </p>
         </div>
         <span>{items.length}/{MAX_CAMPAIGN_VIDEOS}</span>
       </div>

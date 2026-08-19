@@ -1,6 +1,7 @@
 export const CAMPAIGN_VIDEO_BUCKET = "campaign-videos";
 export const MAX_CAMPAIGN_VIDEOS = 8;
-export const MAX_CAMPAIGN_VIDEO_BYTES = 100 * 1024 * 1024;
+export const MAX_CAMPAIGN_VIDEO_MEGABYTES = 50;
+export const MAX_CAMPAIGN_VIDEO_BYTES = MAX_CAMPAIGN_VIDEO_MEGABYTES * 1024 * 1024;
 
 export const CAMPAIGN_VIDEO_MIME_TYPES = [
   "video/mp4",
@@ -12,6 +13,24 @@ export type CampaignVideoItem = {
   caption: string;
   url: string;
 };
+
+export type CampaignVideoBucketConfiguration = {
+  allowed_mime_types?: readonly string[] | null;
+  file_size_limit?: number | null;
+  public: boolean;
+};
+
+export function campaignVideoBucketNeedsUpdate(
+  bucket: CampaignVideoBucketConfiguration,
+) {
+  return (
+    !bucket.public ||
+    bucket.file_size_limit !== MAX_CAMPAIGN_VIDEO_BYTES ||
+    CAMPAIGN_VIDEO_MIME_TYPES.some(
+      (mimeType) => !bucket.allowed_mime_types?.includes(mimeType),
+    )
+  );
+}
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)

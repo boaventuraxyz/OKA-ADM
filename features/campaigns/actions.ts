@@ -12,7 +12,9 @@ import {
 import {
   CAMPAIGN_VIDEO_BUCKET,
   CAMPAIGN_VIDEO_MIME_TYPES,
+  campaignVideoBucketNeedsUpdate,
   MAX_CAMPAIGN_VIDEO_BYTES,
+  MAX_CAMPAIGN_VIDEOS,
 } from "@/lib/campaign-video-carousel";
 import { campaignCacheTag } from "@/lib/public-campaign";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -33,9 +35,13 @@ import type {
   CampaignMutationResult,
 } from "./types";
 
-const campaignVideoUploadSchema = z.object({
+const campaignVideoUploadFileSchema = z.object({
   contentType: z.enum(CAMPAIGN_VIDEO_MIME_TYPES),
   size: z.number().int().positive().max(MAX_CAMPAIGN_VIDEO_BYTES),
+});
+
+const campaignVideoUploadSchema = z.object({
+  files: z.array(campaignVideoUploadFileSchema).min(1).max(MAX_CAMPAIGN_VIDEOS),
 });
 
 export type CampaignVideoUploadTicket = {
@@ -46,6 +52,13 @@ export type CampaignVideoUploadTicket = {
   supabaseUrl: string;
   token: string;
 };
+
+class CampaignVideoStorageError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "CampaignVideoStorageError";
+  }
+}
 
 function actionInput(value: unknown): Record<string, unknown> {
   if (value instanceof FormData) {
@@ -134,6 +147,13 @@ function safeActionError(error: unknown): CampaignActionError {
     };
   }
 
+  if (error instanceof CampaignVideoStorageError) {
+    return {
+      code: "VIDEO_STORAGE_ERROR",
+      message: error.message,
+    };
+  }
+
   return {
     code: "INTERNAL_ERROR",
     message: "Ocorreu um erro inesperado. Tente novamente.",
@@ -160,7 +180,9 @@ function storageResourceMissing(error: unknown) {
 
 async function ensureCampaignVideoBucket() {
   const admin = createAdminClient();
-  const { error: bucketError } = await admin.storage.getBucket(CAMPAIGN_VIDEO_BUCKET);
+  const { data: bucket, error: bucketError } = await admin.storage.getBucket(
+    CAMPAIGN_VIDEO_BUCKET,
+  );
   const bucketOptions = {
     allowedMimeTypes: [...CAMPAIGN_VIDEO_MIME_TYPES],
     fileSizeLimit: MAX_CAMPAIGN_VIDEO_BYTES,
@@ -168,56 +190,82 @@ async function ensureCampaignVideoBucket() {
   };
 
   if (bucketError) {
-    if (!storageResourceMissing(bucketError)) throw bucketError;
+    if (!storageResourceMissing(bucketError)) {
+      throw new CampaignVideoStorageError(
+        "Não foi possível acessar o armazenamento de vídeos.",
+        { cause: bucketError },
+      );
+    }
     const { error: createError } = await admin.storage.createBucket(
       CAMPAIGN_VIDEO_BUCKET,
       bucketOptions,
     );
-    if (createError) throw createError;
-  } else {
+    if (createError) {
+      throw new CampaignVideoStorageError(
+        "Não foi possível preparar o armazenamento de vídeos.",
+        { cause: createError },
+      );
+    }
+  } else if (campaignVideoBucketNeedsUpdate(bucket)) {
     const { error: updateError } = await admin.storage.updateBucket(
       CAMPAIGN_VIDEO_BUCKET,
       bucketOptions,
     );
-    if (updateError) throw updateError;
+    if (updateError) {
+      throw new CampaignVideoStorageError(
+        "Não foi possível atualizar o armazenamento de vídeos.",
+        { cause: updateError },
+      );
+    }
   }
 
   return admin;
 }
 
-export async function createCampaignVideoUploadAction(
+export async function createCampaignVideoUploadTicketsAction(
   input: unknown,
-): Promise<ActionResult<CampaignVideoUploadTicket>> {
+): Promise<ActionResult<CampaignVideoUploadTicket[]>> {
   try {
     const context = await requireActiveProfile();
     const parsed = campaignVideoUploadSchema.parse(input);
-    const extension = {
-      "video/mp4": "mp4",
-      "video/quicktime": "mov",
-      "video/webm": "webm",
-    }[parsed.contentType];
-    const path = `${context.user.id}/${crypto.randomUUID()}.${extension}`;
     const admin = await ensureCampaignVideoBucket();
-    const { data, error } = await admin.storage
-      .from(CAMPAIGN_VIDEO_BUCKET)
-      .createSignedUploadUrl(path);
-    if (error || !data?.token) throw error || new Error("Upload indisponível.");
-
-    const { data: publicData } = admin.storage
-      .from(CAMPAIGN_VIDEO_BUCKET)
-      .getPublicUrl(path);
     const env = getSupabaseServerEnv();
+    const tickets = await Promise.all(
+      parsed.files.map(async (file): Promise<CampaignVideoUploadTicket> => {
+        const extension = {
+          "video/mp4": "mp4",
+          "video/quicktime": "mov",
+          "video/webm": "webm",
+        }[file.contentType];
+        const path = `${context.user.id}/${crypto.randomUUID()}.${extension}`;
+        const { data, error } = await admin.storage
+          .from(CAMPAIGN_VIDEO_BUCKET)
+          .createSignedUploadUrl(path);
+        if (error || !data?.token) {
+          throw new CampaignVideoStorageError(
+            "Não foi possível preparar o envio dos vídeos.",
+            { cause: error || undefined },
+          );
+        }
+
+        const { data: publicData } = admin.storage
+          .from(CAMPAIGN_VIDEO_BUCKET)
+          .getPublicUrl(path);
+
+        return {
+          bucket: CAMPAIGN_VIDEO_BUCKET,
+          path,
+          publicUrl: publicData.publicUrl,
+          publishableKey: env.SUPABASE_PUBLISHABLE_KEY,
+          supabaseUrl: env.SUPABASE_URL,
+          token: data.token,
+        };
+      }),
+    );
 
     return {
       ok: true,
-      data: {
-        bucket: CAMPAIGN_VIDEO_BUCKET,
-        path,
-        publicUrl: publicData.publicUrl,
-        publishableKey: env.SUPABASE_PUBLISHABLE_KEY,
-        supabaseUrl: env.SUPABASE_URL,
-        token: data.token,
-      },
+      data: tickets,
     };
   } catch (error) {
     return { ok: false, error: safeActionError(error) };

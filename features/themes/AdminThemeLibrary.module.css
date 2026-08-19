@@ -17,6 +17,32 @@
   box-sizing: border-box;
 }
 
+.headerActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.carouselLink {
+  align-items: center;
+  background: var(--theme-admin-brand);
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 750;
+  gap: 7px;
+  min-height: 42px;
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.carouselLink:focus-visible {
+  outline: 3px solid rgba(37, 134, 83, 0.28);
+  outline-offset: 2px;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
