@@ -2,6 +2,8 @@ import { ZodError } from "zod";
 
 import { CampaignGenerationError } from "@/features/ai/generator";
 import { createCampaignDraftWithAI } from "@/features/ai/service";
+import { CampaignRepositoryError } from "@/features/campaigns/repository";
+import { CampaignServiceError } from "@/features/campaigns/service";
 import {
   AuthenticationRequiredError,
   AuthorizationRequiredError,
@@ -32,6 +34,43 @@ function generationError(error: CampaignGenerationError) {
   } as const;
   const [code, message, status] = messages[error.code];
   return apiError(code, message, status);
+}
+
+/**
+ * A geração já terminou quando o rascunho vai para o banco. Sem traduzir os
+ * erros desta etapa, qualquer falha de gravação virava a mesma mensagem
+ * genérica, escondendo inclusive o caso em que a campanha FOI criada.
+ */
+function persistenceError(error: CampaignServiceError) {
+  const messages = {
+    AUDIT_FAILED: [
+      "A campanha foi criada, mas o histórico não pôde ser registrado. Abra a lista de campanhas antes de gerar outra.",
+      500,
+    ],
+    NOT_FOUND: ["A campanha não foi encontrada para gravação.", 404],
+    SLUG_CONFLICT: [
+      "Não foi possível gerar um endereço único para a campanha. Tente novamente.",
+      409,
+    ],
+    STATE_CONFLICT: ["A campanha mudou de estado durante a gravação.", 409],
+  } as const;
+  const [message, status] = messages[error.code];
+  return apiError(error.code, message, status);
+}
+
+/** O motivo real some no erro genérico; sem log não há como diagnosticar. */
+function reportUnexpectedFailure(error: unknown) {
+  const name =
+    error && typeof error === "object" && "name" in error
+      ? String((error as { name?: unknown }).name)
+      : typeof error;
+  const databaseCode =
+    error instanceof CampaignRepositoryError ? ` db=${error.databaseCode}` : "";
+  console.error(
+    `[ai] criação do rascunho falhou: ${name}${databaseCode}`,
+    error instanceof Error ? error.message : "",
+    error instanceof Error && error.cause ? error.cause : "",
+  );
 }
 
 export async function POST(request: Request) {
@@ -74,6 +113,12 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof CampaignGenerationError) return generationError(error);
     if (error instanceof ZodError) {
+      // Pode ser o briefing da pessoa ou o rascunho que a IA montou; sem as
+      // chaves recusadas no log, os dois casos ficam indistinguíveis.
+      console.error(
+        "[ai] payload recusado pela validação:",
+        error.issues.map((issue) => `${issue.path.join(".")}: ${issue.code}`).join(", "),
+      );
       return apiError("VALIDATION_ERROR", "Revise o tema e o briefing.", 400);
     }
     if (error instanceof AuthenticationRequiredError) {
@@ -82,6 +127,18 @@ export async function POST(request: Request) {
     if (error instanceof AuthorizationRequiredError) {
       return apiError("AUTHORIZATION_REQUIRED", "Acesso não autorizado.", 403);
     }
+
+    reportUnexpectedFailure(error);
+
+    if (error instanceof CampaignServiceError) return persistenceError(error);
+    if (error instanceof CampaignRepositoryError) {
+      return apiError(
+        "CAMPAIGN_DATABASE_ERROR",
+        "A IA gerou o texto, mas o banco recusou a gravação da campanha. O motivo está no log do servidor.",
+        502,
+      );
+    }
+
     return apiError("AI_CAMPAIGN_FAILED", "Não foi possível criar o rascunho.", 500);
   }
 }
