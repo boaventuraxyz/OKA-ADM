@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -13,6 +14,13 @@ export const dynamic = "force-dynamic";
 export default async function AdminSettingsPage() {
   const context = await requireAdmin();
   if (context.profile.role === "editor") redirect("/admin");
+  const requestHeaders = await headers();
+  const hasAiGatewayAuthentication = Boolean(
+    process.env.AI_GATEWAY_API_KEY ||
+      process.env.AI_API_KEY ||
+      process.env.VERCEL_OIDC_TOKEN ||
+      requestHeaders.get("x-vercel-oidc-token")
+  );
 
   const checks = [
     ["URL do aplicativo", Boolean(process.env.APP_URL)],
@@ -21,11 +29,7 @@ export default async function AdminSettingsPage() {
     ["Chave secreta server-only", Boolean(process.env.SUPABASE_SECRET_KEY)],
     [
       "Vercel AI Gateway",
-      Boolean(
-        process.env.AI_GATEWAY_API_KEY ||
-          process.env.AI_API_KEY ||
-          process.env.VERCEL_OIDC_TOKEN
-      ),
+      hasAiGatewayAuthentication,
     ],
   ] as const;
 
