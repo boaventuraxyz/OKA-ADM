@@ -15,7 +15,6 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <PlatformAdminShell
-      pageTitle="Plataforma de campanhas"
       profile={{
         displayName: context.profile.displayName || email || "Administrador",
         email,

@@ -1,10 +1,11 @@
+/* Os tokens vivem em app/globals.css; aqui ficam apenas os apelidos locais. */
 .dashboard {
-  --dashboard-text: #17201b;
-  --dashboard-muted: #617168;
-  --dashboard-border: #d8e1dc;
-  --dashboard-brand: #17663a;
-  --dashboard-brand-dark: #0f4c2a;
-  --dashboard-brand-soft: #e2f2e8;
+  --dashboard-text: var(--oka-text);
+  --dashboard-muted: var(--oka-text-muted);
+  --dashboard-border: var(--oka-border);
+  --dashboard-brand: var(--oka-brand);
+  --dashboard-brand-dark: var(--oka-brand-dark);
+  --dashboard-brand-soft: var(--oka-brand-soft);
   display: grid;
   gap: 32px;
   color: var(--dashboard-text);
@@ -84,18 +85,18 @@
 }
 
 .metricContent {
-  min-height: 158px;
+  min-height: 132px;
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   align-content: start;
   align-items: center;
-  gap: 7px 9px;
+  gap: 6px 9px;
   padding: 16px;
 }
 
 .metricIcon {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border-radius: 9px;
@@ -106,8 +107,9 @@
 .metricLabel {
   overflow: hidden;
   color: var(--dashboard-muted);
-  font-size: 12px;
-  font-weight: 750;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -118,16 +120,18 @@
 }
 
 .metricValue {
-  margin-top: 8px;
-  font-size: clamp(26px, 2.4vw, 36px);
-  letter-spacing: -0.04em;
+  margin-top: 10px;
+  color: var(--dashboard-text);
+  font-size: clamp(26px, 2.2vw, 34px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
   line-height: 1;
 }
 
 .metricNote {
   color: var(--dashboard-muted);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .metricSuccess {
@@ -240,18 +244,18 @@
 }
 
 .quickCopy strong {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .quickCopy span {
   color: var(--dashboard-muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
 .quickArrow,
 .rowArrow {
-  color: #87968e;
+  color: var(--oka-text-soft);
 }
 
 .recentGrid {

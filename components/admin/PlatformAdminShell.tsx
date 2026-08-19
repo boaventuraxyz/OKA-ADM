@@ -11,7 +11,8 @@ export type PlatformAdminShellProps = {
   breadcrumbs?: ReactNode;
   children: ReactNode;
   headerActions?: ReactNode;
-  pageTitle?: ReactNode;
+  /** Contexto curto da área; o título da página vem do PageHeader de cada tela. */
+  workspaceLabel?: string;
   profile: PlatformAdminProfile;
 };
 
@@ -31,7 +32,7 @@ export function PlatformAdminShell({
   breadcrumbs,
   children,
   headerActions,
-  pageTitle = "Dashboard",
+  workspaceLabel = "Painel administrativo",
   profile
 }: PlatformAdminShellProps) {
   const initials = getInitials(profile.displayName, profile.email);
@@ -51,10 +52,7 @@ export function PlatformAdminShell({
       <div className={styles.workspace}>
         <header className={styles.topbar}>
           <span aria-hidden="true" className={styles.mobileHeaderSpacer} />
-          <div className={styles.headerCopy}>
-            <span className={styles.headerEyebrow}>Painel administrativo</span>
-            <strong className={styles.headerTitle}>{pageTitle}</strong>
-          </div>
+          <span className={styles.headerContext}>{workspaceLabel}</span>
 
           <div className={styles.headerEnd}>
             {headerActions ? <div className={styles.headerActions}>{headerActions}</div> : null}

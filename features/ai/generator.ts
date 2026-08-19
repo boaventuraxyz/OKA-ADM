@@ -25,15 +25,21 @@ export const DEFAULT_AI_FALLBACK_MODELS = [
   "google/gemini-3.7-flash"
 ] as const;
 
+export type CampaignGenerationErrorCode =
+  | "AI_INVALID_INPUT"
+  | "AI_INVALID_OUTPUT"
+  | "AI_MODEL_NOT_FOUND"
+  | "AI_NOT_CONFIGURED"
+  | "AI_QUOTA_EXCEEDED"
+  | "AI_TIMEOUT"
+  | "AI_UNAVAILABLE";
+
 export class CampaignGenerationError extends Error {
   constructor(
-    public readonly code:
-      | "AI_INVALID_INPUT"
-      | "AI_INVALID_OUTPUT"
-      | "AI_TIMEOUT"
-      | "AI_UNAVAILABLE"
+    public readonly code: CampaignGenerationErrorCode,
+    options?: ErrorOptions
   ) {
-    super(code);
+    super(code, options);
     this.name = "CampaignGenerationError";
   }
 }
@@ -49,22 +55,81 @@ type CampaignGenerationOptions = {
 function selectedModelId() {
   const model = process.env.AI_MODEL?.trim() || DEFAULT_AI_MODEL;
   if (!/^[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*$/i.test(model)) {
-    throw new CampaignGenerationError("AI_UNAVAILABLE");
+    throw new CampaignGenerationError("AI_NOT_CONFIGURED");
   }
   return model;
 }
 
-function selectedGateway() {
-  const explicitApiKey =
-    process.env.AI_GATEWAY_API_KEY?.trim() || process.env.AI_API_KEY?.trim();
+/** Toda credencial aceita pelo AI Gateway, incluindo o OIDC injetado na Vercel. */
+export function aiGatewayCredentials() {
+  return {
+    apiKey:
+      process.env.AI_GATEWAY_API_KEY?.trim() || process.env.AI_API_KEY?.trim() || "",
+    oidcToken: process.env.VERCEL_OIDC_TOKEN?.trim() || ""
+  };
+}
 
-  return explicitApiKey ? createGateway({ apiKey: explicitApiKey }) : gateway;
+export function aiGatewayIsConfigured() {
+  const { apiKey, oidcToken } = aiGatewayCredentials();
+  return Boolean(apiKey || oidcToken);
+}
+
+function selectedGateway() {
+  const { apiKey, oidcToken } = aiGatewayCredentials();
+  // Sem credencial nenhuma o gateway falha com um erro genérico; avisar aqui
+  // deixa claro que falta configuração, não que o provedor está fora do ar.
+  if (!apiKey && !oidcToken) {
+    throw new CampaignGenerationError("AI_NOT_CONFIGURED");
+  }
+
+  return apiKey ? createGateway({ apiKey }) : gateway;
 }
 
 function isTimeout(error: unknown) {
   return (
     error instanceof Error &&
     (error.name === "AbortError" || /timeout|timed out/i.test(error.message))
+  );
+}
+
+/**
+ * O pacote `@ai-sdk/gateway` não é dependência direta, então a classificação
+ * usa as marcas que os erros dele carregam em vez de `instanceof`.
+ */
+function gatewayErrorCode(error: unknown): CampaignGenerationErrorCode | null {
+  if (!error || typeof error !== "object") return null;
+  const { name, type, statusCode } = error as {
+    name?: unknown;
+    type?: unknown;
+    statusCode?: unknown;
+  };
+  if (typeof name !== "string" || !name.startsWith("Gateway")) return null;
+
+  switch (type) {
+    case "authentication_error":
+    case "forbidden":
+      return "AI_NOT_CONFIGURED";
+    case "model_not_found":
+      return "AI_MODEL_NOT_FOUND";
+    case "rate_limit_exceeded":
+      return "AI_QUOTA_EXCEEDED";
+    case "invalid_request_error":
+      return statusCode === 402 ? "AI_QUOTA_EXCEEDED" : "AI_UNAVAILABLE";
+    default:
+      return "AI_UNAVAILABLE";
+  }
+}
+
+/** O motivo real some no erro genérico da API; sem log não há como diagnosticar. */
+function reportGenerationFailure(code: CampaignGenerationErrorCode, error: unknown) {
+  const detail =
+    error && typeof error === "object" && "name" in error
+      ? String((error as { name?: unknown }).name)
+      : typeof error;
+  console.error(
+    `[ai] geração de campanha falhou (${code})`,
+    detail,
+    error instanceof Error ? error.message : ""
   );
 }
 
@@ -111,16 +176,20 @@ export async function generateCampaignDraft(
       warnings: result.warnings?.map((warning) => warning.type) ?? []
     };
   } catch (error) {
-    if (
+    if (error instanceof CampaignGenerationError) {
+      reportGenerationFailure(error.code, error);
+      throw error;
+    }
+
+    const code =
       NoObjectGeneratedError.isInstance(error) ||
       NoOutputGeneratedError.isInstance(error)
-    ) {
-      throw new CampaignGenerationError("AI_INVALID_OUTPUT");
-    }
-    if (isTimeout(error)) {
-      throw new CampaignGenerationError("AI_TIMEOUT");
-    }
-    if (error instanceof CampaignGenerationError) throw error;
-    throw new CampaignGenerationError("AI_UNAVAILABLE");
+        ? "AI_INVALID_OUTPUT"
+        : isTimeout(error)
+          ? "AI_TIMEOUT"
+          : gatewayErrorCode(error) ?? "AI_UNAVAILABLE";
+
+    reportGenerationFailure(code, error);
+    throw new CampaignGenerationError(code, { cause: error });
   }
 }

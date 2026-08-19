@@ -1,21 +1,22 @@
+/* Os tokens vivem em app/globals.css; aqui ficam apenas os apelidos locais. */
 .shell {
-  --admin-canvas: #f3f6f4;
-  --admin-surface: #ffffff;
-  --admin-surface-muted: #eef2ef;
-  --admin-text: #17201b;
-  --admin-text-muted: #617168;
-  --admin-border: #d8e1dc;
-  --admin-brand: #17663a;
-  --admin-brand-dark: #0d3320;
-  --admin-sidebar: #10251a;
-  --admin-sidebar-muted: #9fb2a7;
+  --admin-canvas: var(--oka-canvas);
+  --admin-surface: var(--oka-surface);
+  --admin-surface-muted: var(--oka-surface-subtle);
+  --admin-text: var(--oka-text);
+  --admin-text-muted: var(--oka-text-muted);
+  --admin-border: var(--oka-border);
+  --admin-brand: var(--oka-brand);
+  --admin-brand-dark: var(--oka-brand-dark);
+  --admin-sidebar: var(--oka-sidebar);
+  --admin-sidebar-muted: var(--oka-sidebar-muted);
   --admin-focus: #52c984;
   min-height: 100svh;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: 252px minmax(0, 1fr);
   background: var(--admin-canvas);
   color: var(--admin-text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--oka-font);
 }
 
 .shell,
@@ -151,11 +152,11 @@
 
 .navLabel {
   margin: 0;
-  color: #7f9589;
+  color: var(--admin-sidebar-muted);
   padding: 0 10px;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
@@ -173,10 +174,10 @@
   align-items: center;
   gap: 10px;
   border: 1px solid transparent;
-  border-radius: 10px;
-  color: #bac9c1;
+  border-radius: 9px;
+  color: var(--admin-sidebar-text);
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 650;
   line-height: 1.25;
   text-decoration: none;
@@ -189,10 +190,10 @@
 }
 
 .navLinkActive {
-  border-color: rgba(82, 201, 132, 0.23);
-  background: rgba(45, 151, 89, 0.2);
+  border-color: rgba(82, 201, 132, 0.26);
+  background: rgba(45, 151, 89, 0.22);
   color: #ffffff;
-  box-shadow: inset 3px 0 0 #52c984;
+  box-shadow: inset 2px 0 0 #52c984;
 }
 
 .sidebarFooter {
@@ -218,7 +219,7 @@
 .sidebarAvatar {
   width: 34px;
   height: 34px;
-  background: #dff4e7;
+  background: var(--oka-brand-soft);
   color: var(--admin-brand-dark);
   font-size: 12px;
 }
@@ -239,13 +240,13 @@
 
 .sidebarIdentity strong {
   color: #ffffff;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .sidebarIdentity span,
 .sidebarIdentity small {
   color: var(--admin-sidebar-muted);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .sidebarIdentity small {
@@ -268,7 +269,7 @@
 }
 
 .topbar {
-  min-height: 60px;
+  min-height: 56px;
   position: sticky;
   z-index: 20;
   top: 0;
@@ -277,35 +278,20 @@
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid var(--admin-border);
-  background: color-mix(in srgb, var(--admin-surface) 94%, transparent);
+  background: color-mix(in srgb, var(--admin-surface) 92%, transparent);
   padding: 8px clamp(16px, 2.5vw, 28px);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
+}
+
+.headerContext {
+  color: var(--admin-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .mobileHeaderSpacer {
   display: none;
-}
-
-.headerCopy {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-
-.headerEyebrow {
-  color: var(--admin-text-muted);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-}
-
-.headerTitle {
-  overflow: hidden;
-  color: var(--admin-text);
-  font-size: 17px;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .headerEnd,
@@ -335,7 +321,7 @@
   width: 32px;
   height: 32px;
   flex: 0 0 32px;
-  background: #e2f2e8;
+  background: var(--oka-brand-soft);
   color: var(--admin-brand-dark);
   font-size: 11px;
 }
@@ -355,28 +341,29 @@
 }
 
 .headerIdentity strong {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .headerIdentity span {
   color: var(--admin-text-muted);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .rolePill {
   border-radius: 999px;
-  background: #e2f2e8;
+  background: var(--oka-brand-soft);
   color: var(--admin-brand-dark);
-  padding: 5px 9px;
-  font-size: 10px;
+  padding: 5px 10px;
+  font-size: 11px;
   font-weight: 800;
+  text-transform: capitalize;
   white-space: nowrap;
 }
 
 .viewport {
-  width: min(100%, 1720px);
+  width: min(100%, 1600px);
   margin: 0 auto;
-  padding: 16px clamp(16px, 2.5vw, 28px) 36px;
+  padding: 26px clamp(16px, 2.5vw, 32px) 48px;
 }
 
 .breadcrumbSlot {
@@ -462,12 +449,12 @@
   }
 
   .topbar {
-    min-height: 72px;
+    min-height: 64px;
     gap: 12px;
     padding: 10px 16px;
   }
 
-  .headerCopy {
+  .headerContext {
     flex: 1;
   }
 
@@ -492,7 +479,7 @@
 }
 
 @media (max-width: 520px) {
-  .headerEyebrow,
+  .headerContext,
   .headerProfile {
     display: none;
   }

@@ -57,7 +57,7 @@ function redirectWithAuthHeaders(
 }
 
 function authErrorPath() {
-  return "/login?auth_error=invalid_or_expired_link";
+  return "/login?auth_error=invalido";
 }
 
 export async function GET(request: NextRequest) {
@@ -89,6 +89,11 @@ export async function GET(request: NextRequest) {
       type: rawType,
     });
     authenticated = !error;
+  } else {
+    // Sem código nem token_hash o link veio pelo fluxo implícito: os tokens
+    // estão no fragmento da URL, que o navegador não envia ao servidor. O
+    // fragmento sobrevive ao redirecionamento e é lido na página seguinte.
+    return redirectWithAuthHeaders(request, "/auth/continuar", authHeaders);
   }
 
   if (!authenticated) {

@@ -29,9 +29,13 @@ export default async function LoginPage({
           ? "Este acesso ainda não está liberado."
           : erro === "indisponivel" || erro === "config"
             ? "Não foi possível entrar agora. Tente novamente mais tarde."
-            : authError === "invalid_or_expired_link"
-              ? "O link de autenticação é inválido ou expirou."
-              : null;
+            : authError === "expirado"
+              ? "Este convite expirou. Peça um novo link para quem administra o painel."
+              : authError === "usado"
+                ? "Este link já foi utilizado. Peça um novo link para quem administra o painel."
+                : authError === "invalido" || authError === "invalid_or_expired_link"
+                  ? "O link de autenticação é inválido ou expirou. Peça um novo link para quem administra o painel."
+                  : null;
 
   return (
     <main className="login-page">

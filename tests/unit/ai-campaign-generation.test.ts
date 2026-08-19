@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MockLanguageModelV4 } from "ai/test";
 import { THEME_REGISTRY } from "@/features/themes/registry";
-import { generateCampaignDraft } from "@/features/ai/generator";
+import { aiGatewayIsConfigured, generateCampaignDraft } from "@/features/ai/generator";
 import { mapGeneratedDraftToCampaignInput } from "@/features/ai/campaign-draft";
 import {
   campaignGenerationInputSchema,
@@ -204,5 +204,58 @@ describe("geração assistida de campanha", () => {
         maxRetries: 0
       })
     ).rejects.toMatchObject({ code: "AI_UNAVAILABLE" });
+  });
+
+  it.each([
+    ["authentication_error", 401, "AI_NOT_CONFIGURED"],
+    ["forbidden", 403, "AI_NOT_CONFIGURED"],
+    ["model_not_found", 404, "AI_MODEL_NOT_FOUND"],
+    ["rate_limit_exceeded", 429, "AI_QUOTA_EXCEEDED"],
+    ["invalid_request_error", 402, "AI_QUOTA_EXCEEDED"],
+    ["internal_server_error", 500, "AI_UNAVAILABLE"]
+  ])("traduz o erro %s do gateway em %s", async (type, statusCode, expected) => {
+    const gatewayModel = new MockLanguageModelV4({
+      doGenerate: async () => {
+        throw Object.assign(new Error("gateway recusou a chamada"), {
+          name: `Gateway${type}Error`,
+          statusCode,
+          type
+        });
+      }
+    });
+
+    await expect(
+      generateCampaignDraft(validInput, "actor-test", {
+        model: gatewayModel,
+        modelId: "mock/campaign",
+        maxRetries: 0
+      })
+    ).rejects.toMatchObject({ code: expected });
+  });
+
+  it("avisa quando o gateway não tem credencial configurada", async () => {
+    const previous = {
+      apiKey: process.env.AI_GATEWAY_API_KEY,
+      fallbackKey: process.env.AI_API_KEY,
+      oidc: process.env.VERCEL_OIDC_TOKEN
+    };
+    delete process.env.AI_GATEWAY_API_KEY;
+    delete process.env.AI_API_KEY;
+    delete process.env.VERCEL_OIDC_TOKEN;
+
+    try {
+      expect(aiGatewayIsConfigured()).toBe(false);
+      await expect(
+        generateCampaignDraft(validInput, "actor-test", { maxRetries: 0 })
+      ).rejects.toMatchObject({ code: "AI_NOT_CONFIGURED" });
+
+      process.env.AI_GATEWAY_API_KEY = "chave-de-teste";
+      expect(aiGatewayIsConfigured()).toBe(true);
+    } finally {
+      if (previous.apiKey === undefined) delete process.env.AI_GATEWAY_API_KEY;
+      else process.env.AI_GATEWAY_API_KEY = previous.apiKey;
+      if (previous.fallbackKey !== undefined) process.env.AI_API_KEY = previous.fallbackKey;
+      if (previous.oidc !== undefined) process.env.VERCEL_OIDC_TOKEN = previous.oidc;
+    }
   });
 });
