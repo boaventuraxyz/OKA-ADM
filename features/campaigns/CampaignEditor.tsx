@@ -109,7 +109,7 @@ type EditorSettings = {
   allowSharing: boolean;
   collectAddress: boolean;
   requireConsent: true;
-  titleHighlights: CampaignTitleHighlight[] | null;
+  titleHighlights: CampaignTitleHighlight[];
   videoCarousel: CampaignVideoItem[] | null;
 };
 
@@ -120,8 +120,6 @@ type EditorValues = {
   candidatoId: string;
   corDestaque: string;
   descricao: string;
-  destaquePrimario: string;
-  destaqueSecundario: string;
   fimEm: string;
   idPlanilha: string;
   imagemFundo: string;
@@ -227,8 +225,6 @@ const editorValueKeys = [
   "candidatoId",
   "corDestaque",
   "descricao",
-  "destaquePrimario",
-  "destaqueSecundario",
   "fimEm",
   "idPlanilha",
   "imagemFundo",
@@ -271,8 +267,6 @@ const actionKeyByEditorValue: Record<EditorValueKey, string> = {
   candidatoId: "candidato_id",
   corDestaque: "cor_destaque",
   descricao: "descricao",
-  destaquePrimario: "destaque_primario",
-  destaqueSecundario: "destaque_secundario",
   fimEm: "fim_em",
   idPlanilha: "id_planilha",
   imagemFundo: "imagem_fundo",
@@ -312,8 +306,6 @@ const actionKeyByEditorValue: Record<EditorValueKey, string> = {
 
 const editorKeyByThemeContentKey: Record<CampaignThemeContentKey, EditorValueKey> = {
   descricao: "descricao",
-  destaque_primario: "destaquePrimario",
-  destaque_secundario: "destaqueSecundario",
   imagem_fundo: "imagemFundo",
   imagem_lateral: "imagemLateral",
   legenda_video: "legendaVideo",
@@ -530,8 +522,6 @@ function createInitialState(
     candidatoId: campaign?.candidato_id || "",
     corDestaque: campaign?.cor_destaque || theme.palette.accent,
     descricao: campaign?.descricao || "",
-    destaquePrimario: campaign?.destaque_primario || "",
-    destaqueSecundario: campaign?.destaque_secundario || "",
     fimEm: dateTimeLocalValue(campaign?.fim_em),
     idPlanilha: campaign?.id_planilha || "",
     imagemFundo: campaign?.imagem_fundo || "",
@@ -582,7 +572,14 @@ function createInitialState(
           ? true
           : booleanValue(settingsBase.collect_address, false),
         requireConsent: true,
-        titleHighlights: parseCampaignTitleHighlights(settingsBase),
+        titleHighlights:
+          parseCampaignTitleHighlights(settingsBase) ??
+          legacyCampaignTitleHighlights({
+            primary: campaign?.destaque_primario,
+            primaryColor: campaign?.cor_destaque || theme.palette.accent,
+            secondary: campaign?.destaque_secundario,
+            title: campaign?.titulo || ""
+          }),
         videoCarousel: parseCampaignVideoCarousel(settingsBase)
       },
       values
@@ -618,9 +615,7 @@ function settingsPayload(
     allow_sharing: settings.allowSharing,
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
     require_consent: true,
-    ...(settings.titleHighlights === null
-      ? {}
-      : { title_highlights: settings.titleHighlights }),
+    title_highlights: settings.titleHighlights,
     ...(settings.videoCarousel === null
       ? {}
       : { video_carousel: settings.videoCarousel })
@@ -982,32 +977,19 @@ function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values
 }
 
 function TitleHighlightEditor({
-  defaultColor,
   highlights,
-  legacyPrimary,
-  legacySecondary,
   onChange,
   title
 }: {
-  defaultColor: string;
-  highlights: CampaignTitleHighlight[] | null;
-  legacyPrimary: string;
-  legacySecondary: string;
+  highlights: CampaignTitleHighlight[];
   onChange: (highlights: CampaignTitleHighlight[]) => void;
   title: string;
 }) {
   const [selectionColor, setSelectionColor] = useState<string>(
     titleHighlightPalette[1].color
   );
-  const fallbackHighlights = legacyCampaignTitleHighlights({
-    primary: legacyPrimary,
-    primaryColor: defaultColor,
-    secondary: legacySecondary,
-    title
-  });
-  const effectiveHighlights = highlights ?? fallbackHighlights;
   const highlightByWord = new Map(
-    effectiveHighlights.map((highlight) => [highlight.index, highlight])
+    highlights.map((highlight) => [highlight.index, highlight])
   );
   const words = campaignTitleTokens(title).filter(
     (token): token is typeof token & { wordIndex: number } => token.wordIndex !== null
@@ -1015,7 +997,7 @@ function TitleHighlightEditor({
 
   function updateWord(index: number) {
     const current = highlightByWord.get(index);
-    const next = effectiveHighlights.filter((highlight) => highlight.index !== index);
+    const next = highlights.filter((highlight) => highlight.index !== index);
     if (current?.color !== selectionColor) {
       next.push({ color: selectionColor, index });
     }
@@ -1023,7 +1005,7 @@ function TitleHighlightEditor({
   }
 
   function applyColorToSelection() {
-    onChange(effectiveHighlights.map((highlight) => ({
+    onChange(highlights.map((highlight) => ({
       ...highlight,
       color: selectionColor
     })));
@@ -1036,7 +1018,7 @@ function TitleHighlightEditor({
           <h3>Palavras coloridas do título</h3>
           <p>Escolha uma das cores padronizadas e clique nas palavras que devem recebê-la.</p>
         </div>
-        <span>{effectiveHighlights.length} selecionada{effectiveHighlights.length === 1 ? "" : "s"}</span>
+        <span>{highlights.length} selecionada{highlights.length === 1 ? "" : "s"}</span>
       </header>
 
       <div className={styles.titleHighlightControls}>
@@ -1056,10 +1038,10 @@ function TitleHighlightEditor({
             </button>
           ))}
         </div>
-        <button disabled={effectiveHighlights.length === 0} onClick={applyColorToSelection} type="button">
+        <button disabled={highlights.length === 0} onClick={applyColorToSelection} type="button">
           Aplicar às selecionadas
         </button>
-        <button disabled={effectiveHighlights.length === 0} onClick={() => onChange([])} type="button">
+        <button disabled={highlights.length === 0} onClick={() => onChange([])} type="button">
           Limpar seleção
         </button>
       </div>
@@ -1161,16 +1143,11 @@ function ContentPanel({
         </div>
       </div>
 
-      {theme.key === "cover" ? (
-        <TitleHighlightEditor
-          defaultColor={values.corDestaque}
-          highlights={settings.titleHighlights}
-          legacyPrimary={values.destaquePrimario}
-          legacySecondary={values.destaqueSecundario}
-          onChange={onTitleHighlightsChange}
-          title={values.titulo}
-        />
-      ) : null}
+      <TitleHighlightEditor
+        highlights={settings.titleHighlights}
+        onChange={onTitleHighlightsChange}
+        title={values.titulo}
+      />
 
       <div className={styles.identityGrid}>
         <FormField
@@ -1220,13 +1197,8 @@ function ContentPanel({
                 </div>
               ) : null}
               {section.fields.filter((field) => (
-                (
-                  theme.key !== "cover" ||
-                  (field.key !== "destaque_primario" && field.key !== "destaque_secundario")
-                ) && (
-                  theme.key !== "impact-dark" ||
-                  (field.key !== "video_url" && field.key !== "legenda_video")
-                )
+                theme.key !== "impact-dark" ||
+                (field.key !== "video_url" && field.key !== "legenda_video")
               )).map((field) => (
                 <ThemeContentFieldControl errors={errors} field={field} key={field.key} onValueChange={onValueChange} prefix={prefix} values={values} />
               ))}
@@ -1654,8 +1626,6 @@ function PreviewPanel({
             assinaturasMeta: Number(values.assinaturasMeta) || 0,
             candidateName,
             descricao: values.descricao || null,
-            destaquePrimario: values.destaquePrimario || null,
-            destaqueSecundario: values.destaqueSecundario || null,
             formConfig: formConfigPayload({}, fields),
             imagemFundoUrl: values.imagemFundo || null,
             imagemFundoVersao: null,
@@ -1769,7 +1739,6 @@ export function CampaignEditor({
       titulo: title
     }));
     setSettings((current) => {
-      if (current.titleHighlights === null) return current;
       const titleHighlights = current.titleHighlights.filter(
         (highlight) => highlight.index < titleWordCount
       );

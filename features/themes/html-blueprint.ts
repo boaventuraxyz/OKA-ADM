@@ -52,7 +52,6 @@ export function buildThemeHtmlBlueprint(themeKey: string, paletteKey: string) {
     '<body data-theme="' + escapeHtml(theme.key) + '" data-palette="' + escapeHtml(option.key) + '">',
     "  <main>",
     "    <header>",
-    "      <p>{{destaque_primario}}</p>",
     "      <h1>{{titulo}}</h1>",
     "      <p>{{descricao}}</p>",
     "    </header>",

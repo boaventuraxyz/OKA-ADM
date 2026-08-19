@@ -25,9 +25,17 @@ describe("registro central de temas", () => {
 
   it("não mistura os campos longos do manifesto com o tema de capa", () => {
     const cover = themeContentKeys("cover");
-    expect(cover).toEqual(new Set(["destaque_primario", "destaque_secundario", "descricao", "imagem_fundo"]));
+    expect(cover).toEqual(new Set(["descricao", "imagem_fundo"]));
     expect(cover.has("texto_topicos")).toBe(false);
     expect(themeContentKeys("manifesto").has("texto_topicos")).toBe(true);
+  });
+
+  it("remove os campos legados de destaque de todos os temas", () => {
+    for (const theme of THEME_REGISTRY) {
+      const keys = themeContentKeys(theme.key);
+      expect([...keys]).not.toContain("destaque_primario");
+      expect([...keys]).not.toContain("destaque_secundario");
+    }
   });
 
   it("gera uma base HTML com os campos e tokens da paleta selecionada", () => {

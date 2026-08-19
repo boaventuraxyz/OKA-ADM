@@ -12,6 +12,7 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type ModernThemeId = 5 | 6 | 7;
 
@@ -25,8 +26,6 @@ type ModernCampaign = {
     partido: string | null;
   } | null;
   descricao: string | null;
-  destaquePrimario: string | null;
-  destaqueSecundario: string | null;
   formConfig: Record<string, unknown> | null;
   id: string;
   settings: Record<string, unknown> | null;
@@ -41,6 +40,7 @@ type ModernCampaign = {
   textoImpactoApoio: string | null;
   textoProposta: string | null;
   textoTopicos: string | null;
+  titleHighlights: CampaignTitleHighlight[] | null;
   titulo: string | null;
   tituloAssinar: string | null;
   tituloTopicos: string | null;
@@ -136,8 +136,7 @@ export function CampaignModernTheme({
             <div className="campaign-modern-eyebrow">{campanha.textoDot || meta.eyebrow}</div>
             <h1>
               <CampaignHeadline
-                primary={campanha.destaquePrimario}
-                secondary={campanha.destaqueSecundario}
+                highlights={campanha.titleHighlights}
                 text={title}
               />
             </h1>
@@ -153,8 +152,8 @@ export function CampaignModernTheme({
           </div>
           <aside className="campaign-modern-summary">
             <small>{meta.name}</small>
-            <strong>{campanha.destaquePrimario || "Uma proposta clara para avançar"}</strong>
-            <p>{campanha.destaqueSecundario || "Informação, participação e resultado coletivo."}</p>
+            <strong>{campanha.textoImpacto || "Uma proposta clara para avançar"}</strong>
+            <p>{campanha.textoImpactoApoio || "Informação, participação e resultado coletivo."}</p>
             <div><b>{totalAssinaturas.toLocaleString("pt-BR")}</b> apoios registrados</div>
           </aside>
         </div>

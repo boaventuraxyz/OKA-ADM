@@ -3,7 +3,10 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
-import { parseCampaignTitleHighlights } from "@/lib/campaign-title-highlights";
+import {
+  legacyCampaignTitleHighlights,
+  parseCampaignTitleHighlights
+} from "@/lib/campaign-title-highlights";
 import { parseCampaignVideoCarousel } from "@/lib/campaign-video-carousel";
 import { resolveCampaignTheme } from "@/lib/campaign-themes";
 import {
@@ -28,6 +31,14 @@ export function getPublicCampaignView(id: string) {
         : null;
       const background = parseCampaignBackground(campanha.imagem_fundo);
       const sideImage = parseCampaignBackground(campanha.imagem_lateral);
+      const titleHighlights =
+        parseCampaignTitleHighlights(campanha.settings) ??
+        legacyCampaignTitleHighlights({
+          primary: campanha.destaque_primario,
+          primaryColor: campanha.cor_destaque || "#E05A5A",
+          secondary: campanha.destaque_secundario,
+          title: campanha.titulo || ""
+        });
 
       return {
         assinaturasMeta: campanha.assinaturas_meta,
@@ -43,8 +54,6 @@ export function getPublicCampaignView(id: string) {
           : null,
         corDestaque: campanha.cor_destaque,
         descricao: campanha.descricao,
-        destaquePrimario: campanha.destaque_primario,
-        destaqueSecundario: campanha.destaque_secundario,
         id: campanha.id,
         ativa: campanha.ativa,
         inicioEm: campanha.inicio_em,
@@ -76,7 +85,7 @@ export function getPublicCampaignView(id: string) {
         tituloAssinar: campanha.titulo_assinar,
         textoAssinar: campanha.texto_assinar,
         textoCompartilhar: campanha.texto_compartilhar,
-        titleHighlights: parseCampaignTitleHighlights(campanha.settings),
+        titleHighlights,
         slug: campanha.slug ?? null,
         metaTitle: campanha.meta_title ?? null,
         metaDescription: campanha.meta_description ?? null,

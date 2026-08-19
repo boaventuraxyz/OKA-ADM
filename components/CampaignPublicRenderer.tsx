@@ -23,8 +23,6 @@ export type CampaignRenderData = {
   } | null;
   corDestaque: string | null;
   descricao: string | null;
-  destaquePrimario: string | null;
-  destaqueSecundario: string | null;
   formConfig: Record<string, unknown> | null;
   id: string;
   imagemFundoUrl?: string | null;
@@ -175,8 +173,7 @@ export function CampaignPublicRenderer({
               </span>
               <h1>
                 <CampaignHeadline
-                  primary={campanha.destaquePrimario}
-                  secondary={campanha.destaqueSecundario}
+                  highlights={campanha.titleHighlights}
                   text={title}
                 />
               </h1>
@@ -297,8 +294,6 @@ export function CampaignPublicRenderer({
             <h1 className="campaign-headline">
               <CampaignHeadline
                 highlights={campanha.titleHighlights}
-                primary={campanha.destaquePrimario}
-                secondary={campanha.destaqueSecundario}
                 text={title}
               />
             </h1>

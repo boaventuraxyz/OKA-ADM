@@ -34,8 +34,6 @@ export type ThemeCapabilities = {
 
 export type CampaignThemeContentKey =
   | "descricao"
-  | "destaque_primario"
-  | "destaque_secundario"
   | "imagem_fundo"
   | "imagem_lateral"
   | "legenda_video"
@@ -97,8 +95,6 @@ const modernCampaignSections = [
     description: "Apresente a causa com uma mensagem curta e reconhecível.",
     fields: [
       { key: "texto_faixa", label: "Identificação da mobilização", maxLength: 500, type: "text" },
-      { key: "destaque_primario", label: "Destaque principal", maxLength: 160, type: "text" },
-      { key: "destaque_secundario", label: "Destaque secundário", maxLength: 160, type: "text" },
       { key: "descricao", label: "Resumo", maxLength: 5000, type: "textarea" }
     ]
   },
@@ -177,8 +173,6 @@ export const THEME_REGISTRY = [
         title: "Mensagem principal",
         description: "O tema de capa usa uma mensagem curta e direta.",
         fields: [
-          { key: "destaque_primario", label: "Trecho principal legado", maxLength: 160, type: "text", placeholder: "A frase de maior impacto" },
-          { key: "destaque_secundario", label: "Complemento do slogan", maxLength: 160, type: "text", placeholder: "Uma segunda linha curta" },
           { key: "descricao", label: "Descrição", maxLength: 5000, type: "textarea", placeholder: "Explique a causa em poucas linhas." }
         ]
       },
@@ -226,8 +220,6 @@ export const THEME_REGISTRY = [
         title: "Abertura editorial",
         description: "Título, resumo e imagem que apresentam a campanha.",
         fields: [
-          { key: "destaque_primario", label: "Destaque principal", maxLength: 160, type: "text" },
-          { key: "destaque_secundario", label: "Destaque secundário", maxLength: 160, type: "text" },
           { key: "descricao", label: "Resumo", maxLength: 5000, type: "textarea" },
           { key: "imagem_lateral", label: "Imagem lateral", maxLength: 1230000, type: "image" }
         ]
@@ -287,8 +279,6 @@ export const THEME_REGISTRY = [
         title: "Abertura do manifesto",
         description: "Mensagem de entrada e faixa opcional.",
         fields: [
-          { key: "destaque_primario", label: "Destaque principal", maxLength: 160, type: "text" },
-          { key: "destaque_secundario", label: "Destaque secundário", maxLength: 160, type: "text" },
           { key: "descricao", label: "Descrição", maxLength: 5000, type: "textarea" },
           { key: "texto_faixa", label: "Faixa animada", maxLength: 500, type: "text" }
         ]

@@ -4,6 +4,7 @@ import "@fontsource/sora/700.css";
 import "@fontsource/sora/800.css";
 
 import type { CSSProperties } from "react";
+import { CampaignHeadline } from "@/components/CampaignHeadline";
 import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { CampaignTheme4SignatureModal } from "@/components/CampaignTheme4SignatureModal";
@@ -14,6 +15,7 @@ import {
   legacyCampaignVideoCarousel,
   type CampaignVideoItem,
 } from "@/lib/campaign-video-carousel";
+import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type Theme4Campaign = {
   id: string;
@@ -36,6 +38,7 @@ type Theme4Campaign = {
   textoCompartilhar: string | null;
   formConfig: Record<string, unknown> | null;
   settings: Record<string, unknown> | null;
+  titleHighlights: CampaignTitleHighlight[] | null;
   candidato: {
     nome: string | null;
   } | null;
@@ -133,7 +136,7 @@ export function CampaignTheme4({
               <span aria-hidden="true" />
               {campanha.textoDot || "Caso em andamento"}
             </div>
-            <h1>{heroTitle}</h1>
+            <h1><CampaignHeadline highlights={campanha.titleHighlights} text={heroTitle} /></h1>
             {campanha.descricao ? (
               <CampaignRichText className="campaign-theme4-hero-sub" text={campanha.descricao} />
             ) : null}

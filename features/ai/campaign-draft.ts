@@ -111,8 +111,6 @@ export function mapGeneratedDraftToCampaignInput({
     candidato_id: actorInput.candidateId ?? null,
     texto_form: draft.formTitle,
     texto_dot: draft.callToAction,
-    destaque_primario: draft.headline,
-    destaque_secundario: draft.slogan,
     tema: theme.id,
     theme_key: theme.key,
     ...contentByTheme,
@@ -125,6 +123,7 @@ export function mapGeneratedDraftToCampaignInput({
       allow_sharing: true,
       collect_address: false,
       require_consent: true,
+      title_highlights: [],
       generation: {
         source: "ai",
         generatedAt,

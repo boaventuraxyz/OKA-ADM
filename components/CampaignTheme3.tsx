@@ -8,13 +8,12 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type Theme3Campaign = {
   id: string;
   titulo: string | null;
   descricao: string | null;
-  destaquePrimario: string | null;
-  destaqueSecundario: string | null;
   textoDot: string | null;
   textoForm: string | null;
   assinaturasMeta: number | null;
@@ -35,6 +34,7 @@ type Theme3Campaign = {
   textoCompartilhar: string | null;
   formConfig: Record<string, unknown> | null;
   settings: Record<string, unknown> | null;
+  titleHighlights: CampaignTitleHighlight[] | null;
   candidato: {
     cargo: string | null;
     estado: string | null;
@@ -104,8 +104,7 @@ export function CampaignTheme3({
           </div>
           <h1>
             <CampaignHeadline
-              primary={campanha.destaquePrimario}
-              secondary={campanha.destaqueSecundario}
+              highlights={campanha.titleHighlights}
               text={title}
             />
           </h1>
