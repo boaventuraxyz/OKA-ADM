@@ -93,6 +93,7 @@ export async function listCampaignRows(
 
   if (params.status) query = query.eq("status", params.status);
   if (params.theme) query = query.eq("theme_key", params.theme);
+  if (params.candidateId) query = query.eq("candidato_id", params.candidateId);
 
   query = query
     .order(params.sortBy, { ascending: params.sortDirection === "asc" })

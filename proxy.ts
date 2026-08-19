@@ -12,9 +12,9 @@ const exactRedirects: Record<string, string> = {
   "/Campanha": "/admin/campaigns",
   "/Campanha/Index": "/admin/campaigns",
   "/Campanha/Create": "/admin/campaigns/new",
-  "/Candidato": "/candidatos",
-  "/Candidato/Index": "/candidatos",
-  "/Candidato/Create": "/candidatos/novo",
+  "/Candidato": "/admin/candidates",
+  "/Candidato/Index": "/admin/candidates",
+  "/Candidato/Create": "/admin/candidates/new",
   "/Assinatura": "/admin/leads",
   "/Assinatura/Index": "/admin/leads",
   "/Formulario": "/formulario",
@@ -213,7 +213,7 @@ export async function proxy(request: NextRequest) {
   if (candidatoEdit) {
     return applySession(
       NextResponse.redirect(
-        new URL(`/candidatos/${candidatoEdit[1]}/editar`, request.url)
+        new URL(`/admin/candidates/${candidatoEdit[1]}/edit`, request.url)
       )
     );
   }

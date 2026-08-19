@@ -27,6 +27,12 @@ body {
   min-height: 100%;
 }
 
+@media (min-width: 901px) {
+  html:has(.platform-admin-shell) {
+    font-size: 14px;
+  }
+}
+
 body {
   margin: 0;
   background: var(--bg);

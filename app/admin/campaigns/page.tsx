@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { CampaignRowActions } from "@/features/campaigns/CampaignRowActions";
+import { listCandidateOptions } from "@/features/candidates/service";
 import {
   CAMPAIGN_STATUS_LABELS,
   CAMPAIGN_STATUSES,
@@ -58,14 +59,19 @@ export default async function AdminCampaignsPage({
     search: value(params, "search") || undefined,
     status: value(params, "status") || undefined,
     theme: value(params, "theme") || undefined,
+    candidateId: value(params, "candidateId") || undefined,
     sortBy: value(params, "sortBy") || undefined,
     sortDirection: value(params, "sortDirection") || undefined,
   };
-  const result = await listCampaigns(query);
+  const [result, candidates] = await Promise.all([
+    listCampaigns(query),
+    listCandidateOptions()
+  ]);
   const currentQuery = {
     search: query.search,
     status: query.status,
     theme: query.theme,
+    candidateId: query.candidateId,
     sortBy: query.sortBy,
     sortDirection: query.sortDirection,
   };
@@ -115,6 +121,21 @@ export default async function AdminCampaignsPage({
             <option value="">Todos</option>
             {THEME_REGISTRY.map((theme) => (
               <option key={theme.key} value={theme.key}>{theme.name}</option>
+            ))}
+          </Select>
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="campaign-candidate">Candidato</label>
+          <Select
+            defaultValue={query.candidateId || ""}
+            id="campaign-candidate"
+            name="candidateId"
+          >
+            <option value="">Todos</option>
+            {candidates.map((candidate) => (
+              <option key={candidate.id} value={candidate.id}>
+                {candidate.nome}{candidate.partido ? ` · ${candidate.partido}` : ""}
+              </option>
             ))}
           </Select>
         </div>

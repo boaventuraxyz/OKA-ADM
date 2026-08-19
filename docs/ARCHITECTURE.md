@@ -206,12 +206,12 @@ Respostas que alteram sessão propagam corretamente `Set-Cookie` e headers de ca
 | --- | --- |
 | Auth | `/login`, `/auth/callback`, `/auth/set-password` |
 | Painel | `/admin` |
-| Conteúdo | `/admin/campaigns`, `/admin/campaigns/new`, `/admin/campaigns/[id]/edit`, `/admin/campaigns/ai`, `/admin/themes`, `/admin/forms` |
+| Conteúdo | `/admin/campaigns`, `/admin/campaigns/new`, `/admin/campaigns/[id]/edit`, `/admin/campaigns/ai`, `/admin/candidates`, `/admin/themes`, `/admin/forms` |
 | Dados | `/admin/leads` |
 | Gestão | `/admin/users`, `/admin/settings` |
 | Público | `/formulario/[slug]`, `/c/[slug]` |
 
-Páginas novas não devem apontar para `/p/[slug]`, `/campanhas`, `/assinaturas`, `/temas` ou rotas MVC. Esses caminhos existem somente como adapters de compatibilidade. `/candidatos/*` ainda é legado e deve permanecer isolado até uma migração dedicada.
+Páginas novas não devem apontar para `/p/[slug]`, `/campanhas`, `/candidatos`, `/assinaturas`, `/temas` ou rotas MVC. Esses caminhos existem somente como adapters de compatibilidade; candidatos usam `/admin/candidates` como rota canônica.
 
 ## Contratos que não podem ser quebrados silenciosamente
 

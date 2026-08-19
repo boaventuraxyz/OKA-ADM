@@ -18,6 +18,10 @@ Ordem confirmada no histórico remoto em 18 de agosto de 2026:
 Migration nova, ainda a confirmar no histórico remoto:
 
 5. `20260818194500_review_campaign_copy.sql`
+6. `20260818203936_julia_castro_campaigns_theme_three.sql`
+7. `20260818204707_rewrite_julia_castro_campaign_copy.sql`
+8. `20260818213500_rewrite_and_retheme_all_campaigns.sql`
+9. `20260819111500_redistribute_julia_castro_campaign_themes.sql`
 
 As três primeiras migrations formam a baseline segura consolidada pelo
 bootstrap. A quarta é uma evolução aditiva posterior para compatibilizar o form
@@ -88,6 +92,15 @@ campanhas existentes: uma tag HTML sem fechamento, um título com espaços
 invisíveis, capitalização de uma legenda e capitalização inconsistente de um
 título. Cada `UPDATE` exige o UUID e o valor anterior exato, portanto uma edição
 posterior não é sobrescrita ao reproduzir a migration.
+
+### 6–9. Revisão editorial e distribuição de temas
+
+As migrations editoriais seguintes reescrevem somente campanhas identificadas
+por UUID e preservam candidatos, slugs e leads. A última corrige a padronização
+temporária do portfólio de Julia de Castro: quatro campanhas usam `cover` e as
+três campanhas mais adequadas a conteúdo longo usam, respectivamente,
+`editorial`, `manifesto` e `impact-dark`. A atualização valida o candidato e os
+sete UUIDs antes de considerar a distribuição concluída.
 
 ## Bootstrap versus migrations
 

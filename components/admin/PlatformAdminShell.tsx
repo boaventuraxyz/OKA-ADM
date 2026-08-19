@@ -37,7 +37,7 @@ export function PlatformAdminShell({
   const initials = getInitials(profile.displayName, profile.email);
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} platform-admin-shell`}>
       <a className={styles.skipLink} href="#platform-admin-main">
         Ir para o conteúdo principal
       </a>

@@ -2,6 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireRole } from "@/features/auth/guards";
 import { requireAdmin } from "@/lib/auth";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { normalizeCandidateDomain } from "@/lib/candidate-domain";
@@ -101,6 +102,18 @@ function candidateSaveErrorPath(error: unknown, path: string) {
   if (error.status === 400 || error.status === 409) return `${path}?erro=dados`;
   if (error.status === 401 || error.status === 403) return `${path}?erro=acesso`;
   return null;
+}
+
+function candidateAdminBasePath(formData: FormData) {
+  return formData.get("candidate_ui") === "admin"
+    ? "/admin/candidates"
+    : "/candidatos";
+}
+
+function candidateEditPath(basePath: string, id: string) {
+  return basePath === "/admin/candidates"
+    ? `${basePath}/${id}/edit`
+    : `${basePath}/${id}/editar`;
 }
 
 function campaignImage(formData: FormData, name: "imagem_fundo" | "imagem_lateral") {
@@ -203,7 +216,8 @@ function nullableUuid(formData: FormData, name: string) {
 }
 
 export async function createCandidatoAction(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["master", "admin"]);
+  const basePath = candidateAdminBasePath(formData);
   const nome = nullableText(formData, "nome", 120);
   try {
     await createCandidato({
@@ -216,17 +230,22 @@ export async function createCandidatoAction(formData: FormData) {
       slug_publico: candidateSlug(formData, nome)
     });
   } catch (error) {
-    const errorPath = candidateSaveErrorPath(error, "/candidatos/novo");
+    const errorPath = candidateSaveErrorPath(
+      error,
+      basePath === "/admin/candidates" ? `${basePath}/new` : `${basePath}/novo`
+    );
     if (errorPath) redirect(errorPath);
     throw error;
   }
   updateTag(publicCandidatesCacheTag);
   revalidatePath("/candidatos");
-  redirect("/candidatos");
+  revalidatePath("/admin/candidates");
+  redirect(basePath);
 }
 
 export async function updateCandidatoAction(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["master", "admin"]);
+  const basePath = candidateAdminBasePath(formData);
   const id = requiredUuid(formData);
   const nome = nullableText(formData, "nome", 120);
   try {
@@ -240,20 +259,22 @@ export async function updateCandidatoAction(formData: FormData) {
       slug_publico: candidateSlug(formData, nome)
     });
   } catch (error) {
-    const errorPath = candidateSaveErrorPath(error, `/candidatos/${id}/editar`);
+    const errorPath = candidateSaveErrorPath(error, candidateEditPath(basePath, id));
     if (errorPath) redirect(errorPath);
     throw error;
   }
   updateTag(publicCandidatesCacheTag);
   revalidatePath("/candidatos");
-  redirect("/candidatos");
+  revalidatePath("/admin/candidates");
+  redirect(basePath);
 }
 
 export async function deleteCandidatoAction(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["master", "admin"]);
   await deleteCandidato(requiredUuid(formData));
   updateTag(publicCandidatesCacheTag);
   revalidatePath("/candidatos");
+  revalidatePath("/admin/candidates");
 }
 
 export async function createCampanhaAction(formData: FormData) {

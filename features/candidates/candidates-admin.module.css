@@ -1,0 +1,253 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.primaryLink,
+.secondaryLink,
+.actionLink,
+.pageLink {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.primaryLink {
+  background: #185d45;
+  color: #fff;
+}
+
+.secondaryLink,
+.actionLink,
+.pageLink {
+  border: 1px solid #d8e2dc;
+  background: #fff;
+  color: #263b32;
+}
+
+.tableCard,
+.formCard,
+.empty,
+.pagination {
+  border: 1px solid #e0e8e3;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.tableCard {
+  overflow: hidden;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 70rem;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #edf1ef;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table th {
+  background: #f7f9f8;
+  color: #53675e;
+  font-size: 0.7rem;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 14rem;
+}
+
+.identity > span:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.identity strong,
+.cellValue {
+  color: #1a2b24;
+  font-size: 0.875rem;
+}
+
+.identity small,
+.cellSubvalue {
+  color: #728078;
+  font-size: 0.75rem;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e2f3e8;
+  color: #145c35;
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.cellValue,
+.cellSubvalue {
+  display: block;
+}
+
+.cellSubvalue {
+  margin-top: 0.2rem;
+}
+
+.hubLink {
+  color: #17663a;
+  font-size: 0.8125rem;
+  font-weight: 720;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: #74827a;
+  font-size: 0.8125rem;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.rowActions > button,
+.actionLink {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  color: #65766d;
+  font-size: 0.8125rem;
+}
+
+.pagination > div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pageLink[aria-disabled="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.empty {
+  padding: 2rem;
+}
+
+.formCard {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+}
+
+.formAlert {
+  margin: 1.25rem 1.25rem 0;
+  border: 1px solid #efc3c8;
+  border-radius: 0.75rem;
+  background: #fdebed;
+  color: #9f2630;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.formSection {
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.35rem;
+}
+
+.formSection + .formSection {
+  border-top: 1px solid #e6ece8;
+}
+
+.formSectionHeader h2,
+.formSectionHeader p {
+  margin: 0;
+}
+
+.formSectionHeader h2 {
+  color: #1b3027;
+  font-size: 1rem;
+}
+
+.formSectionHeader p {
+  margin-top: 0.3rem;
+  color: #687a71;
+  font-size: 0.8125rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-top: 1px solid #e0e8e3;
+  background: #f7f9f8;
+  padding: 1rem 1.35rem;
+}
+
+@media (max-width: 720px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination,
+  .formActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination > div,
+  .formActions > * {
+    width: 100%;
+  }
+
+  .pagination > div > * {
+    flex: 1;
+  }
+}

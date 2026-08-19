@@ -32,6 +32,17 @@ describe("schemas de campanhas", () => {
     );
   });
 
+  it("aceita somente UUID no filtro por candidato", () => {
+    expect(
+      campaignListQuerySchema.parse({
+        candidateId: "00000000-0000-4000-8000-000000000001",
+      }).candidateId,
+    ).toBe("00000000-0000-4000-8000-000000000001");
+    expect(
+      campaignListQuerySchema.safeParse({ candidateId: "todos)" }).success,
+    ).toBe(false);
+  });
+
   it("normaliza slug, tema e objetos JSON na criação", () => {
     const parsed = campaignCreateSchema.parse({
       titulo: "  Uma campanha segura  ",

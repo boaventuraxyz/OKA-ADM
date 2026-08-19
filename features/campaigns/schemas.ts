@@ -290,6 +290,7 @@ export const campaignListQuerySchema = z
       .optional(),
     status: z.enum(CAMPAIGN_STATUSES).optional(),
     theme: z.enum(THEME_KEYS).optional(),
+    candidateId: z.string().uuid().optional(),
     sortBy: z.enum(CAMPAIGN_SORT_FIELDS).default("updated_at"),
     sortDirection: z.enum(["asc", "desc"]).default("desc"),
   })

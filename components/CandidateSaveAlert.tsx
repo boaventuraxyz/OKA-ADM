@@ -8,8 +8,12 @@ const messages: Record<string, string> = {
     "A tabela candidatos esta desatualizada. Execute supabase/candidate-domain.sql e supabase/candidate-hubs.sql no SQL Editor do Supabase."
 };
 
+export function candidateSaveErrorMessage(error?: string) {
+  return error ? messages[error] ?? null : null;
+}
+
 export function CandidateSaveAlert({ error }: { error?: string }) {
-  const message = error ? messages[error] : null;
+  const message = candidateSaveErrorMessage(error);
   if (!message) return null;
 
   return (

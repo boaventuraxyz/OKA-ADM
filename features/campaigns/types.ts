@@ -45,6 +45,7 @@ export type CampaignListParams = {
   search?: string;
   status?: CampaignStatus;
   theme?: string;
+  candidateId?: string;
   sortBy: CampaignSortField;
   sortDirection: SortDirection;
 };

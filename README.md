@@ -169,6 +169,7 @@ O export usa UTF-8 com BOM, separador `;`, neutralização de fórmulas e cabeç
 | Login | `/login` |
 | Painel | `/admin` |
 | Campanhas | `/admin/campaigns` |
+| Candidatos | `/admin/candidates` |
 | Temas | `/admin/themes` |
 | Formulários | `/admin/forms` |
 | Leads | `/admin/leads` |
@@ -177,7 +178,7 @@ O export usa UTF-8 com BOM, separador `;`, neutralização de fórmulas e cabeç
 | Campanha pública por slug | `/formulario/[slug]` |
 | Hub público de candidato | `/c/[slug]` |
 
-A raiz do hostname da plataforma redireciona para `/admin`. Rotas MVC antigas e caminhos administrativos em português são redirecionados quando necessário, mas não devem aparecer em novos links. `/p/[slug]` redireciona para a URL canônica por slug. `/candidatos/*` permanece como superfície legada de compatibilidade enquanto sua migração não for concluída.
+A raiz do hostname da plataforma redireciona para `/admin`. Rotas MVC antigas e caminhos administrativos em português são redirecionados quando necessário, mas não devem aparecer em novos links. `/p/[slug]` redireciona para a URL canônica por slug. `/candidatos/*` redireciona para a área canônica de candidatos no painel 2.0.
 
 Em um domínio público de candidato, `/` exibe o índice de formulários, `/{slug}` abre a campanha e qualquer caminho administrativo retorna `404`. `/formulario/[slug]` e o POST legado `/Formulario/Create` continuam disponíveis para links e integrações existentes.
 
@@ -207,6 +208,7 @@ next.config.mjs          headers de segurança e limites globais do Next.js
 | Primitives visuais | `components/ui/` | `app/globals.css` e acessibilidade |
 | Página administrativa | `app/admin/<area>/` | serviço correspondente em `features/<area>/` |
 | Lista, criação ou ciclo de campanha | `features/campaigns/` | `app/admin/campaigns/` e `campaign_activity` |
+| Cadastro e hubs de candidatos | `features/candidates/` | `app/admin/candidates/` e `app/c/[slug]` |
 | Campos e preview do editor | `features/campaigns/CampaignEditor.tsx` | schemas, actions e renderização pública |
 | Prompt, schema ou modelo de IA | `features/ai/` | `app/api/ai/campaigns/route.ts` e testes de geração |
 | Catálogo de temas | `features/themes/registry.ts` | previews e componentes públicos que consomem cada chave |

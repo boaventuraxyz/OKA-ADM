@@ -698,6 +698,59 @@
   }
 }
 
+@media (min-width: 901px) {
+  :global(.platform-admin-shell) .foundation {
+    --ui-control-height: 40px;
+  }
+
+  :global(.platform-admin-shell) .button {
+    padding: 7px 13px;
+    font-size: 13px;
+  }
+
+  :global(.platform-admin-shell) .buttonLarge {
+    min-height: 44px;
+    padding: 9px 16px;
+    font-size: 14px;
+  }
+
+  :global(.platform-admin-shell) .input,
+  :global(.platform-admin-shell) .select,
+  :global(.platform-admin-shell) .textarea {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  :global(.platform-admin-shell) .cardHeader,
+  :global(.platform-admin-shell) .cardContent,
+  :global(.platform-admin-shell) .cardFooter {
+    padding: 16px;
+  }
+
+  :global(.platform-admin-shell) .pageHeader {
+    gap: 18px;
+  }
+
+  :global(.platform-admin-shell) .pageEyebrow {
+    margin-bottom: 5px;
+    font-size: 11px;
+  }
+
+  :global(.platform-admin-shell) .pageTitle {
+    font-size: clamp(24px, 3vw, 34px);
+  }
+
+  :global(.platform-admin-shell) .pageDescription {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  :global(.platform-admin-shell) .emptyState {
+    padding: 36px 20px;
+  }
+}
+
 @media (max-width: 640px) {
   .pageHeader {
     flex-direction: column;
