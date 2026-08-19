@@ -29,11 +29,13 @@ import {
   useState,
   useTransition,
   type FormEvent,
+  type CSSProperties,
   type HTMLInputTypeAttribute,
   type KeyboardEvent
 } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
+import { CampaignHeadline } from "@/components/CampaignHeadline";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -56,6 +58,13 @@ import {
   shouldAutosaveCampaignDraft,
 } from "./autosave";
 import { normalizeCampaignSlug } from "./domain";
+import {
+  campaignTitleTokens,
+  legacyCampaignTitleHighlights,
+  normalizeTitleHighlightColor,
+  parseCampaignTitleHighlights,
+  type CampaignTitleHighlight
+} from "@/lib/campaign-title-highlights";
 import type { CampaignRow } from "./types";
 import styles from "./CampaignEditor.module.css";
 
@@ -95,9 +104,10 @@ type EditorSettings = {
   allowSharing: boolean;
   collectAddress: boolean;
   requireConsent: true;
+  titleHighlights: CampaignTitleHighlight[] | null;
 };
 
-type MutableEditorSetting = Exclude<keyof EditorSettings, "requireConsent">;
+type MutableEditorSetting = "allowSharing" | "collectAddress";
 
 type EditorValues = {
   assinaturasMeta: string;
@@ -551,7 +561,8 @@ function createInitialState(campaign?: CampaignRow): InitialEditorState {
         collectAddress: preserveLegacyAddress
           ? true
           : booleanValue(settingsBase.collect_address, false),
-        requireConsent: true
+        requireConsent: true,
+        titleHighlights: parseCampaignTitleHighlights(settingsBase)
       },
       values
     }
@@ -585,7 +596,10 @@ function settingsPayload(
     ...base,
     allow_sharing: settings.allowSharing,
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
-    require_consent: true
+    require_consent: true,
+    ...(settings.titleHighlights === null
+      ? {}
+      : { title_highlights: settings.titleHighlights })
   };
 }
 
@@ -943,23 +957,156 @@ function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values
   return <EditorInputField description={field.help} error={firstFieldError(errors, field.key)} id={id} label={field.label} maxLength={field.maxLength} name={field.key} onChange={change} pattern={field.type === "url" ? "(?:https://.*|/.*)" : undefined} placeholder={field.placeholder} required={field.required} type={field.type === "url" ? "url" : "text"} value={value} />;
 }
 
+function TitleHighlightEditor({
+  defaultColor,
+  highlights,
+  legacyPrimary,
+  legacySecondary,
+  onChange,
+  title
+}: {
+  defaultColor: string;
+  highlights: CampaignTitleHighlight[] | null;
+  legacyPrimary: string;
+  legacySecondary: string;
+  onChange: (highlights: CampaignTitleHighlight[]) => void;
+  title: string;
+}) {
+  const [selectionColor, setSelectionColor] = useState(
+    normalizeTitleHighlightColor(defaultColor) || "#E05A5A"
+  );
+  const [colorText, setColorText] = useState(selectionColor);
+  const fallbackHighlights = legacyCampaignTitleHighlights({
+    primary: legacyPrimary,
+    primaryColor: defaultColor,
+    secondary: legacySecondary,
+    title
+  });
+  const effectiveHighlights = highlights ?? fallbackHighlights;
+  const highlightByWord = new Map(
+    effectiveHighlights.map((highlight) => [highlight.index, highlight])
+  );
+  const words = campaignTitleTokens(title).filter(
+    (token): token is typeof token & { wordIndex: number } => token.wordIndex !== null
+  );
+
+  function updateWord(index: number) {
+    const current = highlightByWord.get(index);
+    const next = effectiveHighlights.filter((highlight) => highlight.index !== index);
+    if (current?.color !== selectionColor) {
+      next.push({ color: selectionColor, index });
+    }
+    onChange(next.sort((left, right) => left.index - right.index));
+  }
+
+  function applyColorToSelection() {
+    onChange(effectiveHighlights.map((highlight) => ({
+      ...highlight,
+      color: selectionColor
+    })));
+  }
+
+  return (
+    <section className={styles.titleHighlightEditor}>
+      <header className={styles.titleHighlightHeader}>
+        <div>
+          <h3>Palavras coloridas do título</h3>
+          <p>Escolha uma cor e clique nas palavras que devem recebê-la.</p>
+        </div>
+        <span>{effectiveHighlights.length} selecionada{effectiveHighlights.length === 1 ? "" : "s"}</span>
+      </header>
+
+      <div className={styles.titleHighlightControls}>
+        <div className={styles.titleHighlightColor}>
+          <span>Cor</span>
+          <input
+            aria-label="Cor para as palavras selecionadas"
+            onChange={(event) => {
+              const color = event.target.value.toUpperCase();
+              setSelectionColor(color);
+              setColorText(color);
+            }}
+            type="color"
+            value={selectionColor}
+          />
+          <input
+            aria-label="Código hexadecimal da cor"
+            className={styles.titleHighlightHex}
+            maxLength={7}
+            onBlur={() => setColorText(selectionColor)}
+            onChange={(event) => {
+              const color = event.target.value.toUpperCase();
+              setColorText(color);
+              const normalized = normalizeTitleHighlightColor(color);
+              if (normalized) setSelectionColor(normalized);
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              event.currentTarget.blur();
+            }}
+            spellCheck={false}
+            type="text"
+            value={colorText}
+          />
+        </div>
+        <button disabled={effectiveHighlights.length === 0} onClick={applyColorToSelection} type="button">
+          Aplicar às selecionadas
+        </button>
+        <button disabled={effectiveHighlights.length === 0} onClick={() => onChange([])} type="button">
+          Limpar seleção
+        </button>
+      </div>
+
+      {words.length > 0 ? (
+        <div aria-label="Palavras do título" className={styles.titleWords}>
+          {words.map((word) => {
+            const highlight = highlightByWord.get(word.wordIndex);
+            return (
+              <button
+                aria-label={`${highlight ? "Remover ou trocar" : "Destacar"} a palavra ${word.text}`}
+                aria-pressed={Boolean(highlight)}
+                className={`${styles.titleWord} ${highlight ? styles.titleWordSelected : ""}`}
+                key={`${word.start}-${word.end}`}
+                onClick={() => updateWord(word.wordIndex)}
+                style={{
+                  "--title-highlight-color": highlight?.color || selectionColor
+                } as CSSProperties}
+                type="button"
+              >
+                {word.text}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className={styles.titleHighlightEmpty}>Digite o título para selecionar as palavras.</p>
+      )}
+    </section>
+  );
+}
+
 function ContentPanel({
   candidates,
   errors,
   onRegenerateSlug,
   onSlugChange,
+  onTitleHighlightsChange,
   onTitleChange,
   onValueChange,
   prefix,
+  settings,
   values
 }: {
   candidates: readonly { id: string; nome: string }[];
   errors: FieldErrors;
   onRegenerateSlug: () => void;
   onSlugChange: (value: string) => void;
+  onTitleHighlightsChange: (highlights: CampaignTitleHighlight[]) => void;
   onTitleChange: (value: string) => void;
   onValueChange: ValueChange;
   prefix: string;
+  settings: EditorSettings;
   values: EditorValues;
 }) {
   const theme = THEME_REGISTRY.find((candidate) => candidate.key === values.themeKey) || THEME_REGISTRY[0];
@@ -1006,6 +1153,17 @@ function ContentPanel({
         </div>
       </div>
 
+      {theme.key === "cover" ? (
+        <TitleHighlightEditor
+          defaultColor={values.corDestaque}
+          highlights={settings.titleHighlights}
+          legacyPrimary={values.destaquePrimario}
+          legacySecondary={values.destaqueSecundario}
+          onChange={onTitleHighlightsChange}
+          title={values.titulo}
+        />
+      ) : null}
+
       <div className={styles.identityGrid}>
         <FormField
           error={firstFieldError(errors, "candidato_id")}
@@ -1041,7 +1199,10 @@ function ContentPanel({
               <p>{section.description}</p>
             </header>
             <div className={styles.themeSectionFields}>
-              {section.fields.map((field) => (
+              {section.fields.filter((field) => (
+                theme.key !== "cover" ||
+                (field.key !== "destaque_primario" && field.key !== "destaque_secundario")
+              )).map((field) => (
                 <ThemeContentFieldControl errors={errors} field={field} key={field.key} onValueChange={onValueChange} prefix={prefix} values={values} />
               ))}
             </div>
@@ -1425,12 +1586,14 @@ function PreviewPanel({
   device,
   fields,
   onDeviceChange,
+  settings,
   theme,
   values
 }: {
   device: PreviewDevice;
   fields: CampaignFormField[];
   onDeviceChange: (device: PreviewDevice) => void;
+  settings: EditorSettings;
   theme: RegistryTheme;
   values: EditorValues;
 }) {
@@ -1465,7 +1628,16 @@ function PreviewPanel({
             fieldLabels: fields.map((field) => field.label),
             formTitle: values.textoForm || values.tituloAssinar,
             subtitle: values.descricao || values.destaqueSecundario,
-            title: values.destaquePrimario || values.titulo,
+            title: theme.key === "cover" && values.titulo
+              ? (
+                  <CampaignHeadline
+                    highlights={settings.titleHighlights}
+                    primary={values.destaquePrimario}
+                    secondary={values.destaqueSecundario}
+                    text={values.titulo}
+                  />
+                )
+              : values.destaquePrimario || values.titulo,
           }}
           device={device}
           theme={theme}
@@ -1529,11 +1701,28 @@ export function CampaignEditor({
 
   function changeTitle(title: string) {
     markDirty();
+    const titleWordCount = campaignTitleTokens(title).filter(
+      (token) => token.wordIndex !== null
+    ).length;
     setValues((current) => ({
       ...current,
       slug: slugManuallyEdited ? current.slug : normalizeCampaignSlug(title) || "",
       titulo: title
     }));
+    setSettings((current) => {
+      if (current.titleHighlights === null) return current;
+      const titleHighlights = current.titleHighlights.filter(
+        (highlight) => highlight.index < titleWordCount
+      );
+      return titleHighlights.length === current.titleHighlights.length
+        ? current
+        : { ...current, titleHighlights };
+    });
+  }
+
+  function changeTitleHighlights(titleHighlights: CampaignTitleHighlight[]) {
+    markDirty();
+    setSettings((current) => ({ ...current, titleHighlights }));
   }
 
   function changeSlug(slug: string) {
@@ -1771,7 +1960,7 @@ export function CampaignEditor({
   const activePanel = (() => {
     switch (activeTab) {
       case "content":
-        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onValueChange={changeValue} prefix={prefix} values={values} />;
+        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} prefix={prefix} settings={settings} values={values} />;
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":
@@ -1781,7 +1970,7 @@ export function CampaignEditor({
       case "settings":
         return <SettingsPanel errors={fieldErrors} mode={mode} onSettingChange={changeSetting} onValueChange={changeValue} prefix={prefix} preserveLegacyAddress={initial.preserveLegacyAddress} settings={settings} status={initialCampaign?.status} values={values} />;
       case "preview":
-        return <PreviewPanel device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} theme={selectedTheme} values={values} />;
+        return <PreviewPanel device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} settings={settings} theme={selectedTheme} values={values} />;
     }
   })();
 

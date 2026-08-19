@@ -1,3 +1,9 @@
+import {
+  campaignTitleTokens,
+  normalizeTitleHighlightColor,
+  type CampaignTitleHighlight
+} from "@/lib/campaign-title-highlights";
+
 type Highlight = {
   className: string;
   phrase?: string | null;
@@ -38,27 +44,55 @@ export function splitCandidateName(value?: string | null) {
 }
 
 export function CampaignHeadline({
+  highlights,
   primary,
   secondary,
   text
 }: {
+  highlights?: readonly CampaignTitleHighlight[] | null;
   primary?: string | null;
   secondary?: string | null;
   text: string;
 }) {
-  const highlights: Highlight[] = [
+  if (highlights !== null && highlights !== undefined) {
+    const colors = new Map(
+      highlights.flatMap((highlight) => {
+        const color = normalizeTitleHighlightColor(highlight.color);
+        return color ? [[highlight.index, color] as const] : [];
+      })
+    );
+
+    return (
+      <>
+        {campaignTitleTokens(text).map((token) => {
+          const color = token.wordIndex === null ? null : colors.get(token.wordIndex);
+          return (
+            <span
+              className={color ? "campaign-headline-custom" : undefined}
+              key={`${token.start}-${token.end}`}
+              style={color ? { color } : undefined}
+            >
+              {token.text}
+            </span>
+          );
+        })}
+      </>
+    );
+  }
+
+  const legacyHighlights: Highlight[] = [
     { className: "campaign-headline-accent", phrase: primary },
     { className: "campaign-headline-gold", phrase: secondary }
   ].filter((item) => normalized(item.phrase));
 
-  if (highlights.length === 0) return <>{text}</>;
+  if (legacyHighlights.length === 0) return <>{text}</>;
 
   const loweredText = text.toLocaleLowerCase("pt-BR");
   const parts: React.ReactNode[] = [];
   let cursor = 0;
 
   while (cursor < text.length) {
-    const matches = highlights
+    const matches = legacyHighlights
       .map((highlight) => ({
         ...highlight,
         index: loweredText.indexOf(normalized(highlight.phrase), cursor)

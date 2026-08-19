@@ -269,6 +269,148 @@
   line-height: 1.5;
 }
 
+.titleHighlightEditor {
+  background: var(--editor-subtle);
+  border: 1px solid var(--editor-border);
+  border-radius: 12px;
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.titleHighlightHeader {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.titleHighlightHeader h3,
+.titleHighlightHeader p,
+.titleHighlightEmpty {
+  margin: 0;
+}
+
+.titleHighlightHeader h3 {
+  color: var(--editor-text);
+  font-size: 14px;
+}
+
+.titleHighlightHeader p,
+.titleHighlightEmpty {
+  color: var(--editor-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+.titleHighlightHeader > span {
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 999px;
+  color: var(--editor-muted);
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+}
+
+.titleHighlightControls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.titleHighlightControls > button {
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  color: var(--editor-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.titleHighlightControls > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.titleHighlightColor {
+  align-items: center;
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  color: var(--editor-muted);
+  display: flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 10px;
+}
+
+.titleHighlightColor input {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  height: 25px;
+  padding: 0;
+  width: 30px;
+}
+
+.titleHighlightHex {
+  background: transparent;
+  border: 0;
+  color: var(--editor-text);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  outline: none;
+  padding: 0;
+  width: 7ch;
+}
+
+.titleWords {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.titleWord {
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  color: var(--editor-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  padding: 8px 10px;
+}
+
+.titleWord:hover,
+.titleWord:focus-visible {
+  border-color: var(--title-highlight-color);
+  outline: none;
+}
+
+.titleWordSelected {
+  background: color-mix(in srgb, var(--title-highlight-color) 12%, var(--editor-surface));
+  border-color: var(--title-highlight-color);
+  color: var(--title-highlight-color);
+  box-shadow: inset 0 -2px 0 var(--title-highlight-color);
+}
+
+.titleHighlightEmpty {
+  margin-top: 0;
+}
+
 .themeSections {
   display: grid;
   gap: 18px;

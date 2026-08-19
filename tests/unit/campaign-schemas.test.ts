@@ -72,8 +72,7 @@ describe("schemas de campanhas", () => {
   });
 
   it("valida campos obrigatórios definidos pelo tema", () => {
-    expect(campaignCreateSchema.safeParse({ titulo: "Capa sem slogan", theme_key: "cover" }).success).toBe(false);
-    expect(campaignCreateSchema.safeParse({ titulo: "Capa", theme_key: "cover", destaque_primario: "Uma causa clara" }).success).toBe(true);
+    expect(campaignCreateSchema.safeParse({ titulo: "Capa", theme_key: "cover" }).success).toBe(true);
   });
 
   it("exige ao menos um campo e pares de tema coerentes na edição", () => {

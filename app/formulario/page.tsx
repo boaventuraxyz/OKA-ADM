@@ -294,6 +294,7 @@ export async function FormularioContent({ idCampanha }: { idCampanha: string }) 
 
             <h1 className="campaign-headline">
               <CampaignHeadline
+                highlights={campanha.titleHighlights}
                 primary={campanha.destaquePrimario}
                 secondary={campanha.destaqueSecundario}
                 text={title}

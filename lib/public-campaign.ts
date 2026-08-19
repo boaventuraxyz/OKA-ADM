@@ -3,6 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
+import { parseCampaignTitleHighlights } from "@/lib/campaign-title-highlights";
 import { resolveCampaignTheme } from "@/lib/campaign-themes";
 import {
   getCampanha,
@@ -73,6 +74,7 @@ export function getPublicCampaignView(id: string) {
         tituloAssinar: campanha.titulo_assinar,
         textoAssinar: campanha.texto_assinar,
         textoCompartilhar: campanha.texto_compartilhar,
+        titleHighlights: parseCampaignTitleHighlights(campanha.settings),
         slug: campanha.slug ?? null,
         metaTitle: campanha.meta_title ?? null,
         metaDescription: campanha.meta_description ?? null,

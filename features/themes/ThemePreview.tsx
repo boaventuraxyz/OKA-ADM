@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { CampaignThemeDefinition, ThemePalette } from "./registry";
 import styles from "./ThemePreview.module.css";
 
@@ -11,7 +11,7 @@ export type ThemePreviewContent = {
   fieldLabels?: readonly string[];
   formTitle?: string;
   subtitle?: string;
-  title?: string;
+  title?: ReactNode;
 };
 
 type ThemePreviewStyle = CSSProperties & {

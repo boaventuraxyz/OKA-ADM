@@ -125,7 +125,7 @@ export const THEME_REGISTRY = [
         title: "Mensagem principal",
         description: "O tema de capa usa uma mensagem curta e direta.",
         fields: [
-          { key: "destaque_primario", label: "Slogan principal", maxLength: 160, required: true, type: "text", placeholder: "A frase de maior impacto" },
+          { key: "destaque_primario", label: "Trecho principal legado", maxLength: 160, type: "text", placeholder: "A frase de maior impacto" },
           { key: "destaque_secundario", label: "Complemento do slogan", maxLength: 160, type: "text", placeholder: "Uma segunda linha curta" },
           { key: "descricao", label: "Descrição", maxLength: 5000, type: "textarea", placeholder: "Explique a causa em poucas linhas." }
         ]
