@@ -7,6 +7,10 @@ import type {
   User,
 } from "@supabase/supabase-js";
 
+import {
+  PASSWORD_CHANGE_REQUIRED_KEY,
+  passwordChangeMetadataPatch,
+} from "@/features/auth/password-flow";
 import type { Database } from "@/lib/supabase/database.types";
 
 import type { UserProfileRow } from "./types";
@@ -169,8 +173,6 @@ export async function getAuthUserById(
   return data.user;
 }
 
-const PASSWORD_CHANGE_REQUIRED_KEY = "password_change_required";
-
 export function authUserRequiresPasswordChange(user: User): boolean {
   return user.app_metadata?.[PASSWORD_CHANGE_REQUIRED_KEY] === true;
 }
@@ -182,13 +184,8 @@ export async function updatePasswordChangeRequirement(
 ): Promise<User> {
   if (authUserRequiresPasswordChange(user) === required) return user;
 
-  const appMetadata = { ...(user.app_metadata ?? {}) };
-  delete appMetadata[PASSWORD_CHANGE_REQUIRED_KEY];
-
-  if (required) appMetadata[PASSWORD_CHANGE_REQUIRED_KEY] = true;
-
   const { data, error } = await client.auth.admin.updateUserById(user.id, {
-    app_metadata: appMetadata,
+    app_metadata: passwordChangeMetadataPatch(required),
   });
 
   authError("update-password-requirement", error);
