@@ -9,6 +9,7 @@ import {
   Megaphone,
   Palette,
   Settings,
+  UserRound,
   Users,
   X,
   type LucideIcon
@@ -35,6 +36,7 @@ type NavigationItem = {
 const contentNavigation = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/campaigns", icon: Megaphone, label: "Campanhas" },
+  { href: "/candidatos", icon: UserRound, label: "Candidatos" },
   { href: "/admin/themes", icon: Palette, label: "Temas" },
   { href: "/admin/forms", icon: ClipboardList, label: "Formulários" },
   {
