@@ -340,39 +340,49 @@
   opacity: 0.45;
 }
 
-.titleHighlightColor {
+.titleHighlightPalette {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.titleHighlightPaletteButton {
   align-items: center;
   background: var(--editor-surface);
   border: 1px solid var(--editor-border);
   border-radius: 8px;
-  color: var(--editor-muted);
-  display: flex;
+  color: var(--editor-text);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
   font-size: 12px;
   font-weight: 700;
-  gap: 8px;
+  gap: 7px;
   min-height: 36px;
-  padding: 4px 10px;
+  padding: 0 10px;
 }
 
-.titleHighlightColor input {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  height: 25px;
-  padding: 0;
-  width: 30px;
+.titleHighlightPaletteButton:hover,
+.titleHighlightPaletteButton:focus-visible,
+.titleHighlightPaletteButtonSelected {
+  border-color: var(--title-highlight-color);
 }
 
-.titleHighlightHex {
-  background: transparent;
-  border: 0;
-  color: var(--editor-text);
-  font-family: var(--font-mono), monospace;
-  font-size: 11px;
-  font-weight: 700;
+.titleHighlightPaletteButton:focus-visible {
   outline: none;
-  padding: 0;
-  width: 7ch;
+}
+
+.titleHighlightPaletteButtonSelected {
+  box-shadow: inset 0 -2px 0 var(--title-highlight-color);
+}
+
+.titleHighlightSwatch {
+  background: var(--title-highlight-color);
+  border: 1px solid color-mix(in srgb, var(--editor-text) 25%, transparent);
+  border-radius: 50%;
+  height: 16px;
+  width: 16px;
 }
 
 .titleWords {
@@ -450,6 +460,10 @@
   gap: 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 18px;
+}
+
+.fullWidthField {
+  grid-column: 1 / -1;
 }
 
 .imageField {

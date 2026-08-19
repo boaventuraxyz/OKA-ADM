@@ -289,7 +289,7 @@ export const THEME_REGISTRY = [
     id: 4,
     key: "impact-dark",
     name: "Impacto escuro",
-    description: "Mobilização de alto contraste com narrativa longa, vídeo e chamada final.",
+    description: "Mobilização de alto contraste com narrativa longa, carrossel de vídeos e chamada final.",
     category: "mobilização",
     tags: ["escuro", "mobilização", "vídeo", "alto contraste"],
     status: "active",
@@ -326,11 +326,11 @@ export const THEME_REGISTRY = [
       },
       {
         id: "video",
-        title: "Vídeo principal",
-        description: "Apresente o relato que abre a mobilização.",
+        title: "Carrossel de vídeos",
+        description: "Apresente diferentes relatos e organize a ordem de exibição.",
         fields: [
-          { key: "video_url", label: "URL do vídeo", maxLength: 2048, type: "url" },
-          { key: "legenda_video", label: "Legenda do vídeo", maxLength: 300, type: "text" }
+          { key: "video_url", label: "URL legada do vídeo", maxLength: 2048, type: "url" },
+          { key: "legenda_video", label: "Legenda legada do vídeo", maxLength: 300, type: "text" }
         ]
       },
       {

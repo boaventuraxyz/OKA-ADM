@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 import { CampaignHeadline } from "@/components/CampaignHeadline";
+import { CampaignVideoCarouselField } from "@/components/CampaignVideoCarouselField";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -61,10 +62,14 @@ import { normalizeCampaignSlug } from "./domain";
 import {
   campaignTitleTokens,
   legacyCampaignTitleHighlights,
-  normalizeTitleHighlightColor,
   parseCampaignTitleHighlights,
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
+import {
+  legacyCampaignVideoCarousel,
+  parseCampaignVideoCarousel,
+  type CampaignVideoItem,
+} from "@/lib/campaign-video-carousel";
 import type { CampaignRow } from "./types";
 import styles from "./CampaignEditor.module.css";
 
@@ -105,6 +110,7 @@ type EditorSettings = {
   collectAddress: boolean;
   requireConsent: true;
   titleHighlights: CampaignTitleHighlight[] | null;
+  videoCarousel: CampaignVideoItem[] | null;
 };
 
 type MutableEditorSetting = "allowSharing" | "collectAddress";
@@ -193,6 +199,16 @@ const previewDevices = [
   { icon: Tablet, id: "tablet", label: "Tablet" },
   { icon: Smartphone, id: "mobile", label: "Celular" }
 ] as const satisfies readonly { icon: LucideIcon; id: PreviewDevice; label: string }[];
+
+const titleHighlightPalette = [
+  { color: "#FACC15", label: "Amarelo" },
+  { color: "#EF4444", label: "Vermelho" },
+  { color: "#22C55E", label: "Verde" },
+  { color: "#3B82F6", label: "Azul" },
+  { color: "#FFFFFF", label: "Branco" },
+  { color: "#000000", label: "Preto" },
+  { color: "#6B7280", label: "Cinza" }
+] as const;
 
 const formFieldTypeLabels: Record<CampaignFormFieldType, string> = {
   cep: "CEP",
@@ -562,7 +578,8 @@ function createInitialState(campaign?: CampaignRow): InitialEditorState {
           ? true
           : booleanValue(settingsBase.collect_address, false),
         requireConsent: true,
-        titleHighlights: parseCampaignTitleHighlights(settingsBase)
+        titleHighlights: parseCampaignTitleHighlights(settingsBase),
+        videoCarousel: parseCampaignVideoCarousel(settingsBase)
       },
       values
     }
@@ -599,7 +616,10 @@ function settingsPayload(
     require_consent: true,
     ...(settings.titleHighlights === null
       ? {}
-      : { title_highlights: settings.titleHighlights })
+      : { title_highlights: settings.titleHighlights }),
+    ...(settings.videoCarousel === null
+      ? {}
+      : { video_carousel: settings.videoCarousel })
   };
 }
 
@@ -972,10 +992,9 @@ function TitleHighlightEditor({
   onChange: (highlights: CampaignTitleHighlight[]) => void;
   title: string;
 }) {
-  const [selectionColor, setSelectionColor] = useState(
-    normalizeTitleHighlightColor(defaultColor) || "#E05A5A"
+  const [selectionColor, setSelectionColor] = useState<string>(
+    titleHighlightPalette[1].color
   );
-  const [colorText, setColorText] = useState(selectionColor);
   const fallbackHighlights = legacyCampaignTitleHighlights({
     primary: legacyPrimary,
     primaryColor: defaultColor,
@@ -1011,44 +1030,27 @@ function TitleHighlightEditor({
       <header className={styles.titleHighlightHeader}>
         <div>
           <h3>Palavras coloridas do título</h3>
-          <p>Escolha uma cor e clique nas palavras que devem recebê-la.</p>
+          <p>Escolha uma das cores padronizadas e clique nas palavras que devem recebê-la.</p>
         </div>
         <span>{effectiveHighlights.length} selecionada{effectiveHighlights.length === 1 ? "" : "s"}</span>
       </header>
 
       <div className={styles.titleHighlightControls}>
-        <div className={styles.titleHighlightColor}>
-          <span>Cor</span>
-          <input
-            aria-label="Cor para as palavras selecionadas"
-            onChange={(event) => {
-              const color = event.target.value.toUpperCase();
-              setSelectionColor(color);
-              setColorText(color);
-            }}
-            type="color"
-            value={selectionColor}
-          />
-          <input
-            aria-label="Código hexadecimal da cor"
-            className={styles.titleHighlightHex}
-            maxLength={7}
-            onBlur={() => setColorText(selectionColor)}
-            onChange={(event) => {
-              const color = event.target.value.toUpperCase();
-              setColorText(color);
-              const normalized = normalizeTitleHighlightColor(color);
-              if (normalized) setSelectionColor(normalized);
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
-              event.preventDefault();
-              event.currentTarget.blur();
-            }}
-            spellCheck={false}
-            type="text"
-            value={colorText}
-          />
+        <div aria-label="Cor das palavras" className={styles.titleHighlightPalette} role="group">
+          {titleHighlightPalette.map((option) => (
+            <button
+              aria-label={`Selecionar ${option.label}`}
+              aria-pressed={selectionColor === option.color}
+              className={`${styles.titleHighlightPaletteButton} ${selectionColor === option.color ? styles.titleHighlightPaletteButtonSelected : ""}`}
+              key={option.color}
+              onClick={() => setSelectionColor(option.color)}
+              style={{ "--title-highlight-color": option.color } as CSSProperties}
+              type="button"
+            >
+              <span aria-hidden="true" className={styles.titleHighlightSwatch} />
+              {option.label}
+            </button>
+          ))}
         </div>
         <button disabled={effectiveHighlights.length === 0} onClick={applyColorToSelection} type="button">
           Aplicar às selecionadas
@@ -1094,6 +1096,7 @@ function ContentPanel({
   onTitleHighlightsChange,
   onTitleChange,
   onValueChange,
+  onVideoCarouselChange,
   prefix,
   settings,
   values
@@ -1105,6 +1108,7 @@ function ContentPanel({
   onTitleHighlightsChange: (highlights: CampaignTitleHighlight[]) => void;
   onTitleChange: (value: string) => void;
   onValueChange: ValueChange;
+  onVideoCarouselChange: (items: CampaignVideoItem[]) => void;
   prefix: string;
   settings: EditorSettings;
   values: EditorValues;
@@ -1199,9 +1203,26 @@ function ContentPanel({
               <p>{section.description}</p>
             </header>
             <div className={styles.themeSectionFields}>
+              {theme.key === "impact-dark" && section.id === "video" ? (
+                <div className={styles.fullWidthField}>
+                  <CampaignVideoCarouselField
+                    inputId={controlId(prefix, "video_carousel")}
+                    items={settings.videoCarousel ?? legacyCampaignVideoCarousel({
+                      caption: values.legendaVideo,
+                      url: values.videoUrl,
+                    })}
+                    onChange={onVideoCarouselChange}
+                  />
+                </div>
+              ) : null}
               {section.fields.filter((field) => (
-                theme.key !== "cover" ||
-                (field.key !== "destaque_primario" && field.key !== "destaque_secundario")
+                (
+                  theme.key !== "cover" ||
+                  (field.key !== "destaque_primario" && field.key !== "destaque_secundario")
+                ) && (
+                  theme.key !== "impact-dark" ||
+                  (field.key !== "video_url" && field.key !== "legenda_video")
+                )
               )).map((field) => (
                 <ThemeContentFieldControl errors={errors} field={field} key={field.key} onValueChange={onValueChange} prefix={prefix} values={values} />
               ))}
@@ -1725,6 +1746,11 @@ export function CampaignEditor({
     setSettings((current) => ({ ...current, titleHighlights }));
   }
 
+  function changeVideoCarousel(videoCarousel: CampaignVideoItem[]) {
+    markDirty();
+    setSettings((current) => ({ ...current, videoCarousel }));
+  }
+
   function changeSlug(slug: string) {
     setSlugManuallyEdited(true);
     changeValue("slug", slug.toLowerCase());
@@ -1960,7 +1986,7 @@ export function CampaignEditor({
   const activePanel = (() => {
     switch (activeTab) {
       case "content":
-        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} prefix={prefix} settings={settings} values={values} />;
+        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":

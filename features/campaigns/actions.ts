@@ -1,13 +1,21 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
+import { getSupabaseServerEnv } from "@/config/env";
 import {
   AuthenticationRequiredError,
   AuthorizationRequiredError,
+  requireActiveProfile,
 } from "@/features/auth/guards";
+import {
+  CAMPAIGN_VIDEO_BUCKET,
+  CAMPAIGN_VIDEO_MIME_TYPES,
+  MAX_CAMPAIGN_VIDEO_BYTES,
+} from "@/lib/campaign-video-carousel";
 import { campaignCacheTag } from "@/lib/public-campaign";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 import { CampaignRepositoryError } from "./repository";
 import {
@@ -24,6 +32,20 @@ import type {
   CampaignActionError,
   CampaignMutationResult,
 } from "./types";
+
+const campaignVideoUploadSchema = z.object({
+  contentType: z.enum(CAMPAIGN_VIDEO_MIME_TYPES),
+  size: z.number().int().positive().max(MAX_CAMPAIGN_VIDEO_BYTES),
+});
+
+export type CampaignVideoUploadTicket = {
+  bucket: string;
+  path: string;
+  publicUrl: string;
+  publishableKey: string;
+  supabaseUrl: string;
+  token: string;
+};
 
 function actionInput(value: unknown): Record<string, unknown> {
   if (value instanceof FormData) {
@@ -127,6 +149,79 @@ function revalidateCampaign(result: CampaignMutationResult) {
   revalidatePath("/campanhas");
   revalidatePath(`/campanhas/${result.id}/editar`);
   if (result.slug) revalidatePath(`/formulario/${result.slug}`);
+}
+
+function storageResourceMissing(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const value = error as { message?: unknown; status?: unknown; statusCode?: unknown };
+  return value.status === 404 || value.statusCode === "404" ||
+    (typeof value.message === "string" && /not found/i.test(value.message));
+}
+
+async function ensureCampaignVideoBucket() {
+  const admin = createAdminClient();
+  const { error: bucketError } = await admin.storage.getBucket(CAMPAIGN_VIDEO_BUCKET);
+  const bucketOptions = {
+    allowedMimeTypes: [...CAMPAIGN_VIDEO_MIME_TYPES],
+    fileSizeLimit: MAX_CAMPAIGN_VIDEO_BYTES,
+    public: true,
+  };
+
+  if (bucketError) {
+    if (!storageResourceMissing(bucketError)) throw bucketError;
+    const { error: createError } = await admin.storage.createBucket(
+      CAMPAIGN_VIDEO_BUCKET,
+      bucketOptions,
+    );
+    if (createError) throw createError;
+  } else {
+    const { error: updateError } = await admin.storage.updateBucket(
+      CAMPAIGN_VIDEO_BUCKET,
+      bucketOptions,
+    );
+    if (updateError) throw updateError;
+  }
+
+  return admin;
+}
+
+export async function createCampaignVideoUploadAction(
+  input: unknown,
+): Promise<ActionResult<CampaignVideoUploadTicket>> {
+  try {
+    const context = await requireActiveProfile();
+    const parsed = campaignVideoUploadSchema.parse(input);
+    const extension = {
+      "video/mp4": "mp4",
+      "video/quicktime": "mov",
+      "video/webm": "webm",
+    }[parsed.contentType];
+    const path = `${context.user.id}/${crypto.randomUUID()}.${extension}`;
+    const admin = await ensureCampaignVideoBucket();
+    const { data, error } = await admin.storage
+      .from(CAMPAIGN_VIDEO_BUCKET)
+      .createSignedUploadUrl(path);
+    if (error || !data?.token) throw error || new Error("Upload indisponível.");
+
+    const { data: publicData } = admin.storage
+      .from(CAMPAIGN_VIDEO_BUCKET)
+      .getPublicUrl(path);
+    const env = getSupabaseServerEnv();
+
+    return {
+      ok: true,
+      data: {
+        bucket: CAMPAIGN_VIDEO_BUCKET,
+        path,
+        publicUrl: publicData.publicUrl,
+        publishableKey: env.SUPABASE_PUBLISHABLE_KEY,
+        supabaseUrl: env.SUPABASE_URL,
+        token: data.token,
+      },
+    };
+  } catch (error) {
+    return { ok: false, error: safeActionError(error) };
+  }
 }
 
 async function runCampaignAction(

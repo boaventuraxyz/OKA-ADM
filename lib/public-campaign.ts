@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { parseCampaignBackground } from "@/lib/campaign-background";
 import { campaignAcceptsSignatures } from "@/lib/campaign-availability";
 import { parseCampaignTitleHighlights } from "@/lib/campaign-title-highlights";
+import { parseCampaignVideoCarousel } from "@/lib/campaign-video-carousel";
 import { resolveCampaignTheme } from "@/lib/campaign-themes";
 import {
   getCampanha,
@@ -68,6 +69,7 @@ export function getPublicCampaignView(id: string) {
         notaCitacao: campanha.nota_citacao,
         tituloVideo: campanha.titulo_video,
         videoUrl: campanha.video_url,
+        videoCarousel: parseCampaignVideoCarousel(campanha.settings),
         textoVideo: campanha.texto_video,
         legendaVideo: campanha.legenda_video,
         notaVideo: campanha.nota_video,

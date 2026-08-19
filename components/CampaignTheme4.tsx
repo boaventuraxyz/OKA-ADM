@@ -7,8 +7,13 @@ import type { CSSProperties } from "react";
 import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { CampaignTheme4SignatureModal } from "@/components/CampaignTheme4SignatureModal";
+import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import {
+  legacyCampaignVideoCarousel,
+  type CampaignVideoItem,
+} from "@/lib/campaign-video-carousel";
 
 type Theme4Campaign = {
   id: string;
@@ -24,6 +29,7 @@ type Theme4Campaign = {
   textoImpacto: string | null;
   textoImpactoApoio: string | null;
   videoUrl: string | null;
+  videoCarousel: CampaignVideoItem[] | null;
   legendaVideo: string | null;
   tituloAssinar: string | null;
   textoAssinar: string | null;
@@ -41,11 +47,6 @@ function splitBlocks(value?: string | null) {
     .split(/\r?\n\s*\r?\n/)
     .map((block) => block.trim())
     .filter(Boolean);
-}
-
-function videoUrl(value?: string | null) {
-  const normalized = value?.trim() ?? "";
-  return /^(https:\/\/|\/)/i.test(normalized) ? normalized : null;
 }
 
 function HighlightedText({ phrase, text }: { phrase: string; text: string }) {
@@ -98,7 +99,10 @@ export function CampaignTheme4({
   const manifestoTitle = campanha.tituloTopicos?.trim() || "Nossa voz merece ser ouvida.";
   const manifestoBlocks = splitBlocks(campanha.textoTopicos);
   const candidateName = campanha.candidato?.nome?.trim() || "Responsável pela campanha";
-  const primaryVideo = videoUrl(campanha.videoUrl);
+  const videos = campanha.videoCarousel ?? legacyCampaignVideoCarousel({
+    caption: campanha.legendaVideo,
+    url: campanha.videoUrl,
+  });
   const signTitle = campanha.tituloAssinar?.trim() || "Junte sua voz a esta mobilização.";
   const shareText =
     campanha.textoCompartilhar?.trim() ||
@@ -135,7 +139,7 @@ export function CampaignTheme4({
               <a className="campaign-theme4-button" href="#assinar">
                 Assinar agora
               </a>
-              {primaryVideo ? (
+              {videos.length > 0 ? (
                 <a className="campaign-theme4-text-link" href="#video">
                   Ver o caso completo
                 </a>
@@ -145,18 +149,10 @@ export function CampaignTheme4({
         </div>
       </section>
 
-      {primaryVideo ? (
+      {videos.length > 0 ? (
         <section className="campaign-theme4-video-section" id="video">
           <div className="campaign-theme4-wrap campaign-theme4-video-stack">
-            <figure className="campaign-theme4-video-panel">
-              <video controls playsInline preload="metadata" src={primaryVideo}>
-                Seu navegador não suporta a exibição deste vídeo.
-              </video>
-              <figcaption className="campaign-theme4-video-meta">
-                <span><b aria-hidden="true">●</b> vídeo original</span>
-                <span>{campanha.legendaVideo || candidateName}</span>
-              </figcaption>
-            </figure>
+            <CampaignVideoCarousel candidateName={candidateName} videos={videos} />
           </div>
         </section>
       ) : null}
