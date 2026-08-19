@@ -15,7 +15,7 @@ const themeKeys = THEME_REGISTRY.map((theme) => theme.key) as [
 
 export const campaignGenerationInputSchema = z
   .object({
-    topic: z.string().trim().min(3).max(160),
+    topic: z.string().trim().max(160).optional().default(""),
     brief: z.string().trim().min(20).max(6_000),
     tone: z.enum(AI_TONES).default("mobilizador"),
     candidateId: z.string().uuid().nullable().optional(),

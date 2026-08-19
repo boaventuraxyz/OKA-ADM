@@ -16,6 +16,13 @@ export type ThemePalette = {
   text: string;
 };
 
+export type ThemePaletteOption = {
+  description: string;
+  key: string;
+  name: string;
+  palette: ThemePalette;
+};
+
 export type ThemeCapabilities = {
   backgroundImage: boolean;
   longform: boolean;
@@ -77,6 +84,7 @@ export type CampaignThemeDefinition = {
   key: string;
   name: string;
   palette: ThemePalette;
+  paletteOptions: readonly ThemePaletteOption[];
   sections: readonly CampaignThemeSection[];
   status: ThemeStatus;
   tags: readonly string[];
@@ -98,6 +106,11 @@ export const THEME_REGISTRY = [
       accent: "#e05a5a",
       secondary: "#e8c84a"
     },
+    paletteOptions: [
+      { key: "civic-night", name: "Cívica", description: "Azul profundo com vermelho de ação.", palette: { background: "#0d111a", surface: "#172136", text: "#eef0f5", accent: "#e05a5a", secondary: "#e8c84a" } },
+      { key: "forest", name: "Floresta", description: "Verde sóbrio para causas locais e comunitárias.", palette: { background: "#0b1713", surface: "#153027", text: "#f3f7f4", accent: "#43b581", secondary: "#e2bd55" } },
+      { key: "daylight", name: "Clara", description: "Base luminosa com contraste institucional.", palette: { background: "#f5f2ea", surface: "#ffffff", text: "#17223a", accent: "#c43d42", secondary: "#b88722" } }
+    ],
     capabilities: {
       backgroundImage: true,
       sideImage: false,
@@ -142,6 +155,11 @@ export const THEME_REGISTRY = [
       accent: "#d95c61",
       secondary: "#e8c84a"
     },
+    paletteOptions: [
+      { key: "newsroom", name: "Redação", description: "Preto editorial com vermelho contido.", palette: { background: "#0b0e13", surface: "#151a22", text: "#f3f1ec", accent: "#d95c61", secondary: "#e8c84a" } },
+      { key: "paper", name: "Papel", description: "Visual de revista, claro e confortável para leitura.", palette: { background: "#eee9df", surface: "#fffdf8", text: "#25211d", accent: "#9f2f35", secondary: "#9b762a" } },
+      { key: "navy", name: "Institucional", description: "Azul e cobre para propostas públicas.", palette: { background: "#0b1829", surface: "#142943", text: "#f2f5f8", accent: "#d77a45", secondary: "#dbc07c" } }
+    ],
     capabilities: {
       backgroundImage: false,
       sideImage: true,
@@ -198,6 +216,11 @@ export const THEME_REGISTRY = [
       accent: "#e2382b",
       secondary: "#f0ba36"
     },
+    paletteOptions: [
+      { key: "manifesto", name: "Manifesto", description: "Azul noturno, vermelho e amarelo de mobilização.", palette: { background: "#07111d", surface: "#102033", text: "#f4f2ec", accent: "#e2382b", secondary: "#f0ba36" } },
+      { key: "liberty", name: "Liberdade", description: "Azul cobalto com amarelo vibrante.", palette: { background: "#071b35", surface: "#0d315b", text: "#f5f8fb", accent: "#f2b632", secondary: "#55a6dc" } },
+      { key: "burgundy", name: "Bordô", description: "Tom clássico para manifestos densos.", palette: { background: "#210c13", surface: "#3c1722", text: "#fff6ee", accent: "#dc5b50", secondary: "#e3b45d" } }
+    ],
     capabilities: {
       backgroundImage: false,
       sideImage: false,
@@ -277,6 +300,11 @@ export const THEME_REGISTRY = [
       accent: "#d81f26",
       secondary: "#8f8d8a"
     },
+    paletteOptions: [
+      { key: "charcoal", name: "Carvão", description: "Alto contraste para mobilizações urgentes.", palette: { background: "#0b0b0c", surface: "#1b1b1e", text: "#f3efe7", accent: "#d81f26", secondary: "#8f8d8a" } },
+      { key: "midnight", name: "Meia-noite", description: "Azul escuro com acento elétrico.", palette: { background: "#060b16", surface: "#111c30", text: "#eef4ff", accent: "#4a8fff", secondary: "#9aa9c2" } },
+      { key: "ember", name: "Brasa", description: "Preto quente com laranja para ação imediata.", palette: { background: "#110d0a", surface: "#271a13", text: "#fff4ea", accent: "#ef652f", secondary: "#b9a395" } }
+    ],
     capabilities: {
       backgroundImage: false,
       sideImage: false,

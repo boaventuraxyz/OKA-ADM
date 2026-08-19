@@ -1,11 +1,12 @@
 "use client";
 
-import { Monitor, Smartphone, Tablet } from "lucide-react";
+import { Check, Copy, Monitor, Smartphone, Tablet } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { ThemePreview, type PreviewDevice } from "./ThemePreview";
+import { buildThemeHtmlBlueprint } from "./html-blueprint";
 import { THEME_REGISTRY } from "./registry";
 import styles from "./ThemeLibraryGallery.module.css";
 
@@ -26,6 +27,14 @@ const capabilityLabels = {
 
 export function ThemeLibraryGallery() {
   const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const [palettes, setPalettes] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState("");
+
+  async function copyBlueprint(themeKey: string, paletteKey: string) {
+    await navigator.clipboard.writeText(buildThemeHtmlBlueprint(themeKey, paletteKey));
+    setCopied(themeKey + ":" + paletteKey);
+    window.setTimeout(() => setCopied(""), 1800);
+  }
 
   return (
     <section aria-labelledby="theme-gallery-title" className={styles.gallery}>
@@ -55,6 +64,9 @@ export function ThemeLibraryGallery() {
 
       <div className={styles.grid}>
         {THEME_REGISTRY.map((theme) => {
+          const selectedPalette = theme.paletteOptions.find(
+            (option) => option.key === palettes[theme.key]
+          ) ?? theme.paletteOptions[0];
           const capabilities = Object.entries(theme.capabilities)
             .filter(([, supported]) => supported)
             .map(([capability]) => capabilityLabels[capability as keyof typeof capabilityLabels]);
@@ -62,7 +74,7 @@ export function ThemeLibraryGallery() {
           return (
             <article className={styles.themeArticle} key={theme.key}>
               <Card className={styles.themeCard}>
-                <ThemePreview device={device} theme={theme} />
+                <ThemePreview device={device} palette={selectedPalette.palette} theme={theme} />
                 <CardHeader>
                   <div className={styles.themeHeader}>
                     <div>
@@ -92,19 +104,46 @@ export function ThemeLibraryGallery() {
                       </div>
                     </div>
                     <div className={styles.metaGroup}>
-                      <span className={styles.metaLabel}>Paleta</span>
-                      <div aria-label={`Paleta do tema ${theme.name}`} className={styles.palette}>
-                        {Object.entries(theme.palette).map(([name, color]) => (
-                          <span
-                            aria-label={`${name}: ${color}`}
-                            className={styles.swatch}
-                            key={name}
-                            role="img"
-                            style={{ backgroundColor: color }}
-                            title={`${name}: ${color}`}
-                          />
-                        ))}
+                      <span className={styles.metaLabel}>Variações de paleta</span>
+                      <div aria-label={`Paletas do tema ${theme.name}`} className={styles.paletteOptions}>
+                        {theme.paletteOptions.map((option) => {
+                          const selected = selectedPalette.key === option.key;
+                          return (
+                            <button
+                              aria-pressed={selected}
+                              className={`${styles.paletteOption} ${selected ? styles.paletteOptionSelected : ""}`}
+                              key={option.key}
+                              onClick={() => setPalettes((current) => ({ ...current, [theme.key]: option.key }))}
+                              title={option.description}
+                              type="button"
+                            >
+                              <span className={styles.palette}>
+                                {Object.entries(option.palette).map(([name, color]) => (
+                                  <span
+                                    aria-label={`${name}: ${color}`}
+                                    className={styles.swatch}
+                                    key={name}
+                                    role="img"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                ))}
+                              </span>
+                              <strong>{option.name}</strong>
+                            </button>
+                          );
+                        })}
                       </div>
+                      <span className={styles.paletteDescription}>{selectedPalette.description}</span>
+                      <Button
+                        onClick={() => copyBlueprint(theme.key, selectedPalette.key)}
+                        type="button"
+                        variant="secondary"
+                      >
+                        {copied === theme.key + ":" + selectedPalette.key
+                          ? <Check aria-hidden="true" size={16} />
+                          : <Copy aria-hidden="true" size={16} />}
+                        {copied === theme.key + ":" + selectedPalette.key ? "Base copiada" : "Copiar base HTML/CSS"}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

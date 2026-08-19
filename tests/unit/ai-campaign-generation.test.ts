@@ -84,6 +84,15 @@ describe("geração assistida de campanha", () => {
     expect(campaignGenerationSystemPrompt()).toContain("Não publique");
   });
 
+  it("permite criar a campanha colando apenas a copy", () => {
+    const result = campaignGenerationInputSchema.parse({
+      brief: "Uma copy completa com contexto suficiente para a campanha ser montada automaticamente.",
+    });
+
+    expect(result.topic).toBe("");
+    expect(result.tone).toBe("mobilizador");
+  });
+
   it("aceita saída estruturada e preserva o rascunho", async () => {
     const result = await generateCampaignDraft(validInput, "actor-test", {
       model: mockTextModel(JSON.stringify(validDraft)),
@@ -121,6 +130,36 @@ describe("geração assistida de campanha", () => {
     });
     expect(input).not.toHaveProperty("status");
     expect(input).not.toHaveProperty("ativa");
+  });
+
+  it("preenche os campos específicos do tema escolhido", () => {
+    const manifesto = mapGeneratedDraftToCampaignInput({
+      actorInput: validInput,
+      draft: { ...validDraft, themeKey: "manifesto" },
+      generatedAt: "2026-08-18T12:00:00.000Z",
+      modelId: "mock/campaign",
+      usage: {},
+    });
+    const impact = mapGeneratedDraftToCampaignInput({
+      actorInput: validInput,
+      draft: { ...validDraft, themeKey: "impact-dark" },
+      generatedAt: "2026-08-18T12:00:00.000Z",
+      modelId: "mock/campaign",
+      usage: {},
+    });
+
+    expect(manifesto).toMatchObject({
+      theme_key: "manifesto",
+      titulo_topicos: validDraft.headline,
+      texto_topicos_intro: validDraft.body,
+      titulo_assinar: validDraft.formTitle,
+    });
+    expect(impact).toMatchObject({
+      theme_key: "impact-dark",
+      texto_contexto: validDraft.headline,
+      texto_impacto: validDraft.slogan,
+      titulo_assinar: validDraft.formTitle,
+    });
   });
 
   it("classifica JSON quebrado como saída inválida", async () => {

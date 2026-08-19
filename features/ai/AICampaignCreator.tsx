@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
-import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
@@ -50,7 +49,6 @@ export function AICampaignCreator() {
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          topic: form.get("topic"),
           brief: form.get("brief"),
           tone: form.get("tone"),
           preferredThemeKey: selectedTheme || null,
@@ -78,9 +76,9 @@ export function AICampaignCreator() {
   return (
     <div className={styles.page}>
       <PageHeader
-        description="Informe o contexto; a IA prepara uma primeira versão completa para você revisar."
+        description="Cole a copy. A IA identifica o assunto, escolhe o tema e organiza todos os campos para você revisar."
         eyebrow="Assistente editorial"
-        title="Criar campanha com IA"
+        title="Cole a copy e crie a campanha"
       />
 
       <div className={styles.layout}>
@@ -88,27 +86,16 @@ export function AICampaignCreator() {
           <CardHeader className={styles.cardHeader}>
             <span className={styles.icon}><Bot aria-hidden="true" size={22} /></span>
             <div>
-              <h2>Briefing da campanha</h2>
-              <p>Seja específico sobre o objetivo, público e tom da mensagem.</p>
+              <h2>Copy da campanha</h2>
+              <p>Pode ser um texto cru. O assistente transforma o conteúdo em um rascunho completo.</p>
             </div>
           </CardHeader>
           <CardContent>
             <form className={styles.form} onSubmit={submit}>
-              <FormField id="ai-topic" label="Tema" required>
-                <Input
-                  autoComplete="off"
-                  id="ai-topic"
-                  maxLength={160}
-                  minLength={3}
-                  name="topic"
-                  placeholder="Ex.: segurança pública"
-                  required
-                />
-              </FormField>
               <FormField
-                description="Inclua objetivo, argumentos permitidos e qualquer fato já verificado."
+                description="Inclua os fatos e argumentos que podem ser usados. O assunto será identificado automaticamente."
                 id="ai-brief"
-                label="Copy e contexto"
+                label="Cole a copy"
                 required
               >
                 <Textarea
@@ -116,7 +103,7 @@ export function AICampaignCreator() {
                   maxLength={6000}
                   minLength={20}
                   name="brief"
-                  placeholder="Quero uma campanha sobre…"
+                  placeholder="Cole aqui o texto, a ideia ou o briefing da campanha…"
                   required
                   rows={10}
                 />
@@ -160,7 +147,7 @@ export function AICampaignCreator() {
 
               <Button fullWidth loading={pending} size="large" type="submit" variant="primary">
                 <Sparkles aria-hidden="true" size={18} />
-                {pending ? "Gerando rascunho…" : "Gerar rascunho"}
+                {pending ? "Montando a campanha…" : "Criar campanha completa"}
               </Button>
             </form>
           </CardContent>
@@ -175,7 +162,7 @@ export function AICampaignCreator() {
                   "Título, headline, subtítulo e slogan",
                   "Texto principal, CTA e confirmação",
                   "Slug e metadados de SEO",
-                  "Tema válido da biblioteca",
+                  "Tema compatível com a biblioteca",
                   "Variações de copy para revisão",
                 ].map((item) => <li key={item}><Check aria-hidden="true" size={16} /> {item}</li>)}
               </ul>

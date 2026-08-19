@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { CampaignThemeDefinition } from "./registry";
+import type { CampaignThemeDefinition, ThemePalette } from "./registry";
 import styles from "./ThemePreview.module.css";
 
 export type PreviewDevice = "desktop" | "tablet" | "mobile";
@@ -145,19 +145,22 @@ export function ThemePreview({
   accent,
   content = {},
   device = "desktop",
+  palette,
   theme
 }: {
   accent?: string;
   content?: ThemePreviewContent;
   device?: PreviewDevice;
+  palette?: ThemePalette;
   theme: CampaignThemeDefinition;
 }) {
+  const colors = palette ?? theme.palette;
   const previewStyle: ThemePreviewStyle = {
-    "--preview-bg": theme.palette.background,
-    "--preview-surface": theme.palette.surface,
-    "--preview-text": theme.palette.text,
-    "--preview-accent": accent || theme.palette.accent,
-    "--preview-secondary": theme.palette.secondary
+    "--preview-bg": colors.background,
+    "--preview-surface": colors.surface,
+    "--preview-text": colors.text,
+    "--preview-accent": accent || colors.accent,
+    "--preview-secondary": colors.secondary
   };
 
   const deviceLabel = {
