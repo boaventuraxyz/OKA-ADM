@@ -25,7 +25,7 @@ function generationError(error: CampaignGenerationError) {
     AI_INVALID_INPUT: ["AI_INVALID_INPUT", "Revise o tema e o briefing.", 400],
     AI_INVALID_OUTPUT: ["AI_INVALID_OUTPUT", "A IA devolveu um rascunho inválido. Tente novamente.", 422],
     AI_MODEL_NOT_FOUND: ["AI_MODEL_NOT_FOUND", "O modelo definido em AI_MODEL não existe no AI Gateway. Revise a variável.", 503],
-    AI_NOT_CONFIGURED: ["AI_NOT_CONFIGURED", "O gerador não está configurado: falta a credencial do AI Gateway (AI_GATEWAY_API_KEY).", 503],
+    AI_NOT_CONFIGURED: ["AI_NOT_CONFIGURED", "O AI Gateway recusou a autenticação. Configure AI_GATEWAY_API_KEY no ambiente ou habilite o Secure Backend Access (OIDC) do projeto na Vercel.", 503],
     AI_QUOTA_EXCEEDED: ["AI_QUOTA_EXCEEDED", "O AI Gateway recusou a chamada por limite ou crédito. Verifique o consumo do projeto.", 503],
     AI_TIMEOUT: ["AI_TIMEOUT", "A geração demorou além do limite. Tente novamente.", 504],
     AI_UNAVAILABLE: ["AI_UNAVAILABLE", "O gerador está temporariamente indisponível.", 503],

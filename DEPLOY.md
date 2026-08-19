@@ -150,6 +150,19 @@ vercel env pull .env.local
 
 Repita o pull quando o token expirar. Não copie o token para `.env.example`, documentação, logs ou Git. Consulte [OIDC na Vercel](https://vercel.com/docs/oidc) e [autenticação do AI Gateway](https://vercel.com/docs/ai-gateway/authentication-and-byok).
 
+#### Quando a geração por IA falha
+
+A tela de criação por IA traduz o motivo em vez de mostrar uma indisponibilidade genérica, e o erro completo vai para o log do servidor com o prefixo `[ai]`.
+
+| Mensagem | Causa | O que fazer |
+| --- | --- | --- |
+| O AI Gateway recusou a autenticação | Nenhuma credencial válida: sem `AI_GATEWAY_API_KEY` e sem OIDC utilizável | Defina a chave no ambiente ou habilite Secure Backend Access/OIDC no projeto |
+| O modelo definido em `AI_MODEL` não existe | Identificador fora do catálogo do Gateway | Ajuste `AI_MODEL` para um `provedor/modelo` disponível |
+| O AI Gateway recusou a chamada por limite ou crédito | Cota, limite de taxa ou saldo | Verifique consumo e créditos do projeto |
+| A IA devolveu um rascunho inválido | Saída fora do schema | Tente novamente; se persistir, revise o briefing |
+
+Não bloqueamos a chamada por ausência de variável de ambiente: o OIDC também chega pelo cabeçalho `x-vercel-oidc-token` da requisição e pelo refresh local, caminhos invisíveis a `process.env`. Quem decide se há credencial é o próprio provider.
+
 ## 5. Preview
 
 Pela integração Git, abra/atualize o pull request e use o Preview gerado. Pela CLI:

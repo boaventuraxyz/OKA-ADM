@@ -60,28 +60,25 @@ function selectedModelId() {
   return model;
 }
 
-/** Toda credencial aceita pelo AI Gateway, incluindo o OIDC injetado na Vercel. */
-export function aiGatewayCredentials() {
-  return {
-    apiKey:
-      process.env.AI_GATEWAY_API_KEY?.trim() || process.env.AI_API_KEY?.trim() || "",
-    oidcToken: process.env.VERCEL_OIDC_TOKEN?.trim() || ""
-  };
-}
-
-export function aiGatewayIsConfigured() {
-  const { apiKey, oidcToken } = aiGatewayCredentials();
-  return Boolean(apiKey || oidcToken);
+/**
+ * Credencial visível no ambiente do processo. NÃO é a lista completa: o AI
+ * Gateway também aceita OIDC vindo do cabeçalho `x-vercel-oidc-token` da
+ * requisição e do refresh via OAuth no desenvolvimento local. Por isso este
+ * sinal serve só para orientar a interface — nunca para impedir a chamada.
+ */
+export function aiGatewayCredentialInEnvironment() {
+  const apiKey =
+    process.env.AI_GATEWAY_API_KEY?.trim() || process.env.AI_API_KEY?.trim() || "";
+  if (apiKey) return "api-key" as const;
+  return process.env.VERCEL_OIDC_TOKEN?.trim() ? ("oidc" as const) : null;
 }
 
 function selectedGateway() {
-  const { apiKey, oidcToken } = aiGatewayCredentials();
-  // Sem credencial nenhuma o gateway falha com um erro genérico; avisar aqui
-  // deixa claro que falta configuração, não que o provedor está fora do ar.
-  if (!apiKey && !oidcToken) {
-    throw new CampaignGenerationError("AI_NOT_CONFIGURED");
-  }
-
+  const apiKey =
+    process.env.AI_GATEWAY_API_KEY?.trim() || process.env.AI_API_KEY?.trim() || "";
+  // Sem chave explícita, deixamos o provider resolver o OIDC sozinho: ele lê o
+  // cabeçalho da requisição na Vercel, a variável de ambiente e o refresh local,
+  // caminhos que uma checagem de process.env aqui nao enxergaria.
   return apiKey ? createGateway({ apiKey }) : gateway;
 }
 

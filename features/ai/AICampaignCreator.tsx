@@ -30,7 +30,11 @@ const toneLabels: Record<(typeof AI_TONES)[number], string> = {
   urgente: "Urgente",
 };
 
-export function AICampaignCreator({ configured = true }: { configured?: boolean }) {
+export function AICampaignCreator({
+  credentialVisible = true
+}: {
+  credentialVisible?: boolean;
+}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -143,19 +147,20 @@ export function AICampaignCreator({ configured = true }: { configured?: boolean 
                 <p>A IA só pode sugerir temas cadastrados nesta biblioteca.</p>
               </fieldset>
 
-              {configured ? null : (
+              {credentialVisible ? null : (
                 <p className={styles.notice} role="status">
                   <CircleAlert aria-hidden="true" size={17} />
                   <span>
-                    O gerador ainda não está configurado. Defina{" "}
-                    <code>AI_GATEWAY_API_KEY</code> no ambiente para liberar a criação por IA.
+                    Não encontramos a credencial do AI Gateway no ambiente. Se o projeto usa
+                    OIDC da Vercel a geração ainda funciona; caso contrário, defina{" "}
+                    <code>AI_GATEWAY_API_KEY</code>.
                   </span>
                 </p>
               )}
 
               {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
-              <Button disabled={!configured} fullWidth loading={pending} size="large" type="submit" variant="primary">
+              <Button fullWidth loading={pending} size="large" type="submit" variant="primary">
                 <Sparkles aria-hidden="true" size={18} />
                 {pending ? "Montando a campanha…" : "Criar campanha completa"}
               </Button>

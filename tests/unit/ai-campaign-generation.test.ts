@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MockLanguageModelV4 } from "ai/test";
 import { THEME_REGISTRY } from "@/features/themes/registry";
-import { aiGatewayIsConfigured, generateCampaignDraft } from "@/features/ai/generator";
+import {
+  aiGatewayCredentialInEnvironment,
+  generateCampaignDraft
+} from "@/features/ai/generator";
 import { mapGeneratedDraftToCampaignInput } from "@/features/ai/campaign-draft";
 import {
   campaignGenerationInputSchema,
@@ -233,7 +236,7 @@ describe("geração assistida de campanha", () => {
     ).rejects.toMatchObject({ code: expected });
   });
 
-  it("avisa quando o gateway não tem credencial configurada", async () => {
+  it("reporta a credencial visível no ambiente sem bloquear os outros caminhos", () => {
     const previous = {
       apiKey: process.env.AI_GATEWAY_API_KEY,
       fallbackKey: process.env.AI_API_KEY,
@@ -244,16 +247,57 @@ describe("geração assistida de campanha", () => {
     delete process.env.VERCEL_OIDC_TOKEN;
 
     try {
-      expect(aiGatewayIsConfigured()).toBe(false);
-      await expect(
-        generateCampaignDraft(validInput, "actor-test", { maxRetries: 0 })
-      ).rejects.toMatchObject({ code: "AI_NOT_CONFIGURED" });
+      // Ausência no process.env não significa ausência de credencial: o OIDC
+      // pode chegar pelo cabeçalho da requisição ou pelo refresh local.
+      expect(aiGatewayCredentialInEnvironment()).toBeNull();
+
+      process.env.VERCEL_OIDC_TOKEN = "token-oidc";
+      expect(aiGatewayCredentialInEnvironment()).toBe("oidc");
 
       process.env.AI_GATEWAY_API_KEY = "chave-de-teste";
-      expect(aiGatewayIsConfigured()).toBe(true);
+      expect(aiGatewayCredentialInEnvironment()).toBe("api-key");
     } finally {
       if (previous.apiKey === undefined) delete process.env.AI_GATEWAY_API_KEY;
       else process.env.AI_GATEWAY_API_KEY = previous.apiKey;
+      if (previous.fallbackKey === undefined) delete process.env.AI_API_KEY;
+      else process.env.AI_API_KEY = previous.fallbackKey;
+      if (previous.oidc === undefined) delete process.env.VERCEL_OIDC_TOKEN;
+      else process.env.VERCEL_OIDC_TOKEN = previous.oidc;
+    }
+  });
+
+  it("deixa o provider tentar o OIDC quando não há chave no ambiente", async () => {
+    const previous = {
+      apiKey: process.env.AI_GATEWAY_API_KEY,
+      fallbackKey: process.env.AI_API_KEY,
+      oidc: process.env.VERCEL_OIDC_TOKEN
+    };
+    delete process.env.AI_GATEWAY_API_KEY;
+    delete process.env.AI_API_KEY;
+    delete process.env.VERCEL_OIDC_TOKEN;
+
+    try {
+      // Sem credencial nenhuma a chamada precisa CHEGAR ao provider e falhar la,
+      // e nao ser abortada antes por uma checagem de process.env.
+      const reached = vi.fn(async () => {
+        throw Object.assign(new Error("sem credencial"), {
+          name: "GatewayAuthenticationError",
+          statusCode: 401,
+          type: "authentication_error"
+        });
+      });
+
+      await expect(
+        generateCampaignDraft(validInput, "actor-test", {
+          model: new MockLanguageModelV4({ doGenerate: reached }),
+          modelId: "mock/campaign",
+          maxRetries: 0
+        })
+      ).rejects.toMatchObject({ code: "AI_NOT_CONFIGURED" });
+
+      expect(reached).toHaveBeenCalled();
+    } finally {
+      if (previous.apiKey !== undefined) process.env.AI_GATEWAY_API_KEY = previous.apiKey;
       if (previous.fallbackKey !== undefined) process.env.AI_API_KEY = previous.fallbackKey;
       if (previous.oidc !== undefined) process.env.VERCEL_OIDC_TOKEN = previous.oidc;
     }
