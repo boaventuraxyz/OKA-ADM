@@ -80,14 +80,14 @@ export function candidateDomainMatches(
 }
 
 export function publicCampaignHref(
-  campaignId: string,
+  campaignSlug: string,
   configuredDomain: string | null | undefined
 ) {
   const domain = normalizeCandidateDomain(configuredDomain);
-  const encodedId = encodeURIComponent(campaignId);
+  const encodedSlug = encodeURIComponent(campaignSlug);
   return domain
-    ? `https://${domain}/${encodedId}`
-    : `/formulario/${encodedId}`;
+    ? `https://${domain}/${encodedSlug}`
+    : `/formulario/${encodedSlug}`;
 }
 
 export function publicCandidateHubHref(

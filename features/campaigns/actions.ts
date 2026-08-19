@@ -126,7 +126,7 @@ function revalidateCampaign(result: CampaignMutationResult) {
   revalidatePath(`/admin/campaigns/${result.id}/edit`);
   revalidatePath("/campanhas");
   revalidatePath(`/campanhas/${result.id}/editar`);
-  revalidatePath(`/formulario/${result.id}`);
+  if (result.slug) revalidatePath(`/formulario/${result.slug}`);
 }
 
 async function runCampaignAction(

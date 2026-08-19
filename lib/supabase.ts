@@ -155,8 +155,8 @@ export async function getPublishedCampaignIdBySlug(slug: string) {
 }
 
 export function listPublishedCampaignSitemap() {
-  return supabaseFetch<Array<{ id: string; updated_at: string }>>(
-    "/campanhas?status=eq.published&select=id,updated_at&order=updated_at.desc&limit=5000"
+  return supabaseFetch<Array<{ slug: string; updated_at: string }>>(
+    "/campanhas?status=eq.published&slug=not.is.null&select=slug,updated_at&order=updated_at.desc&limit=5000"
   );
 }
 
@@ -261,8 +261,8 @@ export async function getCandidatoByPublicSlug(slug: string) {
 }
 
 export function listPublicCampanhasByCandidate(candidateId: string) {
-  return supabaseFetch<Campanha[]>(
-    `/campanhas?candidato_id=eq.${qs(candidateId)}&ativa=eq.true&select=id,titulo,descricao,candidato_id,ativa,inicio_em,fim_em,criado_em&order=criado_em.desc`
+  return supabaseFetch<Array<Campanha & { slug: string }>>(
+    `/campanhas?candidato_id=eq.${qs(candidateId)}&ativa=eq.true&slug=not.is.null&select=id,titulo,descricao,slug,candidato_id,ativa,inicio_em,fim_em,criado_em&order=criado_em.desc`
   );
 }
 

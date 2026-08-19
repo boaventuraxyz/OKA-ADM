@@ -46,7 +46,7 @@ Há código legado em `app/(admin)/`, `lib/supabase.ts` e arquivos SQL avulsos. 
 - `/` da plataforma redireciona permanentemente para `/admin`;
 - em domínio de candidato, força HTTPS, remove `www` e expõe apenas páginas públicas, assets necessários e `/api/assinaturas`;
 - `/` de candidato reescreve para `/formularios`;
-- `/{uuid}` reescreve para `/formulario/{uuid}` em `GET`/`HEAD`;
+- `/{slug}` reescreve para `/formulario/{slug}` em `GET`/`HEAD`;
 - qualquer rota administrativa em domínio de candidato responde `404` com `noindex`;
 - redirects antigos preservam links MVC e caminhos administrativos em português.
 
@@ -57,7 +57,7 @@ O refresh de sessão não autoriza o usuário. Ele apenas mantém cookies. Pages
 - `APP_URL` identifica a origem administrativa canônica;
 - domínios de candidato não podem acessar `/admin`, `/login` nem APIs administrativas;
 - a raiz e `www` do mesmo domínio devem convergir para o hostname sem `www` e HTTPS;
-- links públicos curtos por UUID e o endpoint legado de assinatura não podem ser removidos sem plano de redirecionamento e telemetria.
+- links públicos curtos por slug e o endpoint legado de assinatura não podem ser removidos sem plano de redirecionamento e telemetria.
 
 ## Autenticação e autorização
 
@@ -156,8 +156,8 @@ O modelo é configurado por `AI_MODEL` no formato `provedor/modelo`. A credencia
 
 As principais entradas públicas são:
 
-- `/formulario/[idCampanha]`: campanha publicada por UUID (canônica);
-- `/p/[slug]`: redirecionamento compatível para a campanha por UUID;
+- `/formulario/[slug]`: campanha publicada por slug (canônica);
+- `/p/[slug]`: redirecionamento compatível para a campanha por slug;
 - `/c/[slug]`: hub do candidato;
 - `/formularios`: índice usado na raiz de domínio personalizado;
 - `POST /api/assinaturas`: recebimento validado da assinatura.
@@ -209,7 +209,7 @@ Respostas que alteram sessão propagam corretamente `Set-Cookie` e headers de ca
 | Conteúdo | `/admin/campaigns`, `/admin/campaigns/new`, `/admin/campaigns/[id]/edit`, `/admin/campaigns/ai`, `/admin/themes`, `/admin/forms` |
 | Dados | `/admin/leads` |
 | Gestão | `/admin/users`, `/admin/settings` |
-| Público | `/formulario/[idCampanha]`, `/c/[slug]` |
+| Público | `/formulario/[slug]`, `/c/[slug]` |
 
 Páginas novas não devem apontar para `/p/[slug]`, `/campanhas`, `/assinaturas`, `/temas` ou rotas MVC. Esses caminhos existem somente como adapters de compatibilidade. `/candidatos/*` ainda é legado e deve permanecer isolado até uma migração dedicada.
 

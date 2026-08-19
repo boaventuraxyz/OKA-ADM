@@ -58,8 +58,8 @@ export default async function AdminFormsPage({
                 <Link className={styles.editLink} href={`/admin/campaigns/${campaign.id}/edit?tab=form`}>
                   <FilePenLine aria-hidden="true" size={16} /> Configurar
                 </Link>
-                {campaign.status === "published" ? (
-                  <Link className={styles.previewLink} href={`/formulario/${encodeURIComponent(campaign.id)}`} target="_blank">
+                {campaign.status === "published" && campaign.slug ? (
+                  <Link className={styles.previewLink} href={`/formulario/${encodeURIComponent(campaign.slug)}`} target="_blank">
                     <Eye aria-hidden="true" size={16} /> Ver página
                   </Link>
                 ) : null}

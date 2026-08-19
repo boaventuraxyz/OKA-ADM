@@ -24,9 +24,11 @@ type CampaignMutationAction = (
 
 export function CampaignRowActions({
   id,
+  slug,
   status,
 }: {
   id: string;
+  slug: string | null;
   status: CampaignStatus;
 }) {
   const router = useRouter();
@@ -67,8 +69,8 @@ export function CampaignRowActions({
       <Link className={styles.rowActionLink} href={`/admin/campaigns/${id}/edit`}>
         <FilePenLine aria-hidden="true" size={15} /> Editar
       </Link>
-      {status === "published" ? (
-        <Link className={styles.rowActionLink} href={`/formulario/${encodeURIComponent(id)}`} target="_blank">
+      {status === "published" && slug ? (
+        <Link className={styles.rowActionLink} href={`/formulario/${encodeURIComponent(slug)}`} target="_blank">
           <Eye aria-hidden="true" size={15} /> Visualizar
         </Link>
       ) : null}

@@ -27,11 +27,13 @@ describe("roteamento publico de candidatos", () => {
     expect(normalizeCandidateDomain("ftp://exemplo.com")).toBeNull();
   });
 
-  it("preserva o contrato de URL publica por dominio ou UUID", () => {
+  it("gera URL publica por dominio ou slug", () => {
     expect(candidateDomainMatches("www.exemplo.com.br", "exemplo.com.br")).toBe(true);
-    expect(publicCampaignHref("abc-123", "www.exemplo.com.br")).toBe(
-      "https://exemplo.com.br/abc-123"
+    expect(publicCampaignHref("minha-campanha", "www.exemplo.com.br")).toBe(
+      "https://exemplo.com.br/minha-campanha"
     );
-    expect(publicCampaignHref("abc-123", null)).toBe("/formulario/abc-123");
+    expect(publicCampaignHref("minha-campanha", null)).toBe(
+      "/formulario/minha-campanha"
+    );
   });
 });

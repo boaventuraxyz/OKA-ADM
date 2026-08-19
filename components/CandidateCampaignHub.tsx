@@ -20,7 +20,7 @@ export function CandidateCampaignHub({
   campanhas,
   candidato
 }: {
-  campanhas: Campanha[];
+  campanhas: Array<Campanha & { slug: string }>;
   candidato: Candidato;
 }) {
   const candidateMeta = [candidato.cargo, candidato.partido]
@@ -64,7 +64,7 @@ export function CandidateCampaignHub({
             {campanhas.map((campanha) => (
               <Link
                 href={publicCampaignHref(
-                  campanha.id,
+                  campanha.slug,
                   candidato.dominio_formularios
                 )}
                 key={campanha.id}

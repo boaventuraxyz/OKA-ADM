@@ -183,6 +183,7 @@ export default async function AdminCampaignsPage({
                       <td>
                         <CampaignRowActions
                           id={campaign.id}
+                          slug={campaign.slug}
                           status={campaign.status}
                         />
                       </td>

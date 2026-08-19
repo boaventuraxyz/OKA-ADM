@@ -28,8 +28,23 @@ const exactRedirects: Record<string, string> = {
   "/temas": "/admin/themes"
 };
 
-const shortCampaignPath =
-  /^\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/?$/i;
+const shortCampaignSlugPath = /^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/;
+const reservedCandidateShortSlugs = new Set([
+  "admin",
+  "api",
+  "assinaturas",
+  "auth",
+  "c",
+  "campanhas",
+  "candidatos",
+  "formulario",
+  "formularios",
+  "grupo-wpp",
+  "login",
+  "p",
+  "temas",
+  "theme-library"
+]);
 
 function isCandidatePublicPath(pathname: string) {
   return (
@@ -98,9 +113,11 @@ export async function proxy(request: NextRequest) {
       );
     }
 
-    const shortCampaign = pathname.match(shortCampaignPath);
+    const shortCampaign = pathname.match(shortCampaignSlugPath);
     if (
       shortCampaign &&
+      !isCandidatePublicPath(pathname) &&
+      !reservedCandidateShortSlugs.has(shortCampaign[1]) &&
       (request.method === "GET" || request.method === "HEAD")
     ) {
       return NextResponse.rewrite(
