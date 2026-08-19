@@ -87,7 +87,7 @@ export function publicCampaignHref(
   const encodedSlug = encodeURIComponent(campaignSlug);
   return domain
     ? `https://${domain}/${encodedSlug}`
-    : `/formulario/${encodedSlug}`;
+    : `/f/${encodedSlug}`;
 }
 
 export function publicCandidateHubHref(

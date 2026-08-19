@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const campaigns = await listPublishedCampaignSitemap();
   return campaigns.map((campaign) => ({
-    url: `${base}/formulario/${encodeURIComponent(campaign.slug)}`,
+    url: `${base}/f/${encodeURIComponent(campaign.slug)}`,
     lastModified: campaign.updated_at,
     changeFrequency: "weekly",
     priority: 0.8,

@@ -37,6 +37,7 @@ const reservedCandidateShortSlugs = new Set([
   "c",
   "campanhas",
   "candidatos",
+  "f",
   "formulario",
   "formularios",
   "grupo-wpp",
@@ -50,6 +51,7 @@ function isCandidatePublicPath(pathname: string) {
   return (
     pathname === "/formulario" ||
     pathname.startsWith("/formulario/") ||
+    pathname.startsWith("/f/") ||
     pathname.startsWith("/p/") ||
     pathname === "/formularios" ||
     pathname === "/Formulario" ||
@@ -122,7 +124,7 @@ export async function proxy(request: NextRequest) {
     ) {
       return NextResponse.rewrite(
         new URL(
-          `/formulario/${shortCampaign[1]}${request.nextUrl.search}`,
+          `/f/${shortCampaign[1]}${request.nextUrl.search}`,
           request.url
         )
       );
@@ -231,7 +233,7 @@ export async function proxy(request: NextRequest) {
   if (formularioId) {
     return applySession(
       NextResponse.redirect(
-        new URL(`/formulario/${formularioId[1]}`, request.url)
+        new URL(`/f/${formularioId[1]}`, request.url)
       )
     );
   }

@@ -168,7 +168,10 @@ function revalidateCampaign(result: CampaignMutationResult) {
   revalidatePath(`/admin/campaigns/${result.id}/edit`);
   revalidatePath("/campanhas");
   revalidatePath(`/campanhas/${result.id}/editar`);
-  if (result.slug) revalidatePath(`/formulario/${result.slug}`);
+  if (result.slug) {
+    revalidatePath(`/f/${result.slug}`);
+    revalidatePath(`/formulario/${result.slug}`);
+  }
 }
 
 function storageResourceMissing(error: unknown) {

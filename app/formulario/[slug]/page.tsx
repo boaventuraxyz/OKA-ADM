@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 
-import { FormularioContent } from "@/app/formulario/page";
 import { normalizeCampaignSlug } from "@/features/campaigns/domain";
 import { publicCampaignMetadata } from "@/lib/public-campaign-metadata";
 import { getPublishedCampaignIdBySlug } from "@/lib/supabase";
@@ -27,7 +26,7 @@ export async function generateMetadata({
     : { title: "Campanha não encontrada", robots: { index: false, follow: false } };
 }
 
-export default async function FormularioSlugPage({
+export default async function LegacyFormularioSlugPage({
   params
 }: {
   params: Promise<{ slug: string }>;
@@ -35,10 +34,5 @@ export default async function FormularioSlugPage({
   const { slug } = await params;
   const campaign = await resolveCampaign(slug);
   if (!campaign) notFound();
-
-  if (slug !== campaign.slug) {
-    redirect(`/formulario/${encodeURIComponent(campaign.slug)}`);
-  }
-
-  return <FormularioContent idCampanha={campaign.id} />;
+  permanentRedirect(`/f/${encodeURIComponent(campaign.slug)}`);
 }

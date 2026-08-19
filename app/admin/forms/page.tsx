@@ -63,7 +63,7 @@ export default async function AdminFormsPage({
                   <FilePenLine aria-hidden="true" size={16} /> Configurar
                 </Link>
                 {campaign.status === "published" && campaign.slug ? (
-                  <Link className={styles.previewLink} href={`/formulario/${encodeURIComponent(campaign.slug)}`} prefetch={false} target="_blank">
+                  <Link className={styles.previewLink} href={`/f/${encodeURIComponent(campaign.slug)}`} prefetch={false} target="_blank">
                     <Eye aria-hidden="true" size={16} /> Ver página
                   </Link>
                 ) : null}

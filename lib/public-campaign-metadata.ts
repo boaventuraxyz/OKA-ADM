@@ -54,7 +54,7 @@ export async function publicCampaignMetadata(idCampanha?: string): Promise<Metad
       ...(campanha.ogImage ? { images: [campanha.ogImage] } : {})
     },
     alternates: {
-      canonical: `/formulario/${encodeURIComponent(campanha.slug || campanha.id)}`
+      canonical: `/f/${encodeURIComponent(campanha.slug || campanha.id)}`
     },
     title
   };

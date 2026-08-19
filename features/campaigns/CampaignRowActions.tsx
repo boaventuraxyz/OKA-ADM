@@ -67,7 +67,7 @@ export function CampaignRowActions({
         <FilePenLine aria-hidden="true" size={15} /> Editar
       </Link>
       {status === "published" && slug ? (
-        <Link className={styles.rowActionLink} href={`/formulario/${encodeURIComponent(slug)}`} prefetch={false} target="_blank">
+        <Link className={styles.rowActionLink} href={`/f/${encodeURIComponent(slug)}`} prefetch={false} target="_blank">
           <Eye aria-hidden="true" size={15} /> Visualizar
         </Link>
       ) : null}

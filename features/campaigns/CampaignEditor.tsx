@@ -1513,7 +1513,7 @@ function SeoPanel({ errors, onValueChange, prefix, values }: {
       <EditorInputField description={`${values.metaTitle.length}/120 caracteres`} error={firstFieldError(errors, "meta_title")} id={controlId(prefix, "meta_title")} label="Título para busca" maxLength={120} name="meta_title" onChange={(value) => onValueChange("metaTitle", value)} placeholder={values.titulo || "Título exibido nos buscadores"} value={values.metaTitle} />
       <EditorTextareaField error={firstFieldError(errors, "meta_description")} id={controlId(prefix, "meta_description")} label="Descrição para busca" maxLength={320} name="meta_description" onChange={(value) => onValueChange("metaDescription", value)} placeholder="Resumo que ajuda a entender a página antes do clique." value={values.metaDescription} />
       <div className={styles.searchSnippet} aria-label="Exemplo de resultado de busca">
-        <small>exemplo.org/formulario/{values.slug || "sua-campanha"}</small>
+        <small>exemplo.org/f/{values.slug || "sua-campanha"}</small>
         <strong>{values.metaTitle || values.titulo || "Título da campanha"}</strong>
         <span>{values.metaDescription || values.descricao || "A descrição da campanha será exibida aqui."}</span>
       </div>
@@ -1697,7 +1697,7 @@ function PreviewPanel({
           <div>
             <small>Tema {theme.id}</small>
             <h3>{values.titulo || "Campanha sem título"}</h3>
-            <code>/formulario/{values.slug || "slug-gerado-ao-salvar"}</code>
+            <code>/f/{values.slug || "slug-gerado-ao-salvar"}</code>
           </div>
           <Badge variant="info">{theme.name}</Badge>
         </CardHeader>

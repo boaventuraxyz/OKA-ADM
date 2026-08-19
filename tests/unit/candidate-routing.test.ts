@@ -33,7 +33,7 @@ describe("roteamento publico de candidatos", () => {
       "https://exemplo.com.br/minha-campanha"
     );
     expect(publicCampaignHref("minha-campanha", null)).toBe(
-      "/formulario/minha-campanha"
+      "/f/minha-campanha"
     );
   });
 });

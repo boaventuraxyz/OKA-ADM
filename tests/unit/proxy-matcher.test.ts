@@ -22,7 +22,7 @@ describe("proxy matcher", () => {
   it.each([
     "/admin",
     "/api/assinaturas",
-    "/formulario/campanha-publica",
+    "/f/campanha-publica",
     "/Scripts/cidades.js"
   ])("preserva o proxy para %s", (url) => {
     expect(proxyMatches(url)).toBe(true);
