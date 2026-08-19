@@ -1,4 +1,4 @@
-export type LegacyThemeId = 1 | 2 | 3 | 4;
+export type LegacyThemeId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type ThemeStatus = "active" | "beta" | "deprecated";
 
@@ -89,6 +89,58 @@ export type CampaignThemeDefinition = {
   status: ThemeStatus;
   tags: readonly string[];
 };
+
+const modernCampaignSections = [
+  {
+    id: "opening",
+    title: "Abertura",
+    description: "Apresente a causa com uma mensagem curta e reconhecível.",
+    fields: [
+      { key: "texto_faixa", label: "Identificação da mobilização", maxLength: 500, type: "text" },
+      { key: "destaque_primario", label: "Destaque principal", maxLength: 160, type: "text" },
+      { key: "destaque_secundario", label: "Destaque secundário", maxLength: 160, type: "text" },
+      { key: "descricao", label: "Resumo", maxLength: 5000, type: "textarea" }
+    ]
+  },
+  {
+    id: "narrative",
+    title: "Contexto e proposta",
+    description: "Explique o problema, a solução defendida e o resultado esperado.",
+    fields: [
+      { key: "texto_contexto", label: "Contexto", maxLength: 8000, type: "textarea" },
+      { key: "texto_proposta", label: "Proposta", maxLength: 4000, type: "textarea" },
+      { key: "texto_conclusao", label: "Conclusão", maxLength: 4000, type: "textarea" }
+    ]
+  },
+  {
+    id: "points",
+    title: "Pontos principais",
+    description: "Organize os argumentos em blocos curtos.",
+    fields: [
+      { key: "titulo_topicos", label: "Título da seção", maxLength: 200, type: "text" },
+      { key: "texto_topicos", label: "Pontos", maxLength: 8000, type: "textarea", help: "Separe cada ponto com uma linha em branco. A primeira linha vira o título." }
+    ]
+  },
+  {
+    id: "impact",
+    title: "Reforço da causa",
+    description: "Destaque a mensagem que antecede a assinatura.",
+    fields: [
+      { key: "texto_impacto", label: "Frase de impacto", maxLength: 300, type: "text" },
+      { key: "texto_impacto_apoio", label: "Texto de apoio", maxLength: 500, type: "text" }
+    ]
+  },
+  {
+    id: "closing",
+    title: "Assinatura e compartilhamento",
+    description: "Feche com uma chamada objetiva para participar.",
+    fields: [
+      { key: "titulo_assinar", label: "Título da assinatura", maxLength: 200, type: "text" },
+      { key: "texto_assinar", label: "Texto da assinatura", maxLength: 2000, type: "textarea" },
+      { key: "texto_compartilhar", label: "Chamada para compartilhar", maxLength: 500, type: "text" }
+    ]
+  }
+] as const satisfies readonly CampaignThemeSection[];
 
 export const THEME_REGISTRY = [
   {
@@ -362,6 +414,75 @@ export const THEME_REGISTRY = [
         ]
       }
     ]
+  },
+  {
+    id: 5,
+    key: "horizon-blue",
+    name: "Horizonte Azul",
+    description: "Visual institucional claro, com profundidade, transparência e foco na proposta.",
+    category: "editorial",
+    tags: ["azul", "institucional", "claro", "proposta"],
+    status: "active",
+    palette: {
+      background: "#EFF7FF",
+      surface: "#FFFFFF",
+      text: "#0B2545",
+      accent: "#1479D1",
+      secondary: "#54B7A8"
+    },
+    paletteOptions: [
+      { key: "horizon", name: "Horizonte", description: "Azul cívico com turquesa leve.", palette: { background: "#EFF7FF", surface: "#FFFFFF", text: "#0B2545", accent: "#1479D1", secondary: "#54B7A8" } },
+      { key: "ocean", name: "Oceano", description: "Azul profundo com superfícies luminosas.", palette: { background: "#EAF4FB", surface: "#F9FCFF", text: "#09253A", accent: "#087EA4", secondary: "#39A88E" } },
+      { key: "civic", name: "Cívico", description: "Azul institucional com verde de confiança.", palette: { background: "#F1F6FA", surface: "#FFFFFF", text: "#132B40", accent: "#2563A8", secondary: "#2F9E78" } }
+    ],
+    capabilities: { backgroundImage: false, sideImage: false, video: false, longform: true, signatureModal: false, sharing: true },
+    sections: modernCampaignSections
+  },
+  {
+    id: 6,
+    key: "green-community",
+    name: "Verde Comunidade",
+    description: "Tema acolhedor e orgânico para causas locais, ambientais e comunitárias.",
+    category: "mobilização",
+    tags: ["verde", "comunidade", "orgânico", "acolhedor"],
+    status: "active",
+    palette: {
+      background: "#F2F8F1",
+      surface: "#FFFFFF",
+      text: "#153B2E",
+      accent: "#218A61",
+      secondary: "#68AFC4"
+    },
+    paletteOptions: [
+      { key: "community", name: "Comunidade", description: "Verde vivo com azul de proximidade.", palette: { background: "#F2F8F1", surface: "#FFFFFF", text: "#153B2E", accent: "#218A61", secondary: "#68AFC4" } },
+      { key: "forest-water", name: "Mata e água", description: "Verde floresta com azul mineral.", palette: { background: "#EDF6F1", surface: "#FAFFFC", text: "#12372B", accent: "#167451", secondary: "#2B82A3" } },
+      { key: "garden", name: "Jardim", description: "Base suave com verde fresco e azul claro.", palette: { background: "#F5FAF3", surface: "#FFFFFF", text: "#244334", accent: "#3A9867", secondary: "#5CA7C1" } }
+    ],
+    capabilities: { backgroundImage: false, sideImage: false, video: false, longform: true, signatureModal: false, sharing: true },
+    sections: modernCampaignSections
+  },
+  {
+    id: 7,
+    key: "teal-pulse",
+    name: "Pulso Turquesa",
+    description: "Mobilização digital escura, dinâmica e de alto contraste em azul e verde.",
+    category: "manifesto",
+    tags: ["turquesa", "digital", "escuro", "dinâmico"],
+    status: "active",
+    palette: {
+      background: "#061923",
+      surface: "#0D2B36",
+      text: "#EAFDFC",
+      accent: "#18BFA4",
+      secondary: "#36A9E1"
+    },
+    paletteOptions: [
+      { key: "pulse", name: "Pulso", description: "Turquesa elétrico sobre azul petróleo.", palette: { background: "#061923", surface: "#0D2B36", text: "#EAFDFC", accent: "#18BFA4", secondary: "#36A9E1" } },
+      { key: "deep-sea", name: "Mar profundo", description: "Azul profundo com verde oceânico.", palette: { background: "#051521", surface: "#0B2637", text: "#EDF9FF", accent: "#24A9C7", secondary: "#31C48D" } },
+      { key: "aurora", name: "Aurora", description: "Verde luminoso com azul de tecnologia.", palette: { background: "#071A1C", surface: "#102D30", text: "#F0FFFC", accent: "#41D39B", secondary: "#4A9FF5" } }
+    ],
+    capabilities: { backgroundImage: false, sideImage: false, video: false, longform: true, signatureModal: false, sharing: true },
+    sections: modernCampaignSections
   }
 ] as const satisfies readonly CampaignThemeDefinition[];
 

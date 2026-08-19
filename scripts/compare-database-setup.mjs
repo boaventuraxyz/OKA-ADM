@@ -1,9 +1,10 @@
 import { readFile } from "node:fs/promises";
-import { PGlite } from "file:///C:/Users/julio/AppData/Local/Temp/codex-platform-foundation-validation/node_modules/@electric-sql/pglite/dist/index.js";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { PGlite } from "@electric-sql/pglite";
 
-const root =
-  "C:/Users/julio/Documents/Codex/2026-08-18/https-github-com-boaventuraxyz-oka-adm/OKA-ADM";
-const read = (path) => readFile(`${root}/${path}`, "utf8");
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const read = (path) => readFile(join(root, path), "utf8");
 
 const setupSql = await read("database/setup.sql");
 const legacySql = await Promise.all([
@@ -13,13 +14,16 @@ const legacySql = await Promise.all([
   read("supabase/candidate-domain.sql"),
   read("supabase/candidate-hubs.sql"),
 ]);
-const migrations = await Promise.all([
-  read("supabase/migrations/20260818123702_platform_foundation.sql"),
-  read("supabase/migrations/20260818123828_security_hotfix_lock_down_public_data_api.sql"),
-  read("supabase/migrations/20260818123919_reconcile_authenticated_platform_grants.sql"),
-  read("supabase/migrations/20260818132611_allow_optional_lead_name.sql"),
-  read("supabase/migrations/20260818194500_review_campaign_copy.sql"),
-]);
+const migrationNames = [
+  "20260818123702_platform_foundation.sql",
+  "20260818123828_security_hotfix_lock_down_public_data_api.sql",
+  "20260818123919_reconcile_authenticated_platform_grants.sql",
+  "20260818132611_allow_optional_lead_name.sql",
+  "20260819122000_add_blue_green_campaign_themes.sql",
+];
+const migrations = await Promise.all(
+  migrationNames.map((name) => read(join("supabase", "migrations", name))),
+);
 
 const baseline = `
   create role anon nologin;

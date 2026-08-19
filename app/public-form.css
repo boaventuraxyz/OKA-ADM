@@ -1523,6 +1523,621 @@
   }
 }
 
+/* Themes 5–7 — azul e verde */
+.campaign-modern {
+  --modern-bg: #eff7ff;
+  --modern-surface: #ffffff;
+  --modern-text: #0b2545;
+  --modern-muted: #5e748a;
+  --modern-line: #cfe0ef;
+  --modern-secondary: #54b7a8;
+  --campaign-accent: var(--modern-accent);
+  --campaign-dark: var(--modern-bg);
+  --campaign-card: var(--modern-surface);
+  --campaign-border: var(--modern-line);
+  --campaign-input: color-mix(in srgb, var(--modern-surface) 84%, var(--modern-bg));
+  --campaign-text: var(--modern-text);
+  --campaign-muted: var(--modern-muted);
+  min-height: 100vh;
+  background: var(--modern-bg);
+  color: var(--modern-text);
+  font-family: "Inter", sans-serif;
+}
+
+.campaign-modern-community {
+  --modern-bg: #f2f8f1;
+  --modern-surface: #ffffff;
+  --modern-text: #153b2e;
+  --modern-muted: #607a6e;
+  --modern-line: #cedfd5;
+  --modern-secondary: #68afc4;
+}
+
+.campaign-modern-pulse {
+  --modern-bg: #061923;
+  --modern-surface: #0d2b36;
+  --modern-text: #eafdfc;
+  --modern-muted: #93b5ba;
+  --modern-line: #1b4652;
+  --modern-secondary: #36a9e1;
+}
+
+.campaign-modern-wrap {
+  width: min(1160px, calc(100% - 64px));
+  margin: 0 auto;
+}
+
+.campaign-modern-nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  width: min(1160px, calc(100% - 64px));
+  min-height: 82px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--modern-line);
+}
+
+.campaign-modern-brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  color: var(--modern-text);
+  font-family: "Sora", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.campaign-modern-brand > span {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border: 3px solid var(--modern-accent);
+  border-radius: 50%;
+  box-shadow: 9px 0 0 -3px var(--modern-secondary);
+}
+
+.campaign-modern-nav-cta,
+.campaign-modern-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--modern-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.campaign-modern-nav-cta {
+  min-height: 40px;
+  padding: 0 18px;
+}
+
+.campaign-modern-primary {
+  min-height: 52px;
+  padding: 0 24px;
+}
+
+.campaign-modern-nav-cta:hover,
+.campaign-modern-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--modern-accent) 28%, transparent);
+}
+
+.campaign-modern-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 88px 0 100px;
+}
+
+.campaign-modern-horizon .campaign-modern-hero {
+  background:
+    radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--modern-secondary) 22%, transparent), transparent 34%),
+    linear-gradient(145deg, var(--modern-bg), color-mix(in srgb, var(--modern-accent) 7%, var(--modern-bg)));
+}
+
+.campaign-modern-community .campaign-modern-hero {
+  background:
+    radial-gradient(ellipse at 92% 5%, color-mix(in srgb, var(--modern-secondary) 25%, transparent), transparent 38%),
+    radial-gradient(ellipse at 8% 92%, color-mix(in srgb, var(--modern-accent) 13%, transparent), transparent 40%);
+}
+
+.campaign-modern-pulse .campaign-modern-hero {
+  background:
+    linear-gradient(color-mix(in srgb, var(--modern-secondary) 8%, transparent) 1px, transparent 1px) 0 0 / 38px 38px,
+    linear-gradient(90deg, color-mix(in srgb, var(--modern-secondary) 8%, transparent) 1px, transparent 1px) 0 0 / 38px 38px,
+    radial-gradient(circle at 78% 32%, color-mix(in srgb, var(--modern-accent) 18%, transparent), transparent 35%);
+}
+
+.campaign-modern-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(290px, 0.75fr);
+  align-items: center;
+  gap: 72px;
+}
+
+.campaign-modern-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.campaign-modern-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--modern-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.campaign-modern-eyebrow::before {
+  width: 24px;
+  height: 2px;
+  background: currentColor;
+  content: "";
+}
+
+.campaign-modern-hero h1 {
+  max-width: 16ch;
+  margin: 22px 0 0;
+  color: var(--modern-text);
+  font-family: "Sora", sans-serif;
+  font-size: clamp(42px, 6vw, 78px);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.campaign-modern-hero h1 span {
+  color: var(--modern-accent);
+}
+
+.campaign-modern-lede {
+  max-width: 60ch;
+  margin-top: 26px;
+  color: var(--modern-muted);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.campaign-modern-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  margin-top: 34px;
+}
+
+.campaign-modern-hero-actions > span {
+  color: var(--modern-muted);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.campaign-modern-summary {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 15px;
+  padding: 32px;
+  border: 1px solid var(--modern-line);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--modern-surface) 90%, transparent);
+  box-shadow: 0 28px 70px color-mix(in srgb, var(--modern-text) 13%, transparent);
+}
+
+.campaign-modern-community .campaign-modern-summary {
+  border-radius: 42px 18px 42px 18px;
+}
+
+.campaign-modern-pulse .campaign-modern-summary {
+  border-radius: 4px;
+  box-shadow: 10px 10px 0 color-mix(in srgb, var(--modern-secondary) 22%, transparent);
+}
+
+.campaign-modern-summary small,
+.campaign-modern-section-heading small,
+.campaign-modern-impact small {
+  color: var(--modern-accent);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.campaign-modern-summary strong {
+  color: var(--modern-text);
+  font-family: "Sora", sans-serif;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.campaign-modern-summary p {
+  margin: 0;
+  color: var(--modern-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.campaign-modern-summary > div {
+  padding-top: 17px;
+  border-top: 1px solid var(--modern-line);
+  color: var(--modern-muted);
+  font-size: 12px;
+}
+
+.campaign-modern-summary b {
+  margin-right: 5px;
+  color: var(--modern-accent);
+  font-family: "Sora", sans-serif;
+  font-size: 22px;
+}
+
+.campaign-modern-orbit {
+  position: absolute;
+  z-index: -1;
+  top: 8%;
+  right: -140px;
+  width: 520px;
+  height: 520px;
+  border: 1px solid color-mix(in srgb, var(--modern-accent) 16%, transparent);
+  border-radius: 50%;
+}
+
+.campaign-modern-orbit i {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--modern-accent);
+}
+
+.campaign-modern-orbit i:nth-child(1) { top: 12%; left: 5%; width: 16px; height: 16px; }
+.campaign-modern-orbit i:nth-child(2) { right: 22%; bottom: 4%; width: 9px; height: 9px; background: var(--modern-secondary); }
+.campaign-modern-orbit i:nth-child(3) { top: 45%; left: 45%; width: 120px; height: 120px; opacity: 0.08; }
+
+.campaign-modern-section {
+  padding: 92px 0;
+  border-top: 1px solid var(--modern-line);
+}
+
+.campaign-modern-section-heading {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  margin-bottom: 42px;
+}
+
+.campaign-modern-section-heading > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--modern-line);
+  border-radius: 50%;
+  color: var(--modern-accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.campaign-modern-section-heading h2,
+.campaign-modern-impact h2,
+.campaign-modern-sign-copy h2 {
+  margin: 6px 0 0;
+  color: var(--modern-text);
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.campaign-modern-section-heading h2 {
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+.campaign-modern-narrative-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.campaign-modern-narrative-grid article,
+.campaign-modern-points-grid article {
+  border: 1px solid var(--modern-line);
+  background: var(--modern-surface);
+}
+
+.campaign-modern-narrative-grid article {
+  min-height: 250px;
+  padding: 28px;
+  border-radius: 20px;
+}
+
+.campaign-modern-community .campaign-modern-narrative-grid article:nth-child(2) {
+  transform: translateY(18px);
+}
+
+.campaign-modern-pulse .campaign-modern-narrative-grid article,
+.campaign-modern-pulse .campaign-modern-points-grid article {
+  border-radius: 3px;
+}
+
+.campaign-modern-narrative-grid article > span {
+  color: var(--modern-accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.campaign-modern-narrative-grid h3,
+.campaign-modern-points-grid h3 {
+  margin: 24px 0 12px;
+  color: var(--modern-text);
+  font-family: "Sora", sans-serif;
+  font-size: 20px;
+}
+
+.campaign-modern-narrative-grid p,
+.campaign-modern-points-grid p,
+.campaign-modern-sign-copy p {
+  color: var(--modern-muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.campaign-modern-points {
+  background: color-mix(in srgb, var(--modern-secondary) 6%, var(--modern-bg));
+}
+
+.campaign-modern-points-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.campaign-modern-points-grid article {
+  padding: 26px;
+  border-radius: 18px;
+}
+
+.campaign-modern-points-grid svg {
+  color: var(--modern-accent);
+}
+
+.campaign-modern-points-grid h3 {
+  margin-top: 16px;
+}
+
+.campaign-modern-impact {
+  padding: 86px 0;
+  overflow: hidden;
+  background: var(--modern-text);
+  color: var(--modern-bg);
+  text-align: center;
+}
+
+.campaign-modern-pulse .campaign-modern-impact {
+  background: var(--modern-accent);
+  color: #031216;
+}
+
+.campaign-modern-impact small {
+  color: var(--modern-secondary);
+}
+
+.campaign-modern-impact h2 {
+  max-width: 20ch;
+  margin: 14px auto 0;
+  color: inherit;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.05;
+}
+
+.campaign-modern-impact p {
+  max-width: 58ch;
+  margin: 20px auto 0;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.campaign-modern-sign {
+  padding: 100px 0;
+}
+
+.campaign-modern-sign-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(380px, 1.15fr);
+  align-items: start;
+  gap: 74px;
+}
+
+.campaign-modern-sign-copy {
+  position: sticky;
+  top: 100px;
+}
+
+.campaign-modern-sign-copy > span {
+  color: var(--modern-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.campaign-modern-sign-copy h2 {
+  font-size: clamp(34px, 4.2vw, 54px);
+  line-height: 1.06;
+}
+
+.campaign-modern-form {
+  padding: 12px;
+  border: 1px solid var(--modern-line);
+  border-radius: 28px;
+  background: var(--modern-surface);
+  box-shadow: 0 30px 70px color-mix(in srgb, var(--modern-text) 12%, transparent);
+}
+
+.campaign-modern-community .campaign-modern-form {
+  border-radius: 46px 20px 46px 20px;
+}
+
+.campaign-modern-pulse .campaign-modern-form {
+  border-radius: 4px;
+  box-shadow: 12px 12px 0 color-mix(in srgb, var(--modern-secondary) 22%, transparent);
+}
+
+.campaign-modern .campaign-theme3-share {
+  justify-content: flex-start;
+  margin-top: 28px;
+}
+
+.campaign-modern .campaign-theme3-share a {
+  border-color: var(--modern-line);
+  background: var(--modern-surface);
+  color: var(--modern-text);
+}
+
+.campaign-modern .campaign-theme3-share a:hover {
+  border-color: var(--modern-accent);
+  color: var(--modern-accent);
+}
+
+.campaign-modern-footer {
+  padding: 32px 0 0;
+  border-top: 1px solid var(--modern-line);
+}
+
+.campaign-modern-footer > .campaign-modern-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 28px;
+  color: var(--modern-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.campaign-modern-footer strong {
+  color: var(--modern-text);
+}
+
+.campaign-modern a:focus-visible,
+.campaign-modern button:focus-visible,
+.campaign-modern input:focus-visible,
+.campaign-modern select:focus-visible,
+.campaign-modern textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--modern-accent) 58%, transparent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .campaign-modern-hero-grid,
+  .campaign-modern-sign-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-modern-hero-grid,
+  .campaign-modern-sign-grid {
+    gap: 44px;
+  }
+
+  .campaign-modern-summary {
+    max-width: 560px;
+  }
+
+  .campaign-modern-narrative-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-modern-community .campaign-modern-narrative-grid article:nth-child(2) {
+    transform: none;
+  }
+
+  .campaign-modern-sign-copy {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .campaign-modern-wrap,
+  .campaign-modern-nav {
+    width: min(100% - 36px, 1160px);
+  }
+
+  .campaign-modern-nav {
+    min-height: 70px;
+  }
+
+  .campaign-modern-nav-cta {
+    min-height: 36px;
+    padding: 0 13px;
+    font-size: 11px;
+  }
+
+  .campaign-modern-hero {
+    padding: 58px 0 72px;
+  }
+
+  .campaign-modern-hero h1 {
+    font-size: clamp(38px, 13vw, 58px);
+  }
+
+  .campaign-modern-summary {
+    padding: 24px;
+  }
+
+  .campaign-modern-section,
+  .campaign-modern-sign {
+    padding: 68px 0;
+  }
+
+  .campaign-modern-section-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-modern-points-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-modern-sign-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .campaign-modern-form {
+    padding: 5px;
+  }
+
+  .campaign-modern-footer > .campaign-modern-wrap {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-modern-nav-cta,
+  .campaign-modern-primary {
+    transition: none;
+  }
+}
+
 .signature-custom-field {
   min-width: 0;
 }

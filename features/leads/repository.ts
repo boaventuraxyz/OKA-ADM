@@ -8,8 +8,8 @@ import type {
   LeadCampaignOption,
   LeadExportRow,
   LeadFilters,
-  LeadListItem,
   LeadListParams,
+  LeadRecord,
 } from "./types";
 
 export type LeadDatabaseClient = SupabaseClient<Database>;
@@ -62,30 +62,31 @@ function leadSearchFilter(search: string) {
 export async function listLeadRows(
   client: LeadDatabaseClient,
   params: LeadListParams,
-): Promise<{ items: LeadListItem[]; total: number }> {
-  const fromIndex = (params.page - 1) * params.pageSize;
-  const toIndex = fromIndex + params.pageSize - 1;
+): Promise<{ items: LeadRecord[]; total: number }> {
+  const batchSize = 1_000;
+  const items: LeadRecord[] = [];
 
-  let query = client
-    .from("assinaturas")
-    .select(LEAD_LIST_SELECT, { count: "exact" });
+  for (let offset = 0; ; offset += batchSize) {
+    let query = client.from("assinaturas").select(LEAD_LIST_SELECT);
 
-  if (params.search) query = query.or(leadSearchFilter(params.search));
-  if (params.campaignId) query = query.eq("campanha_id", params.campaignId);
-  if (params.from) query = query.gte("assinado_em", params.from);
-  if (params.to) query = query.lte("assinado_em", params.to);
+    if (params.search) query = query.or(leadSearchFilter(params.search));
+    if (params.campaignId) query = query.eq("campanha_id", params.campaignId);
+    if (params.from) query = query.gte("assinado_em", params.from);
+    if (params.to) query = query.lte("assinado_em", params.to);
 
-  const { data, error, count } = await query
-    .order("assinado_em", { ascending: false, nullsFirst: false })
-    .order("id", { ascending: false })
-    .range(fromIndex, toIndex);
+    const { data, error } = await query
+      .order("assinado_em", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + batchSize - 1);
 
-  if (error) throw new LeadRepositoryError(error);
+    if (error) throw new LeadRepositoryError(error);
 
-  return {
-    items: (data ?? []) as unknown as LeadListItem[],
-    total: count ?? 0,
-  };
+    const batch = (data ?? []) as unknown as LeadRecord[];
+    items.push(...batch);
+    if (batch.length < batchSize) break;
+  }
+
+  return { items, total: items.length };
 }
 
 export async function listLeadCampaignOptionRows(

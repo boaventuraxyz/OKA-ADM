@@ -122,6 +122,33 @@ function MobilizationPreview({ content }: { content: ThemePreviewContent }) {
   );
 }
 
+function ModernPreview({
+  content,
+  variant,
+}: {
+  content: ThemePreviewContent;
+  variant: "community" | "horizon" | "pulse";
+}) {
+  return (
+    <div className={`${styles.page} ${styles.modern} ${styles[`modern${variant}`]}`}>
+      <PreviewTopbar label={content.brand || "Mobilização cidadã"} />
+      <div className={styles.modernBody}>
+        <div className={styles.modernCopy}>
+          <span className={styles.eyebrow}>{content.eyebrow || "Uma causa que nos une"}</span>
+          <h3 className={styles.headline}>{content.title || "Transformar participação em resultado"}</h3>
+          <p className={styles.lede}>{content.subtitle || "Contexto claro, proposta objetiva e uma chamada para agir agora."}</p>
+          <span className={styles.cta}>{content.cta || "Quero participar"}</span>
+        </div>
+        <div className={styles.modernCards} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PreviewContent({
   content,
   theme,
@@ -138,6 +165,12 @@ function PreviewContent({
       return <ManifestoPreview content={content} />;
     case 4:
       return <MobilizationPreview content={content} />;
+    case 5:
+      return <ModernPreview content={content} variant="horizon" />;
+    case 6:
+      return <ModernPreview content={content} variant="community" />;
+    case 7:
+      return <ModernPreview content={content} variant="pulse" />;
   }
 }
 

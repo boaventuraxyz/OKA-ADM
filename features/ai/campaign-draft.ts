@@ -54,6 +54,19 @@ export function mapGeneratedDraftToCampaignInput({
   if (!theme) throw new Error("Tema sugerido pela IA não existe.");
 
   const topicList = draft.talkingPoints.join("\n\n");
+  const modernContent = {
+    texto_faixa: draft.slogan,
+    texto_contexto: draft.body,
+    texto_proposta: draft.talkingPoints.map((point) => `• ${point}`).join("\n"),
+    texto_conclusao: draft.confirmation,
+    titulo_topicos: draft.headline,
+    texto_topicos: topicList,
+    texto_impacto: draft.slogan,
+    texto_impacto_apoio: draft.subtitle,
+    titulo_assinar: draft.formTitle,
+    texto_assinar: draft.callToAction,
+    texto_compartilhar: draft.shareText,
+  };
   const contentByTheme = {
     cover: {},
     editorial: {
@@ -86,6 +99,9 @@ export function mapGeneratedDraftToCampaignInput({
       texto_assinar: draft.callToAction,
       texto_compartilhar: draft.shareText,
     },
+    "horizon-blue": modernContent,
+    "green-community": modernContent,
+    "teal-pulse": modernContent,
   }[theme.key] ?? {};
 
   return {

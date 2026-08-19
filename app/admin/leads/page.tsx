@@ -267,7 +267,20 @@ export default async function AdminLeadsPage({
                       <td data-label="CEP">{formatCep(lead.cep_assinante)}</td>
                       <td data-label="Cidade">{lead.cidade_assinante || "—"}</td>
                       <td data-label="UF">{lead.estado_assinante || "—"}</td>
-                      <td data-label="Campanha">{lead.campanha.titulo}</td>
+                      <td data-label="Campanha">
+                        {lead.campaignCount > 1 ? (
+                          <div className={styles.campaignGroup}>
+                            <span className={styles.multipleCampaignBadge}>
+                              + de 1 campanha
+                            </span>
+                            <span className={styles.campaignNames}>
+                              {lead.campanhas.map((campaign) => campaign.titulo).join(" · ")}
+                            </span>
+                          </div>
+                        ) : (
+                          lead.campanha.titulo
+                        )}
+                      </td>
                       <td data-label="Origem">{originLabel(lead.source)}</td>
                       <td data-label="Data">
                         {lead.assinado_em ? (
@@ -286,7 +299,7 @@ export default async function AdminLeadsPage({
 
             <nav aria-label="Paginação de leads" className={styles.pagination}>
               <span>
-                {leads.total} lead{leads.total === 1 ? "" : "s"} · página{" "}
+                {leads.total} contato{leads.total === 1 ? "" : "s"} único{leads.total === 1 ? "" : "s"} · página{" "}
                 {leads.page} de {Math.max(1, leads.pageCount)}
               </span>
               <div className={styles.paginationLinks}>

@@ -162,7 +162,7 @@ const campaignEditableShape = {
     .optional(),
   imagem_fundo: optionalImageData,
   imagem_lateral: optionalImageData,
-  tema: z.coerce.number().int().min(1).max(4).optional(),
+  tema: z.coerce.number().int().min(1).max(7).optional(),
   theme_key: z.enum(THEME_KEYS).optional(),
   texto_contexto: optionalLongText(8_000),
   texto_proposta: optionalLongText(4_000),

@@ -1751,6 +1751,17 @@ export function CampaignEditor({
     setSettings((current) => ({ ...current, videoCarousel }));
   }
 
+  function changeTheme(themeKey: RegistryTheme["key"]) {
+    const theme = THEME_REGISTRY.find((candidate) => candidate.key === themeKey);
+    if (!theme) return;
+    markDirty();
+    setValues((current) => ({
+      ...current,
+      corDestaque: theme.palette.accent.toUpperCase(),
+      themeKey,
+    }));
+  }
+
   function changeSlug(slug: string) {
     setSlugManuallyEdited(true);
     changeValue("slug", slug.toLowerCase());
@@ -1990,7 +2001,7 @@ export function CampaignEditor({
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":
-        return <ThemePanel errors={fieldErrors} onContinue={() => setActiveTab("content")} onThemeChange={(key) => changeValue("themeKey", key)} prefix={prefix} selectedKey={values.themeKey} />;
+        return <ThemePanel errors={fieldErrors} onContinue={() => setActiveTab("content")} onThemeChange={changeTheme} prefix={prefix} selectedKey={values.themeKey} />;
       case "seo":
         return <SeoPanel errors={fieldErrors} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "settings":

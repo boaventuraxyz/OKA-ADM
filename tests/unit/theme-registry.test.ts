@@ -5,7 +5,15 @@ import { buildThemeHtmlBlueprint } from "@/features/themes/html-blueprint";
 
 describe("registro central de temas", () => {
   it("mantém chaves e campos únicos em cada tema", () => {
-    expect(THEME_REGISTRY.map((theme) => theme.key)).toEqual(["cover", "editorial", "manifesto", "impact-dark"]);
+    expect(THEME_REGISTRY.map((theme) => theme.key)).toEqual([
+      "cover",
+      "editorial",
+      "manifesto",
+      "impact-dark",
+      "horizon-blue",
+      "green-community",
+      "teal-pulse",
+    ]);
     for (const theme of THEME_REGISTRY) {
       const fields = themeContentFields(theme);
       expect(new Set(fields.map((field) => field.key)).size).toBe(fields.length);

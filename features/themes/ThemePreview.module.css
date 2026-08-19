@@ -354,6 +354,80 @@
   font-size: 9px;
 }
 
+.modernBody {
+  display: grid;
+  height: calc(100% - 34px);
+  grid-template-columns: minmax(0, 1.1fr) minmax(105px, 0.9fr);
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+}
+
+.modernCopy {
+  position: relative;
+  z-index: 1;
+}
+
+.modernCards {
+  position: relative;
+  min-height: 112px;
+}
+
+.modernCards span {
+  position: absolute;
+  display: block;
+  border: 1px solid color-mix(in srgb, var(--preview-accent) 38%, transparent);
+  background: var(--preview-surface);
+}
+
+.modernCards span:nth-child(1) {
+  inset: 8px 20px 24px 0;
+}
+
+.modernCards span:nth-child(2) {
+  inset: 26px 0 6px 28px;
+  background: color-mix(in srgb, var(--preview-secondary) 18%, var(--preview-surface));
+}
+
+.modernCards span:nth-child(3) {
+  top: 0;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--preview-accent);
+}
+
+.modernhorizon {
+  background: linear-gradient(135deg, var(--preview-bg), color-mix(in srgb, var(--preview-secondary) 14%, var(--preview-bg)));
+}
+
+.modernhorizon .modernCards span {
+  border-radius: 14px;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--preview-accent) 15%, transparent);
+}
+
+.moderncommunity {
+  background: radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--preview-secondary) 28%, transparent), transparent 38%), var(--preview-bg);
+}
+
+.moderncommunity .modernCards span:nth-child(1),
+.moderncommunity .modernCards span:nth-child(2) {
+  border-radius: 45% 55% 42% 58% / 55% 40% 60% 45%;
+}
+
+.modernpulse {
+  background:
+    linear-gradient(color-mix(in srgb, var(--preview-secondary) 8%, transparent) 1px, transparent 1px) 0 0 / 18px 18px,
+    linear-gradient(90deg, color-mix(in srgb, var(--preview-secondary) 8%, transparent) 1px, transparent 1px) 0 0 / 18px 18px,
+    var(--preview-bg);
+}
+
+.modernpulse .modernCards span {
+  border-radius: 3px;
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--preview-secondary) 28%, transparent);
+}
+
 @container campaign-preview (max-width: 300px) {
   .topbar {
     min-height: 30px;
@@ -374,6 +448,18 @@
     align-content: center;
     gap: 10px;
     padding: 12px;
+  }
+
+  .modernBody {
+    height: calc(100% - 30px);
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .modernCards {
+    min-height: 70px;
   }
 
   .headline {

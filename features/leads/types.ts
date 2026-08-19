@@ -2,7 +2,7 @@ import type { Tables } from "@/lib/supabase/database.types";
 
 export type LeadCampaignSummary = Pick<Tables<"campanhas">, "id" | "titulo">;
 
-export type LeadListItem = Pick<
+export type LeadRecord = Pick<
   Tables<"assinaturas">,
   | "id"
   | "campanha_id"
@@ -16,6 +16,12 @@ export type LeadListItem = Pick<
   | "source"
 > & {
   campanha: LeadCampaignSummary;
+};
+
+export type LeadListItem = LeadRecord & {
+  campanhas: LeadCampaignSummary[];
+  campaignCount: number;
+  signatureCount: number;
 };
 
 export type LeadListParams = {

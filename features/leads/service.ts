@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireRole } from "@/features/auth/guards";
 import { createServerClient } from "@/lib/supabase/server";
 
+import { groupLeadRecords } from "./grouping";
 import {
   listLeadCampaignOptionRows,
   listLeadRows,
@@ -119,12 +120,15 @@ export async function listLeads(input: unknown = {}): Promise<LeadPage> {
   const parsed = leadListQuerySchema.parse(input);
   const client = (await createServerClient()) as unknown as LeadDatabaseClient;
   const result = await listLeadRows(client, parsed);
+  const grouped = groupLeadRecords(result.items);
+  const offset = (parsed.page - 1) * parsed.pageSize;
 
   return {
-    ...result,
+    items: grouped.slice(offset, offset + parsed.pageSize),
     page: parsed.page,
     pageSize: parsed.pageSize,
-    pageCount: Math.ceil(result.total / parsed.pageSize),
+    total: grouped.length,
+    pageCount: Math.ceil(grouped.length / parsed.pageSize),
   };
 }
 
