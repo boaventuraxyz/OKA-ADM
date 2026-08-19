@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
+  Fragment,
   useEffect,
   useId,
   useRef,
@@ -45,6 +46,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import {
+  resolveThemeHeadlineText,
   THEME_REGISTRY,
   themeContentFields,
   themeContentKeys,
@@ -61,6 +63,7 @@ import { normalizeCampaignSlug } from "./domain";
 import {
   campaignTitleTokens,
   legacyCampaignTitleHighlights,
+  MAX_TITLE_HIGHLIGHT_WORDS,
   parseCampaignTitleHighlights,
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
@@ -578,7 +581,7 @@ function createInitialState(
             primary: campaign?.destaque_primario,
             primaryColor: campaign?.cor_destaque || theme.palette.accent,
             secondary: campaign?.destaque_secundario,
-            title: campaign?.titulo || ""
+            title: resolveThemeHeadlineText(theme.key, campaign ?? {})
           }),
         videoCarousel: parseCampaignVideoCarousel(settingsBase)
       },
@@ -976,14 +979,18 @@ function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values
   return <EditorInputField description={field.help} error={firstFieldError(errors, field.key)} id={id} label={field.label} maxLength={field.maxLength} name={field.key} onChange={change} pattern={field.type === "url" ? "(?:https://.*|/.*)" : undefined} placeholder={field.placeholder} required={field.required} type={field.type === "url" ? "url" : "text"} value={value} />;
 }
 
-function TitleHighlightEditor({
+function HeadlineHighlightEditor({
+  fallbackNote,
+  fieldLabel,
   highlights,
   onChange,
-  title
+  text
 }: {
+  fallbackNote?: string;
+  fieldLabel: string;
   highlights: CampaignTitleHighlight[];
   onChange: (highlights: CampaignTitleHighlight[]) => void;
-  title: string;
+  text: string;
 }) {
   const [selectionColor, setSelectionColor] = useState<string>(
     titleHighlightPalette[1].color
@@ -991,9 +998,9 @@ function TitleHighlightEditor({
   const highlightByWord = new Map(
     highlights.map((highlight) => [highlight.index, highlight])
   );
-  const words = campaignTitleTokens(title).filter(
-    (token): token is typeof token & { wordIndex: number } => token.wordIndex !== null
-  );
+  const words = campaignTitleTokens(text)
+    .filter((token): token is typeof token & { wordIndex: number } => token.wordIndex !== null)
+    .slice(0, MAX_TITLE_HIGHLIGHT_WORDS);
 
   function updateWord(index: number) {
     const current = highlightByWord.get(index);
@@ -1015,8 +1022,11 @@ function TitleHighlightEditor({
     <section className={styles.titleHighlightEditor}>
       <header className={styles.titleHighlightHeader}>
         <div>
-          <h3>Palavras coloridas do título</h3>
-          <p>Escolha uma das cores padronizadas e clique nas palavras que devem recebê-la.</p>
+          <h3>Palavras coloridas do título principal</h3>
+          <p>
+            Escolha uma das cores padronizadas e clique nas palavras de “{fieldLabel}” que devem recebê-la.
+            {fallbackNote ? ` ${fallbackNote}` : ""}
+          </p>
         </div>
         <span>{highlights.length} selecionada{highlights.length === 1 ? "" : "s"}</span>
       </header>
@@ -1068,10 +1078,28 @@ function TitleHighlightEditor({
           })}
         </div>
       ) : (
-        <p className={styles.titleHighlightEmpty}>Digite o título para selecionar as palavras.</p>
+        <p className={styles.titleHighlightEmpty}>Preencha “{fieldLabel}” para selecionar as palavras.</p>
       )}
     </section>
   );
+}
+
+/** Chave de EditorValues que alimenta o <h1> do tema. */
+function headlineEditorKey(theme: RegistryTheme): EditorValueKey {
+  return theme.headline.field === "titulo"
+    ? "titulo"
+    : editorKeyByThemeContentKey[theme.headline.field];
+}
+
+/** Texto realmente exibido como <h1>, considerando a reserva para o título da campanha. */
+function headlineText(theme: RegistryTheme, values: EditorValues) {
+  return values[headlineEditorKey(theme)].trim() || values.titulo;
+}
+
+function headlineWordCount(theme: RegistryTheme, values: EditorValues) {
+  return campaignTitleTokens(headlineText(theme, values)).filter(
+    (token) => token.wordIndex !== null
+  ).length;
 }
 
 function ContentPanel({
@@ -1100,6 +1128,8 @@ function ContentPanel({
   values: EditorValues;
 }) {
   const theme = THEME_REGISTRY.find((candidate) => candidate.key === values.themeKey) || THEME_REGISTRY[0];
+  const titleIsHeadline = theme.headline.field === "titulo";
+  const headlineFallback = !titleIsHeadline && !values[headlineEditorKey(theme)].trim();
 
   return (
     <div className={styles.panelStack}>
@@ -1113,6 +1143,7 @@ function ContentPanel({
 
       <div className={styles.twoColumns}>
         <EditorInputField
+          description={theme.tituloUsage}
           error={firstFieldError(errors, "titulo")}
           id={controlId(prefix, "titulo")}
           label="Título da campanha"
@@ -1143,11 +1174,14 @@ function ContentPanel({
         </div>
       </div>
 
-      <TitleHighlightEditor
-        highlights={settings.titleHighlights}
-        onChange={onTitleHighlightsChange}
-        title={values.titulo}
-      />
+      {titleIsHeadline ? (
+        <HeadlineHighlightEditor
+          fieldLabel={theme.headline.label}
+          highlights={settings.titleHighlights}
+          onChange={onTitleHighlightsChange}
+          text={values.titulo}
+        />
+      ) : null}
 
       <div className={styles.identityGrid}>
         <FormField
@@ -1200,7 +1234,24 @@ function ContentPanel({
                 theme.key !== "impact-dark" ||
                 (field.key !== "video_url" && field.key !== "legenda_video")
               )).map((field) => (
-                <ThemeContentFieldControl errors={errors} field={field} key={field.key} onValueChange={onValueChange} prefix={prefix} values={values} />
+                <Fragment key={field.key}>
+                  <ThemeContentFieldControl errors={errors} field={field} onValueChange={onValueChange} prefix={prefix} values={values} />
+                  {!titleIsHeadline && field.key === theme.headline.field ? (
+                    <div className={styles.fullWidthField}>
+                      <HeadlineHighlightEditor
+                        fallbackNote={
+                          headlineFallback
+                            ? "Como este campo está vazio, a página mostra o título da campanha e as cores seguem esse texto."
+                            : undefined
+                        }
+                        fieldLabel={theme.headline.label}
+                        highlights={settings.titleHighlights}
+                        onChange={onTitleHighlightsChange}
+                        text={headlineText(theme, values)}
+                      />
+                    </div>
+                  ) : null}
+                </Fragment>
               ))}
             </div>
           </section>
@@ -1634,7 +1685,11 @@ function PreviewPanel({
             legendaVideo: values.legendaVideo || null,
             notaCitacao: values.notaCitacao || null,
             notaVideo: values.notaVideo || null,
-            settings: { ...settings },
+            settings: {
+              allow_sharing: settings.allowSharing,
+              collect_address: settings.collectAddress,
+              require_consent: true,
+            },
             textoAssinar: values.textoAssinar || null,
             textoCitacao: values.textoCitacao || null,
             textoCompartilhar: values.textoCompartilhar || null,
@@ -1723,29 +1778,38 @@ export function CampaignEditor({
     setFieldErrors(emptyFieldErrors);
   }
 
-  function changeValue<Key extends keyof EditorValues>(key: Key, value: EditorValues[Key]) {
-    markDirty();
-    setValues((current) => ({ ...current, [key]: value }));
-  }
-
-  function changeTitle(title: string) {
-    markDirty();
-    const titleWordCount = campaignTitleTokens(title).filter(
-      (token) => token.wordIndex !== null
-    ).length;
-    setValues((current) => ({
-      ...current,
-      slug: slugManuallyEdited ? current.slug : normalizeCampaignSlug(title) || "",
-      titulo: title
-    }));
+  /** Descarta seleções de cor que caíram fora do título principal depois da mudança. */
+  function pruneTitleHighlights(nextValues: EditorValues) {
+    const theme =
+      THEME_REGISTRY.find((candidate) => candidate.key === nextValues.themeKey) ||
+      THEME_REGISTRY[0];
+    const wordCount = headlineWordCount(theme, nextValues);
     setSettings((current) => {
       const titleHighlights = current.titleHighlights.filter(
-        (highlight) => highlight.index < titleWordCount
+        (highlight) => highlight.index < wordCount
       );
       return titleHighlights.length === current.titleHighlights.length
         ? current
         : { ...current, titleHighlights };
     });
+  }
+
+  function changeValue<Key extends keyof EditorValues>(key: Key, value: EditorValues[Key]) {
+    markDirty();
+    setValues((current) => ({ ...current, [key]: value }));
+    if (key === "titulo" || key === headlineEditorKey(selectedTheme)) {
+      pruneTitleHighlights({ ...values, [key]: value });
+    }
+  }
+
+  function changeTitle(title: string) {
+    markDirty();
+    setValues((current) => ({
+      ...current,
+      slug: slugManuallyEdited ? current.slug : normalizeCampaignSlug(title) || "",
+      titulo: title
+    }));
+    pruneTitleHighlights({ ...values, titulo: title });
   }
 
   function changeTitleHighlights(titleHighlights: CampaignTitleHighlight[]) {
@@ -1767,6 +1831,8 @@ export function CampaignEditor({
       corDestaque: theme.palette.accent.toUpperCase(),
       themeKey,
     }));
+    // O título principal muda de campo entre temas; as palavras coloridas seguem o novo texto.
+    pruneTitleHighlights({ ...values, themeKey });
   }
 
   function changeSlug(slug: string) {

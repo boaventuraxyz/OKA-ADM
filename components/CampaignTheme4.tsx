@@ -11,6 +11,7 @@ import { CampaignTheme4SignatureModal } from "@/components/CampaignTheme4Signatu
 import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import { campaignAllowsSharing } from "@/lib/campaign-settings";
 import {
   legacyCampaignVideoCarousel,
   type CampaignVideoItem,
@@ -52,42 +53,6 @@ function splitBlocks(value?: string | null) {
     .filter(Boolean);
 }
 
-function HighlightedText({ phrase, text }: { phrase: string; text: string }) {
-  const index = text.toLocaleLowerCase("pt-BR").indexOf(phrase.toLocaleLowerCase("pt-BR"));
-  if (index < 0) return text;
-
-  return (
-    <>
-      {text.slice(0, index)}
-      <span>{text.slice(index, index + phrase.length)}</span>
-      {text.slice(index + phrase.length)}
-    </>
-  );
-}
-
-function HighlightedTitle({
-  breakBefore,
-  phrase,
-  text
-}: {
-  breakBefore: string;
-  phrase: string;
-  text: string;
-}) {
-  const index = text.toLocaleLowerCase("pt-BR").indexOf(breakBefore.toLocaleLowerCase("pt-BR"));
-  if (index <= 0) return <HighlightedText phrase={phrase} text={text} />;
-
-  const firstLine = text.slice(0, index).trimEnd();
-  const secondLine = text.slice(index).trimStart();
-  return (
-    <>
-      <HighlightedText phrase={phrase} text={firstLine} />
-      <br />
-      <HighlightedText phrase={phrase} text={secondLine} />
-    </>
-  );
-}
-
 export function CampaignTheme4({
   accent,
   campanha,
@@ -113,6 +78,7 @@ export function CampaignTheme4({
     campanha.textoCompartilhar?.trim() ||
     `Eu apoiei a campanha “${campanha.titulo || "Participe deste abaixo-assinado"}”. Apoie também:`;
   const currentYear = new Date().getFullYear();
+  const allowSharing = campaignAllowsSharing(campanha.settings);
 
   return (
     <main
@@ -166,32 +132,27 @@ export function CampaignTheme4({
         <div className="campaign-theme4-wrap campaign-theme4-manifesto-grid">
           <aside className="campaign-theme4-manifesto-side">
             <div className="campaign-theme4-section-label">O relato</div>
-            <h2>
-              <HighlightedTitle breakBefore="Eu " phrase="não vou" text={manifestoTitle} />
-            </h2>
+            <h2>{manifestoTitle}</h2>
             <a className="campaign-theme4-button" href="#assinar">Assinar agora</a>
           </aside>
           <article className="campaign-theme4-manifesto-copy">
-            {manifestoBlocks.map((block, index) => {
-              const pull = block.toLocaleLowerCase("pt-BR").startsWith("mas normalizar");
-              return (
-                <CampaignRichText
-                  className={pull ? "campaign-theme4-pull" : "campaign-theme4-paragraph"}
-                  key={`${index}-${block.slice(0, 20)}`}
-                  text={block}
-                />
-              );
-            })}
+            {manifestoBlocks.map((block, index) => (
+              <CampaignRichText
+                className="campaign-theme4-paragraph"
+                key={`${index}-${block.slice(0, 20)}`}
+                text={block}
+              />
+            ))}
           </article>
         </div>
       </section>
 
       <section className="campaign-theme4-impact">
         <div className="campaign-theme4-impact-item">
-          <h3><HighlightedText phrase="Mudança" text={campanha.textoImpacto || "Mobilização hoje. Mudança amanhã."} /></h3>
+          <h3>{campanha.textoImpacto || "Mobilização hoje. Mudança amanhã."}</h3>
         </div>
         <div className="campaign-theme4-impact-item">
-          <h3><HighlightedText phrase="fortalece" text={campanha.textoImpactoApoio || "Cada assinatura fortalece esta causa."} /></h3>
+          <h3>{campanha.textoImpactoApoio || "Cada assinatura fortalece esta causa."}</h3>
         </div>
       </section>
 
@@ -201,9 +162,7 @@ export function CampaignTheme4({
             <div className="campaign-theme4-section-label">
               Última chamada
             </div>
-            <h2>
-              <HighlightedTitle breakBefore="E você?" phrase="calar" text={signTitle} />
-            </h2>
+            <h2>{signTitle}</h2>
             {campanha.textoAssinar ? (
               <CampaignRichText className="campaign-theme4-sign-text" text={campanha.textoAssinar} />
             ) : null}
@@ -220,7 +179,7 @@ export function CampaignTheme4({
               />
               <PoliticasRodape candidateName={campanha.candidato?.nome} />
             </CampaignTheme4SignatureModal>
-            <CampaignShareButtons shareText={shareText} />
+            {allowSharing ? <CampaignShareButtons shareText={shareText} /> : null}
           </div>
         </div>
       </section>

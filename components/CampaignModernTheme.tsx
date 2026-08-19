@@ -12,6 +12,7 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import { campaignAllowsSharing } from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type ModernThemeId = 5 | 6 | 7;
@@ -114,6 +115,7 @@ export function CampaignModernTheme({
   ].filter((item) => item.text?.trim());
   const shareText = campanha.textoCompartilhar?.trim() ||
     `Eu apoiei a campanha “${title}”. Participe também:`;
+  const allowSharing = campaignAllowsSharing(campanha.settings);
 
   return (
     <main
@@ -213,7 +215,7 @@ export function CampaignModernTheme({
             <span>03 · Sua participação</span>
             <h2>{campanha.tituloAssinar || "Assine e fortaleça esta causa."}</h2>
             {campanha.textoAssinar ? <CampaignRichText className="campaign-modern-copy" text={campanha.textoAssinar} /> : null}
-            <CampaignShareButtons shareText={shareText} />
+            {allowSharing ? <CampaignShareButtons shareText={shareText} /> : null}
           </div>
           <div className="campaign-modern-form">
             <PublicSignatureForm

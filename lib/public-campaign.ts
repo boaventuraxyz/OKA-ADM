@@ -9,6 +9,7 @@ import {
 } from "@/lib/campaign-title-highlights";
 import { parseCampaignVideoCarousel } from "@/lib/campaign-video-carousel";
 import { resolveCampaignTheme } from "@/lib/campaign-themes";
+import { getThemeById, resolveThemeHeadlineText } from "@/features/themes/registry";
 import {
   getCampanha,
   getCandidato,
@@ -31,13 +32,15 @@ export function getPublicCampaignView(id: string) {
         : null;
       const background = parseCampaignBackground(campanha.imagem_fundo);
       const sideImage = parseCampaignBackground(campanha.imagem_lateral);
+      const tema = resolveCampaignTheme(campanha.theme_key, campanha.tema);
+      // As cores seguem o texto que o tema realmente usa como <h1>, que nem sempre é o título.
       const titleHighlights =
         parseCampaignTitleHighlights(campanha.settings) ??
         legacyCampaignTitleHighlights({
           primary: campanha.destaque_primario,
           primaryColor: campanha.cor_destaque || "#E05A5A",
           secondary: campanha.destaque_secundario,
-          title: campanha.titulo || ""
+          title: resolveThemeHeadlineText(getThemeById(tema)?.key ?? "cover", campanha)
         });
 
       return {
@@ -60,7 +63,7 @@ export function getPublicCampaignView(id: string) {
         fimEm: campanha.fim_em,
         imagemFundoVersao: background?.version ?? null,
         imagemLateralVersao: sideImage?.version ?? null,
-        tema: resolveCampaignTheme(campanha.theme_key, campanha.tema),
+        tema,
         textoConclusao: campanha.texto_conclusao,
         textoContexto: campanha.texto_contexto,
         textoDot: campanha.texto_dot,

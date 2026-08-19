@@ -33,7 +33,7 @@ export function createThemePreviewCampaign({ accent, content = {}, theme }: {
     legendaVideo: null,
     notaCitacao: "Uma mobilização construída de forma aberta e responsável.",
     notaVideo: null,
-    settings: { allowSharing: true, collectAddress: false, requireConsent: true },
+    settings: { allow_sharing: true, collect_address: false, require_consent: true },
     tema: theme.id,
     textoAssinar: "Sua participação fortalece esta proposta e amplia seu alcance.",
     textoCitacao: "Quando muitas vozes se encontram, uma mudança possível começa a ganhar forma.",

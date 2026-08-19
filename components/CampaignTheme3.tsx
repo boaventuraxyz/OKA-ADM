@@ -8,6 +8,7 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
+import { campaignAllowsSharing } from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type Theme3Campaign = {
@@ -80,6 +81,7 @@ export function CampaignTheme3({
   const videoBlocks = splitBlocks(campanha.textoVideo);
   const [videoPull, ...videoParagraphs] = videoBlocks;
   const signTitle = campanha.tituloAssinar?.trim() || "Assine este abaixo-assinado.";
+  const allowSharing = campaignAllowsSharing(campanha.settings);
   const shareText =
     campanha.textoCompartilhar?.trim() ||
     `Eu assinei: ${title}. Assine você também:`;
@@ -210,7 +212,7 @@ export function CampaignTheme3({
               settings={campanha.settings}
             />
           </div>
-          <CampaignShareButtons shareText={shareText} />
+          {allowSharing ? <CampaignShareButtons shareText={shareText} /> : null}
         </div>
       </section>
 

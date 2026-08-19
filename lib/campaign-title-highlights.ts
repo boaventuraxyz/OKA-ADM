@@ -11,7 +11,9 @@ export type CampaignTitleToken = {
 };
 
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
-const MAX_TITLE_WORDS = 80;
+
+/** Limite de palavras que podem receber cor no título principal. */
+export const MAX_TITLE_HIGHLIGHT_WORDS = 80;
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -60,7 +62,7 @@ export function parseCampaignTitleHighlights(
       typeof index !== "number" ||
       !Number.isInteger(index) ||
       index < 0 ||
-      index >= MAX_TITLE_WORDS ||
+      index >= MAX_TITLE_HIGHLIGHT_WORDS ||
       !color
     ) {
       continue;

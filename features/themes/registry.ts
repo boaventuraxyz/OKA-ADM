@@ -67,6 +67,15 @@ export type CampaignThemeField = {
   type: "image" | "text" | "textarea" | "url";
 };
 
+/** Campo que alimenta o <h1> do tema. Nem todo tema usa `titulo` como chamada principal. */
+export type CampaignThemeHeadlineField = "titulo" | CampaignThemeContentKey;
+
+export type CampaignThemeHeadline = {
+  field: CampaignThemeHeadlineField;
+  help: string;
+  label: string;
+};
+
 export type CampaignThemeSection = {
   description: string;
   fields: readonly CampaignThemeField[];
@@ -78,6 +87,7 @@ export type CampaignThemeDefinition = {
   capabilities: ThemeCapabilities;
   category: ThemeCategory;
   description: string;
+  headline: CampaignThemeHeadline;
   id: LegacyThemeId;
   key: string;
   name: string;
@@ -86,6 +96,8 @@ export type CampaignThemeDefinition = {
   sections: readonly CampaignThemeSection[];
   status: ThemeStatus;
   tags: readonly string[];
+  /** O que o campo `titulo` faz neste tema, já que ele nem sempre é o <h1>. */
+  tituloUsage: string;
 };
 
 const modernCampaignSections = [
@@ -147,6 +159,12 @@ export const THEME_REGISTRY = [
     category: "conversão",
     tags: ["hero", "imagem", "formulário", "direto"],
     status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
     palette: {
       background: "#0d111a",
       surface: "#172136",
@@ -194,6 +212,12 @@ export const THEME_REGISTRY = [
     category: "editorial",
     tags: ["narrativa", "proposta", "imagem lateral", "conteúdo"],
     status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
     palette: {
       background: "#0b0e13",
       surface: "#151a22",
@@ -253,6 +277,12 @@ export const THEME_REGISTRY = [
     category: "manifesto",
     tags: ["tópicos", "citação", "vídeo", "compartilhamento"],
     status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
     palette: {
       background: "#07111d",
       surface: "#102033",
@@ -335,6 +365,12 @@ export const THEME_REGISTRY = [
     category: "mobilização",
     tags: ["escuro", "mobilização", "vídeo", "alto contraste"],
     status: "active",
+    headline: {
+      field: "texto_contexto",
+      label: "Chamada principal",
+      help: "É o texto que aparece como chamada principal no topo da página. Se ficar vazio, o tema usa o título da campanha."
+    },
+    tituloUsage: "Não aparece no topo da página: identifica a campanha no painel, no SEO e no compartilhamento, e serve de reserva caso a chamada principal fique vazia.",
     palette: {
       background: "#0b0b0c",
       surface: "#1b1b1e",
@@ -362,7 +398,7 @@ export const THEME_REGISTRY = [
         description: "Marca, chamada principal e resumo da mobilização.",
         fields: [
           { key: "texto_faixa", label: "Marca do movimento", maxLength: 500, type: "text" },
-          { key: "texto_contexto", label: "Chamada principal", maxLength: 8000, type: "textarea" },
+          { key: "texto_contexto", label: "Chamada principal", maxLength: 8000, type: "text", help: "Título exibido no topo da página. É aqui que as palavras coloridas são aplicadas." },
           { key: "descricao", label: "Resumo", maxLength: 5000, type: "textarea" }
         ]
       },
@@ -413,6 +449,12 @@ export const THEME_REGISTRY = [
     category: "editorial",
     tags: ["azul", "institucional", "claro", "proposta"],
     status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
     palette: {
       background: "#EFF7FF",
       surface: "#FFFFFF",
@@ -436,6 +478,12 @@ export const THEME_REGISTRY = [
     category: "mobilização",
     tags: ["verde", "comunidade", "orgânico", "acolhedor"],
     status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
     palette: {
       background: "#F2F8F1",
       surface: "#FFFFFF",
@@ -459,6 +507,12 @@ export const THEME_REGISTRY = [
     category: "manifesto",
     tags: ["turquesa", "digital", "escuro", "dinâmico"],
     status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
     palette: {
       background: "#061923",
       surface: "#0D2B36",
@@ -495,4 +549,18 @@ export function themeContentKeys(themeKey: string) {
 
 export function themeContentFields(theme: CampaignThemeDefinition) {
   return theme.sections.flatMap((section) => section.fields);
+}
+
+export function themeHeadline(themeKey: string): CampaignThemeHeadline {
+  const theme: CampaignThemeDefinition = getThemeByKey(themeKey) ?? THEME_REGISTRY[0];
+  return theme.headline;
+}
+
+/** Resolve o texto do <h1> a partir de um mapa de campos (chaves do banco). */
+export function resolveThemeHeadlineText(
+  themeKey: string,
+  content: Partial<Record<CampaignThemeHeadlineField, string | null | undefined>>
+) {
+  const { field } = themeHeadline(themeKey);
+  return (content[field] || "").trim() || (content.titulo || "").trim();
 }
