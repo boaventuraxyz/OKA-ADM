@@ -39,7 +39,7 @@ export function CandidateRowActions({
       ) : null}
       {canManage ? (
         <>
-          <Link className={styles.actionLink} href={`/admin/candidates/${id}/edit`}>
+          <Link className={styles.actionLink} href={`/admin/candidates/${id}/edit`} prefetch={false}>
             <Pencil aria-hidden="true" size={15} /> Editar
           </Link>
           <AlertDialog

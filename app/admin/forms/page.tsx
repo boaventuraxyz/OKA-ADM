@@ -11,6 +11,10 @@ import { requireAdmin } from "@/lib/auth";
 
 import styles from "./forms.module.css";
 
+const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "short"
+});
+
 export const metadata: Metadata = { title: "Formulários" };
 export const dynamic = "force-dynamic";
 
@@ -51,15 +55,15 @@ export default async function AdminFormsPage({
                 <span>{campaign.fieldCount || 8} campos ativos</span>
                 <span aria-hidden="true">·</span>
                 <time dateTime={campaign.updatedAt}>
-                  Editado {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(campaign.updatedAt))}
+                  Editado {shortDateFormatter.format(new Date(campaign.updatedAt))}
                 </time>
               </div>
               <div className={styles.actions}>
-                <Link className={styles.editLink} href={`/admin/campaigns/${campaign.id}/edit?tab=form`}>
+                <Link className={styles.editLink} href={`/admin/campaigns/${campaign.id}/edit?tab=form`} prefetch={false}>
                   <FilePenLine aria-hidden="true" size={16} /> Configurar
                 </Link>
                 {campaign.status === "published" && campaign.slug ? (
-                  <Link className={styles.previewLink} href={`/formulario/${encodeURIComponent(campaign.slug)}`} target="_blank">
+                  <Link className={styles.previewLink} href={`/formulario/${encodeURIComponent(campaign.slug)}`} prefetch={false} target="_blank">
                     <Eye aria-hidden="true" size={16} /> Ver página
                   </Link>
                 ) : null}

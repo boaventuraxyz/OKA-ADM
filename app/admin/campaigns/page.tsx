@@ -22,6 +22,10 @@ import styles from "@/features/campaigns/campaign-admin.module.css";
 export const metadata: Metadata = { title: "Campanhas" };
 export const dynamic = "force-dynamic";
 
+const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "short"
+});
+
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const statusVariant: Record<CampaignStatus, BadgeVariant> = {
@@ -198,7 +202,7 @@ export default async function AdminCampaignsPage({
                       </td>
                       <td>
                         <time dateTime={campaign.updated_at}>
-                          {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(campaign.updated_at))}
+                          {shortDateFormatter.format(new Date(campaign.updated_at))}
                         </time>
                       </td>
                       <td>

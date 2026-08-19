@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { cache } from "react";
 import { z } from "zod";
 
 import { createServerClient } from "@/lib/supabase/server";
@@ -123,6 +124,11 @@ export async function getAuthContext(
   };
 }
 
-export async function getCurrentAuthContext(): Promise<AuthContext | null> {
+async function resolveCurrentAuthContext(): Promise<AuthContext | null> {
   return getAuthContext(await createServerClient());
 }
+
+// Layouts, pages and services may all ask for the current profile during the
+// same render. React's request cache prevents repeating the remote auth/profile
+// round trip without sharing the result between different requests.
+export const getCurrentAuthContext = cache(resolveCurrentAuthContext);
