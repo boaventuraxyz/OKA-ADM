@@ -90,6 +90,7 @@ export type CampaignActionErrorCode =
   | "STATE_CONFLICT"
   | "SLUG_CONFLICT"
   | "AUDIT_FAILED"
+  | "CONSTRAINT_REJECTED"
   | "DATABASE_ERROR"
   | "VIDEO_STORAGE_ERROR"
   | "INTERNAL_ERROR";

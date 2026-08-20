@@ -160,8 +160,28 @@ A tela de criação por IA traduz o motivo em vez de mostrar uma indisponibilida
 | O modelo definido em `AI_MODEL` não existe | Identificador fora do catálogo do Gateway | Ajuste `AI_MODEL` para um `provedor/modelo` disponível |
 | O AI Gateway recusou a chamada por limite ou crédito | Cota, limite de taxa ou saldo | Verifique consumo e créditos do projeto |
 | A IA devolveu um rascunho inválido | Saída fora do schema | Tente novamente; se persistir, revise o briefing |
+| O banco recusou um valor da campanha por restrição | Violação de `check` (Postgres 23514) | Aplique as migrações pendentes; veja abaixo |
+| O banco recusou a gravação da campanha | Outro erro do Postgres | Leia o `db=<código>` na linha `[ai]` do log |
 
 Não bloqueamos a chamada por ausência de variável de ambiente: o OIDC também chega pelo cabeçalho `x-vercel-oidc-token` da requisição e pelo refresh local, caminhos invisíveis a `process.env`. Quem decide se há credencial é o próprio provider.
+
+#### Migração pendente recusa temas recentes
+
+A restrição `campanhas_tema_valido` limita a coluna `tema` aos temas que existiam quando o banco foi migrado por último. Se o banco está atrás do código, criar campanha com um tema recente falha na gravação — pela IA ou pelo editor — com `db=23514` no log.
+
+Confira quais migrações o banco já recebeu e aplique as que faltam:
+
+```bash
+supabase migration list
+```
+
+```bash
+supabase db push
+```
+
+Sem a CLI vinculada, rode no SQL Editor do projeto o conteúdo do arquivo de migração correspondente em [`supabase/migrations`](../supabase/migrations). Cada migração é transacional e idempotente nas partes que recriam restrição e trigger.
+
+O par restrição + trigger precisa ser aplicado junto: a restrição libera o valor de `tema` e a trigger `sync_campaign_legacy_fields` traduz `theme_key` para o número correspondente. Aplicar só um dos dois mantém a falha.
 
 ## 5. Preview
 

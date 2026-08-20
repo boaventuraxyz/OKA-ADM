@@ -19,7 +19,10 @@ import {
 import { campaignCacheTag } from "@/lib/public-campaign";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { CampaignRepositoryError } from "./repository";
+import {
+  CampaignRepositoryError,
+  isCampaignCheckViolation,
+} from "./repository";
 import {
   archiveCampaign,
   CampaignServiceError,
@@ -138,6 +141,14 @@ function safeActionError(error: unknown): CampaignActionError {
 
   if (error instanceof CampaignServiceError) {
     return { code: error.code, message: error.message };
+  }
+
+  if (isCampaignCheckViolation(error)) {
+    return {
+      code: "CONSTRAINT_REJECTED",
+      message:
+        "O banco recusou um valor da campanha por restrição. Se o tema escolhido é um dos mais recentes, as migrações pendentes do banco ainda não foram aplicadas.",
+    };
   }
 
   if (error instanceof CampaignRepositoryError) {

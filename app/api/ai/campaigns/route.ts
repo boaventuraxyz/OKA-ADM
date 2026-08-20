@@ -2,7 +2,10 @@ import { ZodError } from "zod";
 
 import { CampaignGenerationError } from "@/features/ai/generator";
 import { createCampaignDraftWithAI } from "@/features/ai/service";
-import { CampaignRepositoryError } from "@/features/campaigns/repository";
+import {
+  CampaignRepositoryError,
+  isCampaignCheckViolation,
+} from "@/features/campaigns/repository";
 import { CampaignServiceError } from "@/features/campaigns/service";
 import {
   AuthenticationRequiredError,
@@ -131,6 +134,13 @@ export async function POST(request: Request) {
     reportUnexpectedFailure(error);
 
     if (error instanceof CampaignServiceError) return persistenceError(error);
+    if (isCampaignCheckViolation(error)) {
+      return apiError(
+        "CAMPAIGN_CONSTRAINT_REJECTED",
+        "O banco recusou um valor da campanha por restrição. Se o tema escolhido é um dos mais recentes, as migrações pendentes do banco ainda não foram aplicadas.",
+        502,
+      );
+    }
     if (error instanceof CampaignRepositoryError) {
       return apiError(
         "CAMPAIGN_DATABASE_ERROR",

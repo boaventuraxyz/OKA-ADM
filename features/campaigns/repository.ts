@@ -70,6 +70,17 @@ export function isCampaignUniqueViolation(error: unknown): boolean {
   );
 }
 
+/**
+ * 23514 e a violacao de `check` do Postgres. O caso recorrente e o banco estar
+ * atras do codigo: `campanhas_tema_valido` so libera os temas presentes quando
+ * a migracao correspondente foi aplicada, entao um tema novo e recusado aqui.
+ */
+export function isCampaignCheckViolation(error: unknown): boolean {
+  return (
+    error instanceof CampaignRepositoryError && error.databaseCode === "23514"
+  );
+}
+
 export async function listCampaignRows(
   client: CampaignDatabaseClient,
   params: CampaignListParams,
