@@ -40,10 +40,14 @@ await db.exec(`
 await db.exec(outdatedSetup(await read("database/setup.sql")));
 await db.exec(dropLegacyColumns);
 
-// Um candidato pre-existente, para conferir o backfill do slug.
+// Dois candidatos pre-existentes: um qualquer, para conferir o backfill do
+// slug, e o proprio Felipe Sertanejo, que e o caso do banco do Julio. O seed
+// precisa reaproveitar esse, nao criar um segundo.
 await db.exec(`
   insert into public.candidatos (id, nome, partido, cargo, estado, municipio)
-  values ('11111111-1111-4111-8111-111111111111', 'Júlia de Castro', 'PL', 'Deputada', 'SP', 'São Paulo');
+  values
+    ('11111111-1111-4111-8111-111111111111', 'Júlia de Castro', 'PL', 'Deputada', 'SP', 'São Paulo'),
+    ('22222222-2222-4222-8222-222222222222', 'Felipe Sertanejo', 'PL', 'Deputado Estadual', 'SP', 'São Paulo');
 `);
 
 const columnsBefore = await db.query(`
@@ -61,7 +65,9 @@ const checks = await db.query(`
     (select pg_get_constraintdef(oid) from pg_constraint where conname='campanhas_tema_valido') as tema,
     (select pg_get_constraintdef(oid) from pg_constraint where conname='campanhas_imagem_fundo_valida') as imagem,
     (select count(*)::int from public.campanhas where slug='felipe-sertanejo') as campanhas,
-    (select slug_publico from public.candidatos where nome='Felipe Sertanejo') as slug_novo,
+    (select count(*)::int from public.candidatos where nome='Felipe Sertanejo') as felipes,
+    (select candidato_id from public.campanhas where slug='felipe-sertanejo') as vinculado_a,
+    (select slug_publico from public.candidatos where nome='Felipe Sertanejo' limit 1) as slug_novo,
     (select slug_publico from public.candidatos where nome='Júlia de Castro') as slug_backfill,
     (select is_nullable from information_schema.columns
        where table_schema='public' and table_name='candidatos' and column_name='slug_publico') as slug_nulo,
@@ -77,7 +83,10 @@ const problems = [];
 if (!r.tema?.includes("8")) problems.push("tema 8 nao liberado");
 if (!r.imagem?.includes("7000000")) problems.push("limite de imagem nao subiu");
 if (r.campanhas !== 1) problems.push(`campanha criada ${r.campanhas}x`);
-if (!r.slug_novo) problems.push("candidato novo sem slug_publico");
+if (!r.slug_novo) problems.push("candidato sem slug_publico");
+if (r.felipes !== 1) problems.push(`candidato Felipe duplicado (${r.felipes})`);
+if (r.vinculado_a !== '22222222-2222-4222-8222-222222222222')
+  problems.push("campanha nao foi vinculada ao candidato que ja existia");
 if (!r.slug_backfill) problems.push("candidato antigo nao recebeu slug no backfill");
 if (r.slug_nulo !== "NO") problems.push("slug_publico deveria ser not null");
 if (r.tem_dominio !== 1) problems.push("dominio_formularios nao foi criado");

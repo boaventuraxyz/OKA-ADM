@@ -465,45 +465,71 @@ begin;
 
 do $$
 declare
-  candidate_id uuid := 'b7c1a0d4-5f83-4c2e-9a16-3d8e5f2b91c7';
+  candidate_name constant text := 'Felipe Sertanejo';
+  candidate_id uuid;
   campaign_id uuid := 'e4f2c9a8-7b61-4d35-8c02-1a9f6e3b5d84';
+  has_slug boolean;
+  candidate_slug text := 'felipe-sertanejo';
 begin
-  -- slug_publico so existe onde supabase/candidate-hubs.sql foi aplicado, e la
-  -- e NOT NULL. Como esse script nunca virou migracao, ha bancos com e sem a
-  -- coluna; o insert se adapta em vez de assumir uma das duas formas.
-  if exists (
+  has_slug := exists (
     select 1
     from information_schema.columns
     where table_schema = 'public'
       and table_name = 'candidatos'
       and column_name = 'slug_publico'
-  ) then
-    execute $ins$
-      insert into public.candidatos (
-        id, nome, slug_publico, partido, cargo, estado, municipio
+  );
+
+  -- Reaproveita o candidato que ja existir, em vez de criar outro: o banco pode
+  -- ja te-lo, inclusive com o slug gerado pelo backfill da migracao anterior.
+  select id into candidate_id
+  from public.candidatos
+  where lower(btrim(nome)) = lower(candidate_name)
+  order by criado_em nulls last
+  limit 1;
+
+  if candidate_id is null then
+    candidate_id := 'b7c1a0d4-5f83-4c2e-9a16-3d8e5f2b91c7'::uuid;
+
+    if has_slug then
+      -- O slug e unico: se outro candidato ja o ocupa, cai para uma variante.
+      if exists (
+        select 1 from public.candidatos
+        where lower(slug_publico) = candidate_slug
+      ) then
+        candidate_slug := candidate_slug || '-' || left(candidate_id::text, 8);
+      end if;
+
+      execute $ins$
+        insert into public.candidatos (
+          id, nome, slug_publico, partido, cargo, estado, municipio
+        )
+        values ($1, $2, $3, $4, $5, $6, $7)
+        on conflict (id) do nothing
+      $ins$
+      using
+        candidate_id,
+        candidate_name,
+        candidate_slug,
+        'Partido Liberal (PL)',
+        'Deputado Estadual',
+        'SP',
+        'São Paulo';
+    else
+      insert into public.candidatos (id, nome, partido, cargo, estado, municipio)
+      values (
+        candidate_id,
+        candidate_name,
+        'Partido Liberal (PL)',
+        'Deputado Estadual',
+        'SP',
+        'São Paulo'
       )
-      values ($1, $2, $3, $4, $5, $6, $7)
-      on conflict (id) do nothing
-    $ins$
-    using
-      candidate_id,
-      'Felipe Sertanejo',
-      'felipe-sertanejo',
-      'Partido Liberal (PL)',
-      'Deputado Estadual',
-      'SP',
-      'São Paulo';
+      on conflict (id) do nothing;
+    end if;
+
+    raise notice 'Candidato % criado.', candidate_name;
   else
-    insert into public.candidatos (id, nome, partido, cargo, estado, municipio)
-    values (
-      candidate_id,
-      'Felipe Sertanejo',
-      'Partido Liberal (PL)',
-      'Deputado Estadual',
-      'SP',
-      'São Paulo'
-    )
-    on conflict (id) do nothing;
+    raise notice 'Candidato % ja existia; a campanha sera vinculada a ele.', candidate_name;
   end if;
 
   if exists (select 1 from public.campanhas where slug = 'felipe-sertanejo') then
