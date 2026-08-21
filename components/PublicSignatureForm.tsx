@@ -117,6 +117,9 @@ export function PublicSignatureForm({
   const [toast, setToast] = useState<{ type: "s" | "e"; text: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [customResponses, setCustomResponses] = useState<Record<string, string | boolean>>({});
+  const [step, setStep] = useState(0);
+  const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(2);
   const cepRequest = useRef<AbortController | null>(null);
   const toastTimer = useRef<number | null>(null);
   const redirectTimer = useRef<number | null>(null);
@@ -140,6 +143,43 @@ export function PublicSignatureForm({
   const customFields = standardFields.custom;
   const FormContainer = preview ? "div" : "form";
 
+  const capture = configuration.capture;
+  const captureSteps = capture?.steps ?? [];
+  const lastStep = Math.max(0, captureSteps.length - 1);
+  const activeStep = capture ? captureSteps[Math.min(step, lastStep)] : null;
+  const onLastStep = !capture || step >= lastStep;
+  const done = Boolean(capture) && redirectTarget !== null;
+  /** Segmentos da barra: as etapas de preenchimento mais a confirmação. */
+  const stepCount = captureSteps.length + 1;
+
+  /** Campo sem etapa declarada aparece na primeira, para nunca sumir da tela. */
+  function stepOfField(key: string) {
+    const index = captureSteps.findIndex((entry) => entry.fields.includes(key));
+    return index >= 0 ? index : 0;
+  }
+
+  function fieldVisible(key: string | undefined) {
+    if (!capture || !key) return true;
+    return stepOfField(key) === Math.min(step, lastStep);
+  }
+
+  /** Traduz chaves de campo nas chaves usadas pelo mapa de erros. */
+  function errorKeysFor(keys: readonly string[]) {
+    const scope = new Set<string>();
+    for (const key of keys) {
+      if (nameField?.key === key) scope.add("nome");
+      if (phoneField?.key === key) scope.add("tel");
+      if (emailField?.key === key) scope.add("mail");
+      if (cepField?.key === key) {
+        scope.add("cep");
+        scope.add("rua");
+      }
+      if (cityField?.key === key || stateField?.key === key) scope.add("localidade");
+      if (customFields.some((field) => field.key === key)) scope.add(`custom_${key}`);
+    }
+    return scope;
+  }
+
   useEffect(() => {
     return () => {
       cepRequest.current?.abort();
@@ -147,6 +187,16 @@ export function PublicSignatureForm({
       if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!redirectTarget) return;
+    if (countdown <= 0) {
+      window.location.assign(redirectTarget);
+      return;
+    }
+    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [countdown, redirectTarget]);
 
   async function lookupCep(nextCep: string) {
     const clean = onlyNumbers(nextCep);
@@ -183,7 +233,7 @@ export function PublicSignatureForm({
     toastTimer.current = window.setTimeout(() => setToast(null), 3000);
   }
 
-  function validate() {
+  function computeErrors() {
     const nextErrors: Record<string, boolean> = {
       nome: Boolean(
         nameField &&
@@ -219,8 +269,28 @@ export function PublicSignatureForm({
       );
     }
 
-    setErrors(nextErrors);
-    return !Object.values(nextErrors).some(Boolean);
+    return nextErrors;
+  }
+
+  /** Sem escopo valida o formulário inteiro; com escopo, só a etapa atual. */
+  function validate(scope?: Set<string>) {
+    const nextErrors = computeErrors();
+    if (!scope) {
+      setErrors(nextErrors);
+      return !Object.values(nextErrors).some(Boolean);
+    }
+
+    const scoped = Object.fromEntries(
+      Object.entries(nextErrors).filter(([key]) => scope.has(key))
+    );
+    setErrors((current) => ({ ...current, ...scoped }));
+    return !Object.values(scoped).some(Boolean);
+  }
+
+  function advanceStep() {
+    if (!activeStep) return;
+    if (!validate(errorKeysFor(activeStep.fields))) return;
+    setStep((current) => Math.min(current + 1, lastStep));
   }
 
   function updateCustomResponse(
@@ -248,6 +318,10 @@ export function PublicSignatureForm({
   async function handleSign(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (preview) return;
+    if (capture && !onLastStep) {
+      advanceStep();
+      return;
+    }
     if (!validate()) return;
 
     setBusy(true);
@@ -285,6 +359,13 @@ export function PublicSignatureForm({
         throw new Error(result.error?.message || result.erro || "Erro ao salvar");
       }
 
+      if (capture) {
+        // A confirmação já é a própria etapa final; o toast seria ruído.
+        setRedirectTarget(result.redirectUrl || "");
+        setBusy(false);
+        return;
+      }
+
       showToast("Assinatura realizada com sucesso!", "s");
       if (result.redirectUrl) {
         const target = result.redirectUrl;
@@ -315,9 +396,55 @@ export function PublicSignatureForm({
 
   return (
     <>
-      <div className={`form-card ${editorial ? "form-card-editorial" : ""}`}>
-        <div className="card-header">
-          {editorial ? (
+      <div className={`form-card ${editorial ? "form-card-editorial" : ""} ${capture ? "form-card-capture" : ""}`}>
+        {capture ? (
+          <div aria-label={`Etapa ${step + 1} de ${stepCount}`} className="capture-progress">
+            {Array.from({ length: stepCount }, (_, index) => (
+              <span
+                className={index <= (done ? stepCount - 1 : step) ? "active" : ""}
+                key={index}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        {capture && done ? (
+          <div className="capture-done">
+            <span className="capture-step-label">
+              {`Etapa ${stepCount} de ${stepCount} · ${capture.done.label}`}
+            </span>
+            <span aria-hidden="true" className="capture-check">✓</span>
+            <h2>{capture.done.title}</h2>
+            {capture.done.message ? <p>{capture.done.message}</p> : null}
+            {redirectTarget ? (
+              <>
+                <a className="btn-sign" href={redirectTarget}>
+                  {capture.done.buttonLabel}
+                </a>
+                <small aria-live="polite">
+                  {countdown > 0
+                    ? `Redirecionando em ${countdown} segundo${countdown === 1 ? "" : "s"}...`
+                    : "Abrindo o grupo..."}
+                </small>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="card-header" hidden={done}>
+          {capture ? (
+            <>
+              {activeStep?.label ? (
+                <span className="capture-step-label">
+                  {`Etapa ${step + 1} de ${stepCount} · ${activeStep.label}`}
+                </span>
+              ) : null}
+              <h2 className="card-title">{activeStep?.title}</h2>
+              {activeStep?.subtitle ? (
+                <p className="card-desc">{activeStep.subtitle}</p>
+              ) : null}
+            </>
+          ) : editorial ? (
             <>
               <h2 className="card-title">Assine o abaixo-assinado</h2>
               <p className="card-desc">
@@ -341,7 +468,7 @@ export function PublicSignatureForm({
           )}
         </div>
 
-        {!editorial ? (
+        {!editorial && !capture ? (
           <>
             <div className="live-count-display">
               <div className="live-num" id="liveNum">
@@ -377,6 +504,7 @@ export function PublicSignatureForm({
           aria-label={preview ? "Demonstração do formulário de assinatura" : undefined}
           autoComplete={preview ? undefined : "on"}
           className="form-fields"
+          hidden={done}
           id={preview ? undefined : "formAssinar"}
           onSubmit={preview ? undefined : (event) => {
             void handleSign(event as React.FormEvent<HTMLFormElement>);
@@ -390,7 +518,7 @@ export function PublicSignatureForm({
             tabIndex={-1}
             type="text"
           />
-          {nameField ? <div className="signature-field signature-field-name">
+          {nameField && fieldVisible(nameField.key) ? <div className="signature-field signature-field-name">
             <label htmlFor="nome">{nameField.label}</label>
             <input
               aria-describedby="erroNome"
@@ -419,7 +547,7 @@ export function PublicSignatureForm({
             </span>
           </div> : null}
 
-          {phoneField ? <div className="signature-field signature-field-phone">
+          {phoneField && fieldVisible(phoneField.key) ? <div className="signature-field signature-field-phone">
             <label htmlFor="tel">{phoneField.label}</label>
             <input
               aria-describedby="erroTel"
@@ -448,7 +576,7 @@ export function PublicSignatureForm({
             </span>
           </div> : null}
 
-          {emailField ? <div className="signature-field signature-field-email">
+          {emailField && fieldVisible(emailField.key) ? <div className="signature-field signature-field-email">
             <label htmlFor="mail">{emailField.label}</label>
             <input
               aria-describedby="erroMail"
@@ -477,7 +605,7 @@ export function PublicSignatureForm({
             </span>
           </div> : null}
 
-          {cepField || configuration.collectAddress ? <div className="signature-field signature-field-cep">
+          {(cepField || configuration.collectAddress) && fieldVisible(cepField?.key) ? <div className="signature-field signature-field-cep">
             <label htmlFor="cep">{cepField?.label || "CEP"}</label>
             <input
               aria-describedby="erroCep"
@@ -519,7 +647,8 @@ export function PublicSignatureForm({
             </span>
           </div> : null}
 
-          {configuration.collectAddress || cityField || stateField ? (
+          {(configuration.collectAddress || cityField || stateField) &&
+            fieldVisible(stateField?.key ?? cityField?.key) ? (
           <div className="signature-address-group">
             {configuration.collectAddress ? <>
             <div className="endereco-row">
@@ -631,7 +760,7 @@ export function PublicSignatureForm({
             />
           </div> : null}
 
-          {customFields.map((field) => {
+          {customFields.filter((field) => fieldVisible(field.key)).map((field) => {
             const inputId = `custom-${field.id}`;
             const errorKey = `custom_${field.key}`;
             const errorId = `${inputId}-error`;
@@ -720,20 +849,49 @@ export function PublicSignatureForm({
             );
           })}
 
-          <label className={`signature-consent ${editorial ? "theme2-consent" : ""}`}>
-            <input name="consentimento" required type="checkbox" value="sim" />
-            <span>
-              Declaro meu apoio a esta iniciativa e autorizo o uso dos meus dados exclusivamente
-              para fins relacionados a este abaixo-assinado, conforme a legislação aplicável.
-            </span>
-          </label>
+          {!capture || onLastStep ? (
+            <label className={`signature-consent ${editorial ? "theme2-consent" : ""}`}>
+              <input name="consentimento" required type="checkbox" value="sim" />
+              <span>
+                {capture?.consentText ||
+                  "Declaro meu apoio a esta iniciativa e autorizo o uso dos meus dados exclusivamente para fins relacionados a este abaixo-assinado, conforme a legislação aplicável."}
+              </span>
+            </label>
+          ) : null}
 
-          <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
-            {busy ? "Enviando..." : "Assinar agora"}
-          </button>
+          {capture ? (
+            <div className={step > 0 ? "capture-actions" : undefined}>
+              {step > 0 ? (
+                <button
+                  className="capture-back"
+                  onClick={() => setStep((current) => Math.max(0, current - 1))}
+                  type="button"
+                >
+                  ‹ Voltar
+                </button>
+              ) : null}
+              {onLastStep ? (
+                <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
+                  {busy ? "Enviando..." : activeStep?.submitLabel || "Enviar"}
+                </button>
+              ) : (
+                <button className="btn-sign" onClick={advanceStep} type="button">
+                  {activeStep?.submitLabel || "Continuar"}
+                </button>
+              )}
+            </div>
+          ) : (
+            <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
+              {busy ? "Enviando..." : "Assinar agora"}
+            </button>
+          )}
         </FormContainer>
 
-        {editorial ? (
+        {capture ? (
+          activeStep?.note && !done ? (
+            <p className="capture-note">{activeStep.note}</p>
+          ) : null
+        ) : editorial ? (
           <p className="theme2-form-note">Seus dados não serão compartilhados com terceiros.</p>
         ) : (
           <div className="form-footer">

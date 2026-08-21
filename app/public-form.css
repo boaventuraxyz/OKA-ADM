@@ -3213,3 +3213,151 @@ select.form-input {
     transition: none;
   }
 }
+
+/* ==========================================================================
+   Modo captação do formulário público
+   Portado de lucas-pavanato-2211 (components/campaign-page.tsx + globals.css).
+   Só vale quando form_config.capture existe; o abaixo-assinado segue intacto.
+   ========================================================================== */
+
+.form-card-capture {
+  --capture-green: #1ec65b;
+  --capture-green-dark: #14a04a;
+  --capture-navy: #07172b;
+}
+
+.capture-progress {
+  display: flex;
+  gap: 8px;
+  max-width: 310px;
+  margin-bottom: 18px;
+}
+
+.capture-progress span {
+  height: 7px;
+  flex: 1;
+  border-radius: 999px;
+  background: #e5e8ec;
+  transition: background 180ms ease;
+}
+
+.capture-progress span.active {
+  background: var(--capture-green-dark);
+}
+
+.capture-step-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #4d5662;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.form-card-capture .card-title {
+  color: var(--capture-navy);
+  font-size: clamp(1.6rem, 4.6vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.form-card-capture .card-desc {
+  margin-top: 8px;
+  color: #69727d;
+  font-size: 1rem;
+}
+
+.capture-actions {
+  display: grid;
+  grid-template-columns: 0.45fr 1fr;
+  gap: 11px;
+  align-items: stretch;
+}
+
+.capture-back {
+  border: 2px solid #e1e4e8;
+  border-radius: 13px;
+  background: #fff;
+  color: #4d5662;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.capture-back:hover {
+  border-color: var(--capture-green-dark);
+  color: var(--capture-navy);
+}
+
+.capture-note {
+  margin: 18px 0 0;
+  color: #69727d;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.capture-done {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 8px 0 4px;
+  text-align: center;
+}
+
+.capture-done .capture-step-label {
+  margin-bottom: 4px;
+}
+
+.capture-check {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e6f8ed;
+  color: var(--capture-green-dark);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.capture-done h2 {
+  margin: 6px 0 0;
+  color: var(--capture-navy);
+  font-size: clamp(1.5rem, 4.4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.capture-done p {
+  max-width: 44ch;
+  margin: 0;
+  color: #69727d;
+  line-height: 1.55;
+}
+
+.capture-done .btn-sign {
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.capture-done small {
+  color: #8a939d;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 520px) {
+  .capture-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .capture-back {
+    order: 2;
+    min-height: 46px;
+  }
+}

@@ -22,7 +22,38 @@ export type CampaignFormField = {
   type: CampaignFormFieldType;
 };
 
+/**
+ * Modo de captação: em vez do abaixo-assinado de etapa única com contador de
+ * assinaturas, o formulário vira um passo a passo curto que termina levando a
+ * pessoa para o grupo. Só liga quando `form_config.capture` existe, então as
+ * campanhas já publicadas seguem exatamente como estão.
+ */
+export type CaptureFormStep = {
+  /** Chaves dos campos exibidos nesta etapa. */
+  fields: string[];
+  /** Rótulo curto da etapa, ex.: "SEUS DADOS". */
+  label: string;
+  /** Observação sob o botão. */
+  note: string;
+  submitLabel: string;
+  subtitle: string;
+  title: string;
+};
+
+export type CaptureFormConfiguration = {
+  /** Texto do consentimento, exibido na última etapa de preenchimento. */
+  consentText: string;
+  done: {
+    buttonLabel: string;
+    label: string;
+    message: string;
+    title: string;
+  };
+  steps: CaptureFormStep[];
+};
+
 export type PublicFormConfiguration = {
+  capture: CaptureFormConfiguration | null;
   collectAddress: boolean;
   fields: CampaignFormField[];
   legacy: boolean;
@@ -133,6 +164,57 @@ function normalizeField(value: unknown, index: number): CampaignFormField | null
   };
 }
 
+function text(value: unknown, max: number, fallback = "") {
+  return typeof value === "string" && value.trim()
+    ? value.trim().slice(0, max)
+    : fallback;
+}
+
+function normalizeCaptureStep(value: unknown): CaptureFormStep | null {
+  const source = record(value);
+  if (!source) return null;
+  const title = text(source.title, 160);
+  if (!title) return null;
+
+  return {
+    fields: Array.isArray(source.fields)
+      ? source.fields
+          .filter((key): key is string => typeof key === "string")
+          .map((key) => key.trim().toLowerCase())
+          .filter((key) => keyPattern.test(key))
+          .slice(0, 24)
+      : [],
+    label: text(source.label, 40),
+    note: text(source.note, 400),
+    submitLabel: text(source.submitLabel, 40, "Continuar"),
+    subtitle: text(source.subtitle, 400),
+    title,
+  };
+}
+
+function normalizeCapture(value: unknown): CaptureFormConfiguration | null {
+  const source = record(value);
+  if (!source) return null;
+  const steps = (Array.isArray(source.steps) ? source.steps : [])
+    .map(normalizeCaptureStep)
+    .filter((step): step is CaptureFormStep => Boolean(step))
+    .slice(0, 6);
+  if (steps.length === 0) return null;
+
+  const done = record(source.done) ?? {};
+
+  return {
+    consentText: text(source.consentText, 1200),
+    done: {
+      buttonLabel: text(done.buttonLabel, 40, "Continuar"),
+      label: text(done.label, 40, "Pronto"),
+      message: text(done.message, 400),
+      title: text(done.title, 160, "Cadastro confirmado!"),
+    },
+    steps,
+  };
+}
+
 export function normalizePublicFormConfiguration(
   formConfig: unknown,
   settings: unknown
@@ -143,6 +225,7 @@ export function normalizePublicFormConfiguration(
 
   if (!configuredFields) {
     return {
+      capture: null,
       collectAddress: true,
       fields: legacyFields.map((field) => ({ ...field })),
       legacy: true,
@@ -161,6 +244,7 @@ export function normalizePublicFormConfiguration(
     });
 
   return {
+    capture: normalizeCapture(form?.capture),
     collectAddress: appSettings?.collect_address === true,
     fields,
     legacy: false,
