@@ -385,3 +385,4 @@ supabase/.temp/
 
 # Dados da campanha com informacao pessoal do candidato
 configurar-campanha.sql
+fotos-campanha.sql
