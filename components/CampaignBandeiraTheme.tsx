@@ -10,7 +10,11 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
-import { campaignAllowsSharing, parseCandidateNumber } from "@/lib/campaign-settings";
+import {
+  campaignAllowsSharing,
+  parseCampaignLegalFooter,
+  parseCandidateNumber,
+} from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type BandeiraCampaign = {
@@ -100,6 +104,7 @@ export function CampaignBandeiraTheme({
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
   const heroPhoto = campanha.imagemLateralUrl || null;
   const missionPhoto = campanha.imagemFundoUrl || null;
+  const legal = parseCampaignLegalFooter(campanha.settings);
 
   const signatureForm = (
     <PublicSignatureForm
@@ -324,15 +329,22 @@ export function CampaignBandeiraTheme({
           </div>
           <div>
             <strong>Propaganda Eleitoral</strong>
-            {campanha.candidato?.partido ? <p>{campanha.candidato.partido}</p> : null}
-            {campanha.candidato?.estado || campanha.candidato?.municipio ? (
+            {legal?.election ? <p>{legal.election}</p> : null}
+            {legal?.candidateCnpj ? <p>CNPJ do candidato: {legal.candidateCnpj}</p> : null}
+            {legal?.party || campanha.candidato?.partido ? (
               <p>
-                {[campanha.candidato?.municipio, campanha.candidato?.estado]
-                  .filter(Boolean)
-                  .join(" / ")}
+                {legal?.party || campanha.candidato?.partido}
+                {legal?.partyCnpj ? ` — CNPJ: ${legal.partyCnpj}` : ""}
               </p>
             ) : null}
+            {legal?.committee ? <p>{legal.committee}</p> : null}
           </div>
+          {legal?.contact ? (
+            <div>
+              <strong>Contato da campanha</strong>
+              <p>{legal.contact}</p>
+            </div>
+          ) : null}
         </div>
         <PoliticasRodape candidateName={campanha.candidato?.nome} />
       </footer>

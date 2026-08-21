@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   isValidCampaignFormResponse,
@@ -144,6 +145,9 @@ export function PublicSignatureForm({
   const FormContainer = preview ? "div" : "form";
 
   const capture = configuration.capture;
+  // O widget insere um input oculto cf-turnstile-response dentro do formulário;
+  // a rota de assinatura confere o token no servidor.
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || "";
   const captureSteps = capture?.steps ?? [];
   const lastStep = Math.max(0, captureSteps.length - 1);
   const activeStep = capture ? captureSteps[Math.min(step, lastStep)] : null;
@@ -848,6 +852,16 @@ export function PublicSignatureForm({
               </div>
             );
           })}
+
+          {turnstileSiteKey && !preview ? (
+            <div className="signature-turnstile" hidden={Boolean(capture) && step > 0}>
+              <Script
+                src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+                strategy="afterInteractive"
+              />
+              <div className="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="light" />
+            </div>
+          ) : null}
 
           {!capture || onLastStep ? (
             <label className={`signature-consent ${editorial ? "theme2-consent" : ""}`}>

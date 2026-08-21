@@ -67,7 +67,11 @@ import {
   parseCampaignTitleHighlights,
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
-import { parseCandidateNumber } from "@/lib/campaign-settings";
+import {
+  parseCampaignLegalFooter,
+  parseCandidateNumber,
+  type CampaignLegalFooter,
+} from "@/lib/campaign-settings";
 import {
   legacyCampaignVideoCarousel,
   parseCampaignVideoCarousel,
@@ -109,11 +113,22 @@ type CampaignFormField = {
   type: CampaignFormFieldType;
 };
 
+const emptyLegalFooter: CampaignLegalFooter = {
+  candidateCnpj: "",
+  committee: "",
+  contact: "",
+  election: "",
+  party: "",
+  partyCnpj: "",
+};
+
 type EditorSettings = {
   allowSharing: boolean;
   /** Número do candidato; só o tema Bandeira o exibe. */
   candidateNumber: string;
   collectAddress: boolean;
+  /** Propaganda eleitoral; fica no banco por trazer dado pessoal. */
+  legal: CampaignLegalFooter;
   requireConsent: true;
   titleHighlights: CampaignTitleHighlight[];
   videoCarousel: CampaignVideoItem[] | null;
@@ -575,6 +590,7 @@ function createInitialState(
       settings: {
         allowSharing: booleanValue(settingsBase.allow_sharing, true),
         candidateNumber: parseCandidateNumber(settingsBase) ?? "",
+        legal: parseCampaignLegalFooter(settingsBase) ?? { ...emptyLegalFooter },
         collectAddress: preserveLegacyAddress
           ? true
           : booleanValue(settingsBase.collect_address, false),
@@ -621,6 +637,7 @@ function settingsPayload(
     ...base,
     allow_sharing: settings.allowSharing,
     candidate_number: settings.candidateNumber.trim(),
+    legal: settings.legal,
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
     require_consent: true,
     title_highlights: settings.titleHighlights,
@@ -1574,6 +1591,7 @@ function SeoPanel({ errors, onValueChange, prefix, values }: {
 function SettingsPanel({
   errors,
   mode,
+  onLegalChange,
   onSettingChange,
   onValueChange,
   prefix,
@@ -1584,6 +1602,7 @@ function SettingsPanel({
 }: {
   errors: FieldErrors;
   mode: CampaignEditorProps["mode"];
+  onLegalChange: (field: keyof CampaignLegalFooter, value: string) => void;
   onSettingChange: (key: MutableEditorSetting, value: boolean) => void;
   onValueChange: ValueChange;
   prefix: string;
@@ -1603,6 +1622,75 @@ function SettingsPanel({
           {mode === "create" ? "Novo rascunho" : status === "draft" ? "Rascunho" : status || "Sem status"}
         </Badge>
       </div>
+
+      <section className={styles.themeSection}>
+        <header>
+          <h3>Propaganda eleitoral</h3>
+          <p>
+            Aparece no rodapé da página pública. Fica somente no banco, por trazer
+            endereço e contato do candidato.
+          </p>
+        </header>
+        <div className={styles.themeSectionFields}>
+          <EditorInputField
+            description="Ex.: ELEIÇÃO 2026 — NOME COMPLETO — CARGO — ESTADO"
+            id={controlId(prefix, "legal_election")}
+            name="legal_election"
+            label="Identificação da eleição"
+            maxLength={300}
+            onChange={(value) => onLegalChange("election", value)}
+            value={settings.legal.election}
+          />
+          <EditorInputField
+            id={controlId(prefix, "legal_candidate_cnpj")}
+            name="legal_candidate_cnpj"
+            label="CNPJ do candidato"
+            maxLength={40}
+            onChange={(value) => onLegalChange("candidateCnpj", value)}
+            placeholder="00.000.000/0000-00"
+            value={settings.legal.candidateCnpj}
+          />
+          <EditorInputField
+            id={controlId(prefix, "legal_party")}
+            name="legal_party"
+            label="Partido"
+            maxLength={160}
+            onChange={(value) => onLegalChange("party", value)}
+            value={settings.legal.party}
+          />
+          <EditorInputField
+            id={controlId(prefix, "legal_party_cnpj")}
+            name="legal_party_cnpj"
+            label="CNPJ do partido"
+            maxLength={40}
+            onChange={(value) => onLegalChange("partyCnpj", value)}
+            placeholder="00.000.000/0000-00"
+            value={settings.legal.partyCnpj}
+          />
+          <div className={styles.fullWidthField}>
+            <EditorTextareaField
+              description="Endereço do comitê ou da correspondência."
+              id={controlId(prefix, "legal_committee")}
+            name="legal_committee"
+              label="Endereço do comitê"
+              maxLength={400}
+              onChange={(value) => onLegalChange("committee", value)}
+              value={settings.legal.committee}
+            />
+          </div>
+          <div className={styles.fullWidthField}>
+            <EditorInputField
+              description="E-mail e telefone divulgados na página."
+              id={controlId(prefix, "legal_contact")}
+            name="legal_contact"
+              label="Contato da campanha"
+              maxLength={200}
+              onChange={(value) => onLegalChange("contact", value)}
+              value={settings.legal.contact}
+            />
+          </div>
+        </div>
+      </section>
 
       <div className={styles.threeColumns}>
         <EditorInputField error={firstFieldError(errors, "inicio_em")} id={controlId(prefix, "inicio_em")} label="Início" name="inicio_em" onChange={(value) => onValueChange("inicioEm", value)} type="datetime-local" value={values.inicioEm} />
@@ -1708,6 +1796,7 @@ function PreviewPanel({
               allow_sharing: settings.allowSharing,
               candidate_number: settings.candidateNumber,
               collect_address: settings.collectAddress,
+              legal: settings.legal,
               require_consent: true,
             },
             textoAssinar: values.textoAssinar || null,
@@ -1842,6 +1931,14 @@ export function CampaignEditor({
     setSettings((current) => ({
       ...current,
       candidateNumber: candidateNumber.replace(/D/g, "").slice(0, 8)
+    }));
+  }
+
+  function changeLegalField(field: keyof CampaignLegalFooter, value: string) {
+    markDirty();
+    setSettings((current) => ({
+      ...current,
+      legal: { ...current.legal, [field]: value }
     }));
   }
 
@@ -2106,7 +2203,7 @@ export function CampaignEditor({
       case "seo":
         return <SeoPanel errors={fieldErrors} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "settings":
-        return <SettingsPanel errors={fieldErrors} mode={mode} onSettingChange={changeSetting} onValueChange={changeValue} prefix={prefix} preserveLegacyAddress={initial.preserveLegacyAddress} settings={settings} status={initialCampaign?.status} values={values} />;
+        return <SettingsPanel errors={fieldErrors} onLegalChange={changeLegalField} mode={mode} onSettingChange={changeSetting} onValueChange={changeValue} prefix={prefix} preserveLegacyAddress={initial.preserveLegacyAddress} settings={settings} status={initialCampaign?.status} values={values} />;
       case "preview":
         return <PreviewPanel candidates={candidates} device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} settings={settings} theme={selectedTheme} values={values} />;
     }

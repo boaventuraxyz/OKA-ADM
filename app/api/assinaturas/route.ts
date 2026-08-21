@@ -24,6 +24,7 @@ import {
   getCandidato,
   SupabaseRequestError
 } from "@/lib/supabase";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 import { formText, isUuid, singleLine } from "@/lib/validation";
 
 const MAX_BODY_BYTES = 32 * 1024;
@@ -193,6 +194,26 @@ export async function POST(request: Request) {
 
   if (!campanhaId || !isUuid(campanhaId) || consentimento !== "sim") {
     return jsonError("VALIDATION_ERROR", "Confira os dados informados.", 400);
+  }
+
+  // Só roda quando TURNSTILE_SECRET_KEY existe; sem a chave devolve "disabled".
+  const turnstile = await verifyTurnstileToken(
+    singleLine(formText(formData, "cf-turnstile-response", "Turnstile"), 2048),
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+  );
+  if (turnstile === "invalid") {
+    return jsonError(
+      "TURNSTILE_FAILED",
+      "Nao foi possivel confirmar a verificacao de seguranca. Recarregue a pagina.",
+      400,
+    );
+  }
+  if (turnstile === "unavailable") {
+    return jsonError(
+      "TURNSTILE_UNAVAILABLE",
+      "A verificacao de seguranca esta indisponivel. Tente novamente em instantes.",
+      503,
+    );
   }
 
   const campanha = await getCampanhaSubmissionConfig(campanhaId);

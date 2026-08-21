@@ -3909,7 +3909,7 @@ select.form-input {
 
 .bandeira-footer-grid {
   display: grid;
-  grid-template-columns: 0.7fr 1.5fr;
+  grid-template-columns: 0.7fr 1.5fr auto;
   gap: 48px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.13);
   padding-bottom: 38px;
