@@ -130,3 +130,39 @@ describe("modal de captação", () => {
     expect(container.querySelectorAll(".form-fields")).toHaveLength(1);
   });
 });
+
+describe("rodapé de propaganda eleitoral", () => {
+  const legal = {
+    candidateCnpj: "68.353.138/0001-08",
+    committee: "Rua Exemplo, 3 — São Paulo/SP",
+    contact: "contato@exemplo.com — +55 11 99999-0000",
+    election: "ELEIÇÃO 2026 — NOME COMPLETO — DEPUTADO ESTADUAL — SÃO PAULO",
+    party: "PARTIDO LIBERAL",
+    partyCnpj: "08.517.423/0001-95",
+  };
+
+  it("mostra os dados quando settings.legal está preenchido", () => {
+    const { container } = renderBandeira({
+      settings: { allow_sharing: true, legal, require_consent: true },
+    });
+    const footer = container.querySelector(".bandeira-footer")!;
+
+    expect(footer).toHaveTextContent(legal.election);
+    expect(footer).toHaveTextContent("CNPJ do candidato: 68.353.138/0001-08");
+    expect(footer).toHaveTextContent("PARTIDO LIBERAL — CNPJ: 08.517.423/0001-95");
+    expect(footer).toHaveTextContent(legal.committee);
+    expect(footer).toHaveTextContent(legal.contact);
+  });
+
+  it("não inventa linhas quando o rodapé não foi preenchido", () => {
+    const { container } = renderBandeira({
+      settings: { allow_sharing: true, require_consent: true },
+    });
+    const footer = container.querySelector(".bandeira-footer")!;
+
+    expect(footer).not.toHaveTextContent("CNPJ do candidato");
+    expect(footer).not.toHaveTextContent("Contato da campanha");
+    // A identificação do candidato continua, vinda do próprio cadastro.
+    expect(footer).toHaveTextContent("Propaganda Eleitoral");
+  });
+});
