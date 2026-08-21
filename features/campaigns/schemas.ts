@@ -104,7 +104,7 @@ const optionalImageData = z
     emptyStringToNull,
     z
       .string()
-      .max(1_230_000)
+      .max(7_000_000)
       .regex(/^data:image\/(jpeg|png|webp);base64,/)
       .nullable(),
   )

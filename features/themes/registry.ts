@@ -199,7 +199,7 @@ export const THEME_REGISTRY = [
         title: "Imagem da capa",
         description: "A imagem é otimizada antes do salvamento.",
         fields: [
-          { key: "imagem_fundo", label: "Imagem de fundo", maxLength: 1230000, type: "image" }
+          { key: "imagem_fundo", label: "Imagem de fundo", maxLength: 7000000, type: "image" }
         ]
       }
     ]
@@ -245,7 +245,7 @@ export const THEME_REGISTRY = [
         description: "Título, resumo e imagem que apresentam a campanha.",
         fields: [
           { key: "descricao", label: "Resumo", maxLength: 5000, type: "textarea" },
-          { key: "imagem_lateral", label: "Imagem lateral", maxLength: 1230000, type: "image" }
+          { key: "imagem_lateral", label: "Imagem lateral", maxLength: 7000000, type: "image" }
         ]
       },
       {
@@ -570,7 +570,7 @@ export const THEME_REGISTRY = [
         fields: [
           { key: "texto_faixa", label: "Identificação da candidatura", maxLength: 500, type: "text", help: "Ex.: Candidato a deputado estadual · São Paulo" },
           { key: "descricao", label: "Resumo do topo", maxLength: 5000, type: "textarea", help: "Separe os parágrafos com uma linha em branco. O último vira a frase destacada." },
-          { key: "imagem_lateral", label: "Foto do topo", maxLength: 1230000, type: "image" }
+          { key: "imagem_lateral", label: "Foto do topo", maxLength: 7000000, type: "image" }
         ]
       },
       {
@@ -590,7 +590,7 @@ export const THEME_REGISTRY = [
           { key: "titulo_citacao", label: "Título da missão", maxLength: 200, type: "text" },
           { key: "texto_proposta", label: "Texto da missão", maxLength: 4000, type: "textarea", help: "Separe os parágrafos com uma linha em branco." },
           { key: "texto_citacao", label: "Frase em destaque", maxLength: 2000, type: "textarea" },
-          { key: "imagem_fundo", label: "Foto da missão", maxLength: 1230000, type: "image" }
+          { key: "imagem_fundo", label: "Foto da missão", maxLength: 7000000, type: "image" }
         ]
       },
       {

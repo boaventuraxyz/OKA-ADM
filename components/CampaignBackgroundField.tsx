@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { ImageIcon, ImagePlus, LoaderCircle, Trash2 } from "lucide-react";
 import NextImage from "next/image";
 
-const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
-const MAX_OUTPUT_BYTES = 900 * 1024;
-const MAX_WIDTH = 1920;
-const MAX_HEIGHT = 1080;
+const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
+const MAX_OUTPUT_BYTES = 5 * 1024 * 1024;
+const MAX_WIDTH = 2560;
+const MAX_HEIGHT = 1440;
 
 function loadImage(file: File) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -50,7 +50,7 @@ function blobDataUrl(blob: Blob) {
 
 async function optimizeImage(file: File) {
   if (!/^image\/(?:jpeg|png|webp)$/.test(file.type) || file.size > MAX_SOURCE_BYTES) {
-    throw new Error("Selecione uma imagem JPG, PNG ou WebP de ate 10 MB.");
+    throw new Error("Selecione uma imagem JPG, PNG ou WebP de ate 20 MB.");
   }
 
   const image = await loadImage(file);

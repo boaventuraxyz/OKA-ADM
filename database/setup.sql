@@ -563,12 +563,12 @@ begin
         (
           'campanhas',
           'campanhas_imagem_fundo_valida',
-          'check (imagem_fundo is null or (octet_length(imagem_fundo) <= 1230000 and imagem_fundo ~ ''^data:image/(jpeg|png|webp);base64,'')) not valid'
+          'check (imagem_fundo is null or (octet_length(imagem_fundo) <= 7000000 and imagem_fundo ~ ''^data:image/(jpeg|png|webp);base64,'')) not valid'
         ),
         (
           'campanhas',
           'campanhas_imagem_lateral_valida',
-          'check (imagem_lateral is null or (octet_length(imagem_lateral) <= 1230000 and imagem_lateral ~ ''^data:image/(jpeg|png|webp);base64,'')) not valid'
+          'check (imagem_lateral is null or (octet_length(imagem_lateral) <= 7000000 and imagem_lateral ~ ''^data:image/(jpeg|png|webp);base64,'')) not valid'
         ),
         (
           'campanhas',

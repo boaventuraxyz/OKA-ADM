@@ -2,8 +2,9 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-export const MAX_CAMPAIGN_BACKGROUND_BYTES = 900 * 1024;
-export const MAX_CAMPAIGN_BACKGROUND_DATA_URL_LENGTH = 1_230_000;
+export const MAX_CAMPAIGN_BACKGROUND_BYTES = 5 * 1024 * 1024;
+/** base64 cresce ~4/3 sobre os bytes, mais o prefixo `data:image/...`. */
+export const MAX_CAMPAIGN_BACKGROUND_DATA_URL_LENGTH = 7_000_000;
 
 type CampaignBackground = {
   bytes: Buffer;

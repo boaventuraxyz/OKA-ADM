@@ -21,6 +21,7 @@ const migrationNames = [
   "20260818132611_allow_optional_lead_name.sql",
   "20260819122000_add_blue_green_campaign_themes.sql",
   "20260821153000_add_bandeira_campaign_theme.sql",
+  "20260821161500_raise_campaign_image_limit.sql",
 ];
 const migrations = await Promise.all(
   migrationNames.map((name) => read(join("supabase", "migrations", name))),
