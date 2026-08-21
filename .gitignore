@@ -379,3 +379,6 @@ FodyWeavers.xsd
 coverage/
 playwright-report/
 test-results/
+
+# Supabase CLI
+supabase/.temp/
