@@ -1,4 +1,4 @@
-export type LegacyThemeId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type LegacyThemeId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export type ThemeStatus = "active" | "beta" | "deprecated";
 
@@ -527,6 +527,111 @@ export const THEME_REGISTRY = [
     ],
     capabilities: { backgroundImage: false, sideImage: false, video: false, longform: true, signatureModal: false, sharing: true },
     sections: modernCampaignSections
+  },
+  {
+    id: 8,
+    key: "bandeira",
+    name: "Bandeira",
+    description: "Campanha de candidatura com paleta da bandeira, número em destaque e captação para grupo de WhatsApp.",
+    category: "mobilização",
+    tags: ["candidatura", "bandeira", "grupo", "captação"],
+    status: "active",
+    headline: {
+      field: "titulo",
+      label: "Título da campanha",
+      help: "É o texto que aparece como chamada principal no topo da página."
+    },
+    tituloUsage: "Aparece como chamada principal da página, além de identificar a campanha no painel, no SEO e no compartilhamento.",
+    palette: {
+      background: "#07172B",
+      surface: "#04101F",
+      text: "#FBFAF7",
+      accent: "#1EC65B",
+      secondary: "#F7CB34"
+    },
+    paletteOptions: [
+      { key: "bandeira", name: "Bandeira", description: "Azul-marinho com verde e amarelo do Brasil.", palette: { background: "#07172B", surface: "#04101F", text: "#FBFAF7", accent: "#1EC65B", secondary: "#F7CB34" } },
+      { key: "verde-escuro", name: "Verde escuro", description: "Base esverdeada para campanhas estaduais.", palette: { background: "#08201A", surface: "#04140F", text: "#F6FBF7", accent: "#20B85C", secondary: "#EFC53A" } },
+      { key: "grafite", name: "Grafite", description: "Neutro escuro, com o amarelo isolado como acento.", palette: { background: "#14161A", surface: "#0B0D10", text: "#FAFAFA", accent: "#1EC65B", secondary: "#F7CB34" } }
+    ],
+    capabilities: {
+      backgroundImage: true,
+      sideImage: true,
+      video: true,
+      longform: true,
+      signatureModal: true,
+      sharing: true
+    },
+    sections: [
+      {
+        id: "hero",
+        title: "Abertura",
+        description: "Identificação, chamada principal e foto do topo.",
+        fields: [
+          { key: "texto_faixa", label: "Identificação da candidatura", maxLength: 500, type: "text", help: "Ex.: Candidato a deputado estadual · São Paulo" },
+          { key: "descricao", label: "Resumo do topo", maxLength: 5000, type: "textarea", help: "Separe os parágrafos com uma linha em branco. O último vira a frase destacada." },
+          { key: "imagem_lateral", label: "Foto do topo", maxLength: 1230000, type: "image" }
+        ]
+      },
+      {
+        id: "decision",
+        title: "Minha decisão",
+        description: "Por que a candidatura existe.",
+        fields: [
+          { key: "titulo_topicos", label: "Título da decisão", maxLength: 200, type: "text" },
+          { key: "texto_contexto", label: "Texto da decisão", maxLength: 8000, type: "textarea", help: "Separe os parágrafos com uma linha em branco." }
+        ]
+      },
+      {
+        id: "mission",
+        title: "Minha missão",
+        description: "O compromisso, com foto e frase em destaque.",
+        fields: [
+          { key: "titulo_citacao", label: "Título da missão", maxLength: 200, type: "text" },
+          { key: "texto_proposta", label: "Texto da missão", maxLength: 4000, type: "textarea", help: "Separe os parágrafos com uma linha em branco." },
+          { key: "texto_citacao", label: "Frase em destaque", maxLength: 2000, type: "textarea" },
+          { key: "imagem_fundo", label: "Foto da missão", maxLength: 1230000, type: "image" }
+        ]
+      },
+      {
+        id: "video",
+        title: "Vídeo",
+        description: "A seção só aparece quando há uma URL de vídeo.",
+        fields: [
+          { key: "titulo_video", label: "Título do vídeo", maxLength: 200, type: "text" },
+          { key: "video_url", label: "URL do vídeo", maxLength: 2048, type: "url", help: "Use HTTPS ou um caminho interno iniciado por /." }
+        ]
+      },
+      {
+        id: "flags",
+        title: "Bandeiras",
+        description: "As posições defendidas, numeradas automaticamente.",
+        fields: [
+          { key: "titulo_assinar", label: "Título das bandeiras", maxLength: 200, type: "text" },
+          { key: "texto_topicos_intro", label: "Apoio do título", maxLength: 2000, type: "textarea" },
+          { key: "texto_topicos", label: "Bandeiras", maxLength: 8000, type: "textarea", help: "Separe cada bandeira com uma linha em branco. A primeira linha vira o título." }
+        ]
+      },
+      {
+        id: "group",
+        title: "Grupo oficial",
+        description: "Convite para o grupo e o que a pessoa recebe.",
+        fields: [
+          { key: "texto_assinar", label: "Convite do grupo", maxLength: 2000, type: "textarea" },
+          { key: "texto_conclusao", label: "Benefícios do grupo", maxLength: 4000, type: "textarea", help: "Um benefício por linha." }
+        ]
+      },
+      {
+        id: "closing",
+        title: "Fechamento",
+        description: "Chamada final e compartilhamento.",
+        fields: [
+          { key: "texto_impacto", label: "Chamada final", maxLength: 300, type: "text" },
+          { key: "texto_impacto_apoio", label: "Texto da chamada final", maxLength: 500, type: "text" },
+          { key: "texto_compartilhar", label: "Chamada para compartilhar", maxLength: 500, type: "text" }
+        ]
+      }
+    ]
   }
 ] as const satisfies readonly CampaignThemeDefinition[];
 

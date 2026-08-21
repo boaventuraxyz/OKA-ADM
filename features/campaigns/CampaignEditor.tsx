@@ -67,6 +67,7 @@ import {
   parseCampaignTitleHighlights,
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
+import { parseCandidateNumber } from "@/lib/campaign-settings";
 import {
   legacyCampaignVideoCarousel,
   parseCampaignVideoCarousel,
@@ -110,6 +111,8 @@ type CampaignFormField = {
 
 type EditorSettings = {
   allowSharing: boolean;
+  /** Número do candidato; só o tema Bandeira o exibe. */
+  candidateNumber: string;
   collectAddress: boolean;
   requireConsent: true;
   titleHighlights: CampaignTitleHighlight[];
@@ -571,6 +574,7 @@ function createInitialState(
       fields: parseFormFields(formConfigBase, preserveLegacyAddress),
       settings: {
         allowSharing: booleanValue(settingsBase.allow_sharing, true),
+        candidateNumber: parseCandidateNumber(settingsBase) ?? "",
         collectAddress: preserveLegacyAddress
           ? true
           : booleanValue(settingsBase.collect_address, false),
@@ -616,6 +620,7 @@ function settingsPayload(
   return {
     ...base,
     allow_sharing: settings.allowSharing,
+    candidate_number: settings.candidateNumber.trim(),
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
     require_consent: true,
     title_highlights: settings.titleHighlights,
@@ -1105,6 +1110,7 @@ function headlineWordCount(theme: RegistryTheme, values: EditorValues) {
 function ContentPanel({
   candidates,
   errors,
+  onCandidateNumberChange,
   onRegenerateSlug,
   onSlugChange,
   onTitleHighlightsChange,
@@ -1117,6 +1123,7 @@ function ContentPanel({
 }: {
   candidates: readonly { id: string; nome: string }[];
   errors: FieldErrors;
+  onCandidateNumberChange: (value: string) => void;
   onRegenerateSlug: () => void;
   onSlugChange: (value: string) => void;
   onTitleHighlightsChange: (highlights: CampaignTitleHighlight[]) => void;
@@ -1218,6 +1225,18 @@ function ContentPanel({
               <p>{section.description}</p>
             </header>
             <div className={styles.themeSectionFields}>
+              {theme.key === "bandeira" && section.id === "hero" ? (
+                <EditorInputField
+                  description="Aparece no topo, na chamada final e no rodapé. Somente números."
+                  id={controlId(prefix, "candidate_number")}
+                  label="Número do candidato"
+                  maxLength={8}
+                  name="candidate_number"
+                  onChange={onCandidateNumberChange}
+                  placeholder="2211"
+                  value={settings.candidateNumber}
+                />
+              ) : null}
               {theme.key === "impact-dark" && section.id === "video" ? (
                 <div className={styles.fullWidthField}>
                   <CampaignVideoCarouselField
@@ -1687,6 +1706,7 @@ function PreviewPanel({
             notaVideo: values.notaVideo || null,
             settings: {
               allow_sharing: settings.allowSharing,
+              candidate_number: settings.candidateNumber,
               collect_address: settings.collectAddress,
               require_consent: true,
             },
@@ -1815,6 +1835,14 @@ export function CampaignEditor({
   function changeTitleHighlights(titleHighlights: CampaignTitleHighlight[]) {
     markDirty();
     setSettings((current) => ({ ...current, titleHighlights }));
+  }
+
+  function changeCandidateNumber(candidateNumber: string) {
+    markDirty();
+    setSettings((current) => ({
+      ...current,
+      candidateNumber: candidateNumber.replace(/D/g, "").slice(0, 8)
+    }));
   }
 
   function changeVideoCarousel(videoCarousel: CampaignVideoItem[]) {
@@ -2070,7 +2098,7 @@ export function CampaignEditor({
   const activePanel = (() => {
     switch (activeTab) {
       case "content":
-        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
+        return <ContentPanel candidates={candidates} errors={fieldErrors} onCandidateNumberChange={changeCandidateNumber} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":

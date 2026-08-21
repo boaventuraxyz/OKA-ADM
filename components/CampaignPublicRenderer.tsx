@@ -3,6 +3,7 @@ import Image from "next/image";
 import { PenLine } from "lucide-react";
 
 import { CampaignHeadline } from "@/components/CampaignHeadline";
+import { CampaignBandeiraTheme } from "@/components/CampaignBandeiraTheme";
 import { CampaignModernTheme } from "@/components/CampaignModernTheme";
 import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignTheme3 } from "@/components/CampaignTheme3";
@@ -32,7 +33,7 @@ export type CampaignRenderData = {
   notaCitacao: string | null;
   notaVideo: string | null;
   settings: Record<string, unknown> | null;
-  tema: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  tema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   textoAssinar: string | null;
   textoCitacao: string | null;
   textoCompartilhar: string | null;
@@ -101,6 +102,30 @@ export function CampaignPublicRenderer({
   const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
     .filter(Boolean)
     .join(" / ");
+
+  if (campanha.tema === 8) {
+    const heroPhoto = campaignImageSource({
+      campaignId: campanha.id,
+      directUrl: campanha.imagemLateralUrl,
+      kind: "imagem-lateral",
+      version: campanha.imagemLateralVersao,
+    });
+    const missionPhoto = campaignImageSource({
+      campaignId: campanha.id,
+      directUrl: campanha.imagemFundoUrl,
+      kind: "imagem",
+      version: campanha.imagemFundoVersao,
+    });
+
+    return (
+      <CampaignBandeiraTheme
+        accent={accent || "#1EC65B"}
+        campanha={{ ...campanha, imagemFundoUrl: missionPhoto, imagemLateralUrl: heroPhoto }}
+        preview={preview}
+        totalAssinaturas={totalAssinaturas}
+      />
+    );
+  }
 
   if (campanha.tema === 5 || campanha.tema === 6 || campanha.tema === 7) {
     return (

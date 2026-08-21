@@ -13,6 +13,7 @@ describe("registro central de temas", () => {
       "horizon-blue",
       "green-community",
       "teal-pulse",
+      "bandeira",
     ]);
     for (const theme of THEME_REGISTRY) {
       const fields = themeContentFields(theme);
