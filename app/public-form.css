@@ -4038,3 +4038,144 @@ select.form-input {
     padding: 64px 0;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Correções encontradas ao revisar o tema 8
+
+   1. .campaign-theme3-share usa --t3-amber e --t3-paper, definidas só em
+      .campaign-theme-3: no tema 8 as declarações ficavam inválidas.
+   2. O diálogo do formulário é irmão de <main>, logo fica fora de
+      .campaign-public-page e não herda as variáveis --campaign-*. Junto com o
+      fundo escuro de .form-card, o formulário aparecia errado no modal branco.
+   3. O formulário público esconde os rótulos; na captação eles precisam
+      aparecer, como no projeto de origem.
+   -------------------------------------------------------------------------- */
+
+.campaign-theme-8 .campaign-theme3-share {
+  margin-top: 22px;
+}
+
+.campaign-theme-8 .campaign-theme3-share a {
+  border: 1px solid var(--bnd-border);
+  border-radius: 10px;
+  color: var(--bnd-ink);
+  font-size: 14px;
+}
+
+.campaign-theme-8 .campaign-theme3-share a:hover {
+  border-color: var(--bnd-green-dark);
+  background: transparent;
+  color: var(--bnd-green-dark);
+}
+
+.campaign-capture-modal .form-card {
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #0a1727;
+  padding: 0;
+}
+
+.campaign-capture-modal .form-card .card-header {
+  text-align: left;
+}
+
+/* Rótulo por campo, como no projeto de origem. */
+.campaign-capture-modal .form-card .signature-field {
+  display: block;
+  margin-top: 13px;
+}
+
+.campaign-capture-modal .form-card .signature-field > label {
+  display: block;
+  margin-bottom: 7px;
+  color: #4d5662;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.campaign-capture-modal .form-card .form-input {
+  min-height: 56px;
+  border: 2px solid #e1e4e8;
+  border-radius: 13px;
+  background: #fff;
+  color: #07172b;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.campaign-capture-modal .form-card .form-input::placeholder {
+  color: #98a1ab;
+  font-weight: 500;
+}
+
+.campaign-capture-modal .form-card .form-input:focus {
+  border-color: #139944;
+  box-shadow: 0 0 0 4px rgba(30, 198, 91, 0.11);
+}
+
+.campaign-capture-modal .form-card .form-input.error {
+  border-color: #c93346;
+}
+
+.campaign-capture-modal .form-card .field-error {
+  color: #b7273a;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.campaign-capture-modal .form-card .signature-consent {
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 15px;
+  border: 1px solid #dfe3e7;
+  border-radius: 14px;
+  background: #f8f9fa;
+  color: #5d6670;
+  cursor: pointer;
+  padding: 17px;
+  font-size: 0.83rem;
+  line-height: 1.52;
+}
+
+.campaign-capture-modal .form-card .signature-consent input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  accent-color: #139944;
+}
+
+.campaign-capture-modal .form-card .btn-sign {
+  min-height: 56px;
+  margin-top: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #28d76a, #14aa4e);
+  box-shadow: 0 16px 32px -14px rgba(30, 198, 91, 0.85);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.campaign-capture-modal .signature-turnstile {
+  margin-top: 16px;
+}
+
+.campaign-capture-modal .capture-progress {
+  max-width: none;
+}
+
+.campaign-capture-modal .capture-actions {
+  margin-top: 14px;
+}
+
+.campaign-capture-modal .capture-back {
+  min-height: 56px;
+}

@@ -131,3 +131,32 @@ describe("formulário de abaixo-assinado (sem captação)", () => {
     expect(screen.getByText(/Declaro meu apoio a esta iniciativa/)).toBeInTheDocument();
   });
 });
+
+describe("campo de estado", () => {
+  it("é uma lista de estados, não campo de duas letras", () => {
+    renderCapture();
+
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Julio Boaventura" } });
+    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11987838530" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+
+    const estado = screen.getByLabelText("Seu estado");
+    expect(estado.tagName).toBe("SELECT");
+    // 27 estados mais a opção vazia.
+    expect(estado.querySelectorAll("option")).toHaveLength(28);
+    expect(screen.getByRole("option", { name: "São Paulo" })).toHaveValue("SP");
+    expect(screen.getByRole("option", { name: "Minas Gerais" })).toHaveValue("MG");
+  });
+
+  it("grava a sigla, que é o formato aceito pela coluna", () => {
+    renderCapture();
+
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Julio Boaventura" } });
+    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11987838530" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+
+    const estado = screen.getByLabelText("Seu estado");
+    fireEvent.change(estado, { target: { value: "SP" } });
+    expect(estado).toHaveValue("SP");
+  });
+});

@@ -85,7 +85,7 @@ begin
     'Entrar no grupo de WhatsApp',
     'Entre para o movimento',
     'A nossa voz precisa chegar à Assembleia.',
-    'O Nikolas Ferreira me chamou pra essa luta. Em 2026 ele me desafiou a entrar na política. Eu aceitei e disputei a Câmara de São Paulo. Fiquei como primeiro suplente na maior cidade do país.' ||
+    'O Nikolas Ferreira me chamou pra essa luta. Em 2024 ele me desafiou a entrar na política. Eu aceitei e disputei a Câmara Municipal de São Paulo. Fiquei como primeiro suplente na maior cidade do país.' ||
       chr(10) || chr(10) ||
       'Agora o desafio é maior: representar o estado inteiro na Assembleia Legislativa. E eu não faço isso sozinho.',
     'Por que eu quero chegar à Assembleia?',

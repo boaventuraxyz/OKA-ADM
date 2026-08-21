@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BRAZILIAN_STATES } from "@/lib/brazilian-states";
 import {
   isValidCampaignFormResponse,
   normalizePublicFormConfiguration,
@@ -728,19 +729,25 @@ export function PublicSignatureForm({
               </div> : null}
               {configuration.collectAddress || stateField ? <div className="signature-field signature-field-state">
                 <label htmlFor="estado">{stateField?.label || "UF"}</label>
-                <input
+                <select
                   aria-invalid={errors.localidade || undefined}
                   autoComplete="address-level1"
                   className={`form-input ${errors.localidade ? "error" : ""}`}
                   id="estado"
-                  maxLength={2}
                   name="state"
-                  onChange={(event) => setEstado(event.target.value.toUpperCase())}
-                  placeholder={stateField?.placeholder || "UF"}
+                  onChange={(event) => setEstado(event.target.value)}
                   required={stateField?.required || configuration.collectAddress}
-                  type="text"
                   value={estado}
-                />
+                >
+                  <option value="">
+                    {stateField?.placeholder || "Selecione o estado"}
+                  </option>
+                  {BRAZILIAN_STATES.map((state) => (
+                    <option key={state.uf} value={state.uf}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
               </div> : null}
             </div>
             <span className={`field-error ${errors.localidade ? "show" : ""}`}>
