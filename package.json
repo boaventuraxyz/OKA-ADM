@@ -17,9 +17,10 @@
     "test:coverage": "vitest run --coverage",
     "test:database": "node scripts/compare-database-setup.mjs",
     "test:seed": "node scripts/verify-campaign-seed.mjs",
+    "test:pending-sql": "node scripts/verify-pending-sql.mjs",
     "test:security": "node scripts/security-smoke.mjs",
     "test:e2e": "playwright test",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:database && pnpm test:seed && pnpm build && pnpm test:security"
+    "verify": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:database && pnpm test:seed && pnpm test:pending-sql && pnpm build && pnpm test:security"
   },
   "overrides": {
     "brace-expansion": "5.0.9",

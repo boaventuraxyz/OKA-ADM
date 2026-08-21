@@ -1,18 +1,20 @@
 -- ============================================================================
 -- OKA-ADM · migracoes pendentes, na ordem
 --
--- Cole tudo de uma vez no SQL Editor do Supabase e execute. Cada bloco e
--- transacional: se um falhar, so aquele bloco e desfeito.
+-- Cole tudo de uma vez no SQL Editor do Supabase e execute. Cada passo e uma
+-- transacao propria: se um falhar, so aquele passo e desfeito.
 --
--- Todos foram validados contra o schema real com PGlite (pnpm test:seed).
+-- RODE UMA VEZ SO. O passo 1 e antigo e fixa a restricao de tema em 1..7; o
+-- passo 4 amplia para 1..8. Numa segunda execucao, com a campanha do passo 6 ja
+-- criada no tema 8, o passo 1 falha ao tentar estreitar a restricao de volta.
+-- Se precisar repetir, comece pelo passo 2.
 --
--- Se o passo 1 reclamar que algo ja existe, ele ja foi aplicado antes: pule
--- para o passo 2. Os passos 1 a 3 sao idempotentes (recriam restricao e
--- trigger). O passo 4 nao duplica: ele checa o slug antes de inserir.
+-- Validado com PGlite partindo de um banco atrasado: sem os temas 5 a 8, com o
+-- limite antigo de imagem e sem as colunas slug_publico e dominio_formularios.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- PASSO 1 de 4 · Temas 5, 6 e 7 (a que faltava e causava o erro 23514)
+-- PASSO 1 de 6 · Temas 5, 6 e 7 (a que faltava e causava o erro 23514)
 -- arquivo: supabase/migrations/20260819122000_add_blue_green_campaign_themes.sql
 -- ----------------------------------------------------------------------------
 
@@ -121,7 +123,178 @@ $$;
 commit;
 
 -- ----------------------------------------------------------------------------
--- PASSO 2 de 4 · Tema 8 Bandeira
+-- PASSO 2 de 6 · Coluna slug_publico (vinha de um script avulso, nunca virou migracao)
+-- arquivo: supabase/migrations/20260821151000_add_candidate_public_slug.sql
+-- ----------------------------------------------------------------------------
+
+-- Adiciona candidatos.slug_publico, o endereco do hub publico do candidato.
+--
+-- A coluna existia apenas em supabase/candidate-hubs.sql, um script avulso que
+-- nunca virou migracao: bancos que aplicaram so as migracoes ficaram sem ela.
+-- O conteudo aqui e o mesmo de database/setup.sql, na forma canonica.
+--
+-- Idempotente: pode rodar em banco que ja tem a coluna.
+begin;
+
+alter table public.candidatos
+  add column if not exists slug_publico text;
+
+-- Gera slug a partir do nome para quem ainda nao tem, resolvendo repeticao com
+-- o id no fim. Precisa vir antes do not null.
+with normalized as (
+  select
+    id,
+    left(
+      trim(
+        both '-'
+        from regexp_replace(
+          translate(
+            lower(coalesce(nome, '')),
+            'áàâãäåéèêëíìîïóòôõöúùûüçñýÿ',
+            'aaaaaaeeeeiiiiooooouuuucnyy'
+          ),
+          '[^a-z0-9]+',
+          '-',
+          'g'
+        )
+      ),
+      63
+    ) as raw_slug
+  from public.candidatos
+  where slug_publico is null or btrim(slug_publico) = ''
+), prepared as (
+  select
+    id,
+    case when raw_slug = '' then 'candidato' else raw_slug end as base_slug
+  from normalized
+), ranked as (
+  select
+    id,
+    base_slug,
+    count(*) over (partition by base_slug) as same_slug_count
+  from prepared
+), assigned as (
+  select
+    ranked.id,
+    case
+      when ranked.same_slug_count = 1
+        and not exists (
+          select 1
+          from public.candidatos existing
+          where existing.id <> ranked.id
+            and lower(existing.slug_publico) = lower(ranked.base_slug)
+        )
+        then ranked.base_slug
+      else left(ranked.base_slug, 43) || '-' || ranked.id::text
+    end as generated_slug
+  from ranked
+)
+update public.candidatos candidato
+set slug_publico = assigned.generated_slug
+from assigned
+where candidato.id = assigned.id;
+
+alter table public.candidatos
+  alter column slug_publico set not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'candidatos_slug_publico_valido'
+  ) then
+    alter table public.candidatos
+      add constraint candidatos_slug_publico_valido
+      check (
+        char_length(slug_publico) between 1 and 80
+        and slug_publico = lower(slug_publico)
+        and slug_publico ~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+      )
+      not valid;
+  end if;
+end
+$$;
+
+create unique index if not exists candidatos_slug_publico_unico
+  on public.candidatos (lower(slug_publico));
+
+commit;
+
+-- ----------------------------------------------------------------------------
+-- PASSO 3 de 6 · Coluna dominio_formularios (mesma situacao)
+-- arquivo: supabase/migrations/20260821151500_add_candidate_forms_domain.sql
+-- ----------------------------------------------------------------------------
+
+-- Adiciona candidatos.dominio_formularios, o dominio proprio do candidato.
+--
+-- Mesma situacao do slug: a coluna vinha de supabase/candidate-domain.sql, um
+-- script avulso que nunca virou migracao. Aqui entra so o esquema; o script
+-- original tambem gravava o dominio de um candidato especifico, o que e dado e
+-- nao pertence a uma migracao.
+--
+-- Idempotente: pode rodar em banco que ja tem a coluna.
+begin;
+
+alter table public.candidatos
+  add column if not exists dominio_formularios text;
+
+-- Normaliza caixa e o prefixo www, sem descartar valor invalido: a validacao da
+-- restricao fica para depois, com not valid.
+update public.candidatos
+set dominio_formularios = lower(
+  regexp_replace(btrim(dominio_formularios), '^www\.', '', 'i')
+)
+where dominio_formularios is not null
+  and dominio_formularios is distinct from lower(
+    regexp_replace(btrim(dominio_formularios), '^www\.', '', 'i')
+  );
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'candidatos_dominio_formularios_valido'
+  ) then
+    alter table public.candidatos
+      add constraint candidatos_dominio_formularios_valido
+      check (
+        dominio_formularios is null
+        or (
+          char_length(dominio_formularios) <= 253
+          and dominio_formularios = lower(dominio_formularios)
+          and dominio_formularios !~ '^www\.'
+          and dominio_formularios ~ '^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]([a-z0-9-]{0,61}[a-z0-9])$'
+        )
+      )
+      not valid;
+  end if;
+end
+$$;
+
+-- O indice unico so entra se nao houver dominio repetido no banco.
+do $$
+begin
+  if to_regclass('public.candidatos_dominio_formularios_unico') is null then
+    if not exists (
+      select 1
+      from public.candidatos
+      where dominio_formularios is not null
+      group by dominio_formularios
+      having count(*) > 1
+    ) then
+      create unique index candidatos_dominio_formularios_unico
+        on public.candidatos (dominio_formularios)
+        where dominio_formularios is not null;
+    else
+      raise notice
+        'Indice candidatos_dominio_formularios_unico ignorado: ha dominios repetidos.';
+    end if;
+  end if;
+end
+$$;
+
+commit;
+
+-- ----------------------------------------------------------------------------
+-- PASSO 4 de 6 · Tema 8 Bandeira
 -- arquivo: supabase/migrations/20260821153000_add_bandeira_campaign_theme.sql
 -- ----------------------------------------------------------------------------
 
@@ -238,7 +411,7 @@ $$;
 commit;
 
 -- ----------------------------------------------------------------------------
--- PASSO 3 de 4 · Imagens de ~900 KB para 5 MB
+-- PASSO 5 de 6 · Imagens de ~900 KB para 5 MB
 -- arquivo: supabase/migrations/20260821161500_raise_campaign_image_limit.sql
 -- ----------------------------------------------------------------------------
 
@@ -276,7 +449,7 @@ alter table public.campanhas
 commit;
 
 -- ----------------------------------------------------------------------------
--- PASSO 4 de 4 · Campanha do Felipe Sertanejo (rascunho inativo)
+-- PASSO 6 de 6 · Campanha do Felipe Sertanejo (rascunho inativo)
 -- arquivo: supabase/migrations/20260821164500_seed_felipe_sertanejo_campaign.sql
 -- ----------------------------------------------------------------------------
 
@@ -295,20 +468,43 @@ declare
   candidate_id uuid := 'b7c1a0d4-5f83-4c2e-9a16-3d8e5f2b91c7';
   campaign_id uuid := 'e4f2c9a8-7b61-4d35-8c02-1a9f6e3b5d84';
 begin
-  -- slug_publico e obrigatorio: e o endereco do hub publico do candidato.
-  insert into public.candidatos (
-    id, nome, slug_publico, partido, cargo, estado, municipio
-  )
-  values (
-    candidate_id,
-    'Felipe Sertanejo',
-    'felipe-sertanejo',
-    'Partido Liberal (PL)',
-    'Deputado Estadual',
-    'SP',
-    'São Paulo'
-  )
-  on conflict (id) do nothing;
+  -- slug_publico so existe onde supabase/candidate-hubs.sql foi aplicado, e la
+  -- e NOT NULL. Como esse script nunca virou migracao, ha bancos com e sem a
+  -- coluna; o insert se adapta em vez de assumir uma das duas formas.
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'candidatos'
+      and column_name = 'slug_publico'
+  ) then
+    execute $ins$
+      insert into public.candidatos (
+        id, nome, slug_publico, partido, cargo, estado, municipio
+      )
+      values ($1, $2, $3, $4, $5, $6, $7)
+      on conflict (id) do nothing
+    $ins$
+    using
+      candidate_id,
+      'Felipe Sertanejo',
+      'felipe-sertanejo',
+      'Partido Liberal (PL)',
+      'Deputado Estadual',
+      'SP',
+      'São Paulo';
+  else
+    insert into public.candidatos (id, nome, partido, cargo, estado, municipio)
+    values (
+      candidate_id,
+      'Felipe Sertanejo',
+      'Partido Liberal (PL)',
+      'Deputado Estadual',
+      'SP',
+      'São Paulo'
+    )
+    on conflict (id) do nothing;
+  end if;
 
   if exists (select 1 from public.campanhas where slug = 'felipe-sertanejo') then
     raise notice 'Campanha felipe-sertanejo já existe; nada foi alterado.';
@@ -491,6 +687,14 @@ where conname = 'campanhas_tema_valido';
 select conname, pg_get_constraintdef(oid) as definicao
 from pg_constraint
 where conname in ('campanhas_imagem_fundo_valida', 'campanhas_imagem_lateral_valida');
+
+-- As duas colunas que faltavam devem existir:
+select column_name, is_nullable
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'candidatos'
+  and column_name in ('slug_publico', 'dominio_formularios')
+order by column_name;
 
 -- A campanha deve aparecer como rascunho no tema 8:
 select slug, titulo, tema, theme_key, status, ativa,

@@ -13,20 +13,43 @@ declare
   candidate_id uuid := 'b7c1a0d4-5f83-4c2e-9a16-3d8e5f2b91c7';
   campaign_id uuid := 'e4f2c9a8-7b61-4d35-8c02-1a9f6e3b5d84';
 begin
-  -- slug_publico e obrigatorio: e o endereco do hub publico do candidato.
-  insert into public.candidatos (
-    id, nome, slug_publico, partido, cargo, estado, municipio
-  )
-  values (
-    candidate_id,
-    'Felipe Sertanejo',
-    'felipe-sertanejo',
-    'Partido Liberal (PL)',
-    'Deputado Estadual',
-    'SP',
-    'São Paulo'
-  )
-  on conflict (id) do nothing;
+  -- slug_publico so existe onde supabase/candidate-hubs.sql foi aplicado, e la
+  -- e NOT NULL. Como esse script nunca virou migracao, ha bancos com e sem a
+  -- coluna; o insert se adapta em vez de assumir uma das duas formas.
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'candidatos'
+      and column_name = 'slug_publico'
+  ) then
+    execute $ins$
+      insert into public.candidatos (
+        id, nome, slug_publico, partido, cargo, estado, municipio
+      )
+      values ($1, $2, $3, $4, $5, $6, $7)
+      on conflict (id) do nothing
+    $ins$
+    using
+      candidate_id,
+      'Felipe Sertanejo',
+      'felipe-sertanejo',
+      'Partido Liberal (PL)',
+      'Deputado Estadual',
+      'SP',
+      'São Paulo';
+  else
+    insert into public.candidatos (id, nome, partido, cargo, estado, municipio)
+    values (
+      candidate_id,
+      'Felipe Sertanejo',
+      'Partido Liberal (PL)',
+      'Deputado Estadual',
+      'SP',
+      'São Paulo'
+    )
+    on conflict (id) do nothing;
+  end if;
 
   if exists (select 1 from public.campanhas where slug = 'felipe-sertanejo') then
     raise notice 'Campanha felipe-sertanejo já existe; nada foi alterado.';

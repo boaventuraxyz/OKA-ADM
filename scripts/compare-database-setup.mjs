@@ -20,6 +20,8 @@ const migrationNames = [
   "20260818123919_reconcile_authenticated_platform_grants.sql",
   "20260818132611_allow_optional_lead_name.sql",
   "20260819122000_add_blue_green_campaign_themes.sql",
+  "20260821151000_add_candidate_public_slug.sql",
+  "20260821151500_add_candidate_forms_domain.sql",
   "20260821153000_add_bandeira_campaign_theme.sql",
   "20260821161500_raise_campaign_image_limit.sql",
 ];
