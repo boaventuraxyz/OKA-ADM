@@ -4725,15 +4725,34 @@ select.form-input {
   }
 
   .bandeira-hero-stage {
-    min-height: 680px;
+    min-height: 0;
+    background: #06170e;
   }
 
   .bandeira-hero-media {
-    object-position: center center;
+    object-fit: contain;
+    object-position: center top;
+  }
+
+  .bandeira-hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(2, 14, 7, 0.04) 0%, rgba(2, 15, 8, 0.2) 28%, rgba(3, 20, 12, 0.94) 44%, #06170e 62%),
+      linear-gradient(90deg, rgba(13, 89, 38, 0.18), transparent, rgba(4, 71, 31, 0.18));
   }
 
   .campaign-theme-8 .bandeira-hero-copy {
-    padding-block: 300px 44px;
+    min-height: 620px;
+    justify-content: flex-end;
+    padding-block: clamp(270px, 70vw, 315px) 44px;
+  }
+
+  .bandeira-hero-stage.without-media {
+    min-height: 560px;
+  }
+
+  .campaign-theme-8 .bandeira-hero-stage.without-media .bandeira-hero-copy {
+    min-height: 560px;
+    padding-top: 96px;
   }
 
   .campaign-theme-8 .bandeira-hero-copy h1 {
@@ -4774,7 +4793,18 @@ select.form-input {
   }
 
   .bandeira-support-video {
-    width: min(100%, 360px);
+    width: min(82vw, 40.5svh, 300px);
+  }
+
+  .bandeira-support-video .campaign-theme4-video-panel {
+    padding: 6px;
+    border-radius: 20px;
+  }
+
+  .bandeira-support-video .campaign-theme4-video-panel video {
+    max-height: 72svh;
+    border-radius: 14px;
+    object-fit: contain;
   }
 
   .bandeira-support-video .campaign-theme4-video-meta {
