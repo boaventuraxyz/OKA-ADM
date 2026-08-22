@@ -555,51 +555,39 @@ export const THEME_REGISTRY = [
       { key: "grafite", name: "Grafite", description: "Neutro escuro, com o amarelo isolado como acento.", palette: { background: "#14161A", surface: "#0B0D10", text: "#FAFAFA", accent: "#1EC65B", secondary: "#F7CB34" } }
     ],
     capabilities: {
-      backgroundImage: true,
+      backgroundImage: false,
       sideImage: true,
       video: true,
       longform: true,
       signatureModal: true,
-      sharing: true
+      sharing: false
     },
     sections: [
       {
         id: "hero",
         title: "Abertura",
-        description: "Identificação, chamada principal e foto do topo.",
+        description: "Chamada central sobre o banner principal.",
         fields: [
-          { key: "texto_faixa", label: "Identificação da candidatura", maxLength: 500, type: "text", help: "Ex.: Candidato a deputado estadual · São Paulo" },
-          { key: "descricao", label: "Resumo do topo", maxLength: 5000, type: "textarea", help: "Separe os parágrafos com uma linha em branco. O último vira a frase destacada." },
-          { key: "imagem_lateral", label: "Foto do topo", maxLength: 7000000, type: "image" }
+          { key: "descricao", label: "Texto do topo", maxLength: 5000, type: "textarea", help: "Separe os parágrafos com uma linha em branco. O último vira a chamada em caixa alta." },
+          { key: "imagem_lateral", label: "Banner do topo", maxLength: 7000000, type: "image", help: "Use uma imagem horizontal, de preferência 16:9." }
         ]
       },
       {
-        id: "decision",
-        title: "Minha decisão",
-        description: "Por que a candidatura existe.",
+        id: "support",
+        title: "Apoio e vídeo",
+        description: "História da candidatura ao lado do carrossel de vídeos.",
         fields: [
-          { key: "titulo_topicos", label: "Título da decisão", maxLength: 200, type: "text" },
-          { key: "texto_contexto", label: "Texto da decisão", maxLength: 8000, type: "textarea", help: "Separe os parágrafos com uma linha em branco." }
-        ]
-      },
-      {
-        id: "mission",
-        title: "Minha missão",
-        description: "O compromisso, com foto e frase em destaque.",
-        fields: [
-          { key: "titulo_citacao", label: "Título da missão", maxLength: 200, type: "text" },
-          { key: "texto_proposta", label: "Texto da missão", maxLength: 4000, type: "textarea", help: "Separe os parágrafos com uma linha em branco." },
-          { key: "texto_citacao", label: "Frase em destaque", maxLength: 2000, type: "textarea" },
-          { key: "imagem_fundo", label: "Foto da missão", maxLength: 7000000, type: "image" }
+          { key: "titulo_topicos", label: "Título do bloco", maxLength: 200, type: "text" },
+          { key: "texto_contexto", label: "Texto de apoio", maxLength: 8000, type: "textarea", help: "Separe os parágrafos com uma linha em branco." }
         ]
       },
       {
         id: "video",
-        title: "Vídeo",
-        description: "A seção só aparece quando há uma URL de vídeo.",
+        title: "Carrossel de vídeos",
+        description: "Envie até oito vídeos; o primeiro começa sem som e os demais ficam acessíveis pelos controles.",
         fields: [
-          { key: "titulo_video", label: "Título do vídeo", maxLength: 200, type: "text" },
-          { key: "video_url", label: "URL do vídeo", maxLength: 2048, type: "url", help: "Use HTTPS ou um caminho interno iniciado por /." }
+          { key: "video_url", label: "URL legada do vídeo", maxLength: 2048, type: "url" },
+          { key: "legenda_video", label: "Legenda legada do vídeo", maxLength: 300, type: "text" }
         ]
       },
       {
@@ -617,18 +605,9 @@ export const THEME_REGISTRY = [
         title: "Grupo oficial",
         description: "Convite para o grupo e o que a pessoa recebe.",
         fields: [
-          { key: "texto_assinar", label: "Convite do grupo", maxLength: 2000, type: "textarea" },
+          { key: "texto_impacto", label: "Título do convite", maxLength: 300, type: "text" },
+          { key: "texto_impacto_apoio", label: "Texto do convite", maxLength: 500, type: "text" },
           { key: "texto_conclusao", label: "Benefícios do grupo", maxLength: 4000, type: "textarea", help: "Um benefício por linha." }
-        ]
-      },
-      {
-        id: "closing",
-        title: "Fechamento",
-        description: "Chamada final e compartilhamento.",
-        fields: [
-          { key: "texto_impacto", label: "Chamada final", maxLength: 300, type: "text" },
-          { key: "texto_impacto_apoio", label: "Texto da chamada final", maxLength: 500, type: "text" },
-          { key: "texto_compartilhar", label: "Chamada para compartilhar", maxLength: 500, type: "text" }
         ]
       }
     ]

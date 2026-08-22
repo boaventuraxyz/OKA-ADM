@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
+import { MessageCircle } from "lucide-react";
 
 import {
   CampaignCaptureProvider,
@@ -7,15 +8,18 @@ import {
 } from "@/components/CampaignCaptureModal";
 import { CampaignHeadline } from "@/components/CampaignHeadline";
 import { CampaignRichText } from "@/components/CampaignRichText";
-import { CampaignShareButtons } from "@/components/CampaignShareButtons";
+import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import {
-  campaignAllowsSharing,
   parseCampaignLegalFooter,
   parseCandidateNumber,
 } from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
+import {
+  legacyCampaignVideoCarousel,
+  type CampaignVideoItem,
+} from "@/lib/campaign-video-carousel";
 
 type BandeiraCampaign = {
   assinaturasMeta: number | null;
@@ -51,6 +55,7 @@ type BandeiraCampaign = {
   tituloCitacao: string | null;
   tituloTopicos: string | null;
   tituloVideo: string | null;
+  videoCarousel: CampaignVideoItem[] | null;
   videoUrl: string | null;
 };
 
@@ -98,13 +103,25 @@ export function CampaignBandeiraTheme({
   const heroLead = heroSupport ? heroBlocks.slice(0, -1) : heroBlocks;
   const campaignFlags = flags(campanha.textoTopicos);
   const benefits = lines(campanha.textoConclusao);
-  const allowSharing = campaignAllowsSharing(campanha.settings);
-  const shareText =
-    campanha.textoCompartilhar?.trim() || `Eu apoio ${candidateName}. Participe também:`;
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
   const heroPhoto = campanha.imagemLateralUrl || null;
-  const missionPhoto = campanha.imagemFundoUrl || null;
   const legal = parseCampaignLegalFooter(campanha.settings);
+  const videos = campanha.videoCarousel ?? legacyCampaignVideoCarousel({
+    caption: campanha.tituloVideo,
+    url: campanha.videoUrl,
+  });
+  const supportTitle =
+    campanha.tituloTopicos?.trim() ||
+    campanha.tituloCitacao?.trim() ||
+    "Uma luta que precisa de todos nós.";
+  const supportBlocks = blocks(campanha.textoContexto || campanha.textoProposta);
+  const groupTitle =
+    campanha.textoImpacto?.trim() ||
+    "Se una a quem está lutando pelo futuro de São Paulo";
+  const groupSupport =
+    campanha.textoImpactoApoio?.trim() ||
+    campanha.textoAssinar?.trim() ||
+    "Ao se inscrever, você recebe acesso exclusivo à campanha.";
 
   const signatureForm = (
     <PublicSignatureForm
@@ -134,30 +151,35 @@ export function CampaignBandeiraTheme({
       }
     >
       <header className="bandeira-hero" id="inicio">
-        <nav aria-label="Navegação principal" className="bandeira-shell bandeira-nav">
-          <a className="bandeira-wordmark" href="#inicio">
-            {candidateName}
+        <div className="bandeira-topbar">
+          <a
+            aria-label={`${candidateName}${number ? ` ${number}` : ""}, início`}
+            className="bandeira-wordmark"
+            href="#inicio"
+          >
+            <span>{candidateName}</span>
             {number ? <b>{number}</b> : null}
           </a>
-          <CampaignCaptureTrigger className="bandeira-nav-cta">
-            {groupLabel}
-          </CampaignCaptureTrigger>
-        </nav>
+        </div>
 
-        <div className="bandeira-shell bandeira-hero-grid">
-          <div className="bandeira-hero-copy">
-            {campanha.textoFaixa ? (
-              <span className="bandeira-eyebrow">{campanha.textoFaixa}</span>
-            ) : null}
+        <div className={`bandeira-hero-stage ${heroPhoto ? "has-media" : "without-media"}`}>
+          {heroPhoto ? (
+            <Image
+              alt={`Banner da campanha de ${candidateName}`}
+              className="bandeira-hero-media"
+              fill
+              priority={!preview}
+              sizes="100vw"
+              src={heroPhoto}
+              unoptimized
+            />
+          ) : null}
+          <div aria-hidden="true" className="bandeira-hero-overlay" />
+          <div className="bandeira-shell bandeira-hero-copy">
+            <span className="bandeira-eyebrow">Movimento oficial</span>
             <h1>
               <CampaignHeadline highlights={campanha.titleHighlights} text={title} />
             </h1>
-            {office || number ? (
-              <div className="bandeira-lockup">
-                {office ? <span>{office}</span> : null}
-                {number ? <strong>{number}</strong> : null}
-              </div>
-            ) : null}
             {heroLead.map((block, index) => (
               <CampaignRichText
                 className="bandeira-hero-text"
@@ -168,87 +190,43 @@ export function CampaignBandeiraTheme({
             {heroSupport ? (
               <CampaignRichText className="bandeira-hero-support" text={heroSupport} />
             ) : null}
-            <CampaignCaptureTrigger>{groupLabel}</CampaignCaptureTrigger>
+            <CampaignCaptureTrigger>
+              <MessageCircle aria-hidden="true" size={20} />
+              {groupLabel}
+            </CampaignCaptureTrigger>
           </div>
-
-          {heroPhoto ? (
-            <div className="bandeira-hero-visual">
-              <figure className="bandeira-hero-frame">
-                <Image
-                  alt={`Foto de ${candidateName}`}
-                  fill
-                  priority={!preview}
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                  src={heroPhoto}
-                  unoptimized
-                />
-              </figure>
-            </div>
-          ) : null}
         </div>
-        <div aria-hidden="true" className="bandeira-stripe" />
       </header>
 
-      {campanha.tituloTopicos || campanha.textoContexto ? (
-        <section className="bandeira-statement">
-          <div className="bandeira-shell bandeira-statement-grid">
-            <div>
-              <span className="bandeira-index">01 · Minha decisão</span>
-              {campanha.tituloTopicos ? <h2>{campanha.tituloTopicos}</h2> : null}
-            </div>
-            <div className="bandeira-statement-copy">
-              {blocks(campanha.textoContexto).map((block, index) => (
+      {supportTitle || supportBlocks.length > 0 || videos.length > 0 ? (
+        <section className="bandeira-support">
+          <div aria-hidden="true" className="bandeira-support-glow" />
+          <div className="bandeira-shell bandeira-support-grid">
+            <div className="bandeira-support-copy">
+              <span className="bandeira-index light">Apoio</span>
+              <h2>{supportTitle}</h2>
+              {supportBlocks.map((block, index) => (
                 <CampaignRichText
                   className="bandeira-paragraph"
                   key={`${index}-${block.slice(0, 20)}`}
                   text={block}
                 />
               ))}
+              <CampaignCaptureTrigger>
+                <MessageCircle aria-hidden="true" size={20} />
+                {groupLabel}
+              </CampaignCaptureTrigger>
             </div>
-          </div>
-        </section>
-      ) : null}
-
-      {campanha.tituloCitacao || campanha.textoProposta || campanha.textoCitacao ? (
-        <section className="bandeira-mission">
-          {missionPhoto ? (
-            <figure className="bandeira-mission-image">
-              <Image
-                alt={`${candidateName} em campanha`}
-                fill
-                sizes="(max-width: 900px) 100vw, 50vw"
-                src={missionPhoto}
-                unoptimized
-              />
-            </figure>
-          ) : null}
-          <div className="bandeira-mission-copy">
-            <span className="bandeira-index light">02 · Minha missão</span>
-            {campanha.tituloCitacao ? <h2>{campanha.tituloCitacao}</h2> : null}
-            {blocks(campanha.textoProposta).map((block, index) => (
-              <CampaignRichText
-                className="bandeira-paragraph"
-                key={`${index}-${block.slice(0, 20)}`}
-                text={block}
-              />
-            ))}
-            {campanha.textoCitacao ? (
-              <blockquote className="bandeira-quote">{campanha.textoCitacao}</blockquote>
+            {videos.length > 0 ? (
+              <div className="bandeira-support-video">
+                <CampaignVideoCarousel
+                  autoPlay
+                  candidateName={candidateName}
+                  className="bandeira-video-carousel"
+                  videos={videos}
+                />
+              </div>
             ) : null}
-          </div>
-        </section>
-      ) : null}
-
-      {campanha.videoUrl ? (
-        <section className="bandeira-video">
-          <div className="bandeira-shell">
-            <div className="bandeira-heading">
-              <span className="bandeira-index">03 · Assista</span>
-              {campanha.tituloVideo ? <h2>{campanha.tituloVideo}</h2> : null}
-            </div>
-            <div className="bandeira-video-frame">
-              <video controls playsInline preload="metadata" src={campanha.videoUrl} />
-            </div>
           </div>
         </section>
       ) : null}
@@ -257,13 +235,13 @@ export function CampaignBandeiraTheme({
         <section className="bandeira-flags" id="bandeiras">
           <div className="bandeira-shell">
             <div className="bandeira-flags-heading">
-              <div>
-                <span className="bandeira-index light">04 · Bandeiras</span>
+              <div className="bandeira-flags-heading-copy">
+                <span className="bandeira-index light">Bandeiras</span>
                 {campanha.tituloAssinar ? <h2>{campanha.tituloAssinar}</h2> : null}
+                {campanha.textoTopicosIntro ? (
+                  <p>{campanha.textoTopicosIntro}</p>
+                ) : null}
               </div>
-              {campanha.textoTopicosIntro ? (
-                <p>{campanha.textoTopicosIntro}</p>
-              ) : null}
             </div>
             <div className="bandeira-flags-list">
               {campaignFlags.map((flag, index) => (
@@ -278,6 +256,10 @@ export function CampaignBandeiraTheme({
                 </article>
               ))}
             </div>
+            <CampaignCaptureTrigger className="bandeira-section-cta">
+              <MessageCircle aria-hidden="true" size={20} />
+              {groupLabel}
+            </CampaignCaptureTrigger>
           </div>
         </section>
       ) : null}
@@ -285,13 +267,9 @@ export function CampaignBandeiraTheme({
       <section className="bandeira-group" id="assinar">
         <div className="bandeira-shell bandeira-group-grid">
           <div className="bandeira-group-intro">
-            <span className="bandeira-index">05 · Grupo oficial</span>
-            <h2>{campanha.textoForm || "Eu preciso de você nessa caminhada."}</h2>
-            {campanha.textoAssinar ? (
-              <CampaignRichText className="bandeira-paragraph" text={campanha.textoAssinar} />
-            ) : null}
-            <CampaignCaptureTrigger>{groupLabel}</CampaignCaptureTrigger>
-            {allowSharing ? <CampaignShareButtons shareText={shareText} /> : null}
+            <span className="bandeira-index">Grupo oficial</span>
+            <h2>{groupTitle}</h2>
+            <p>{groupSupport}</p>
           </div>
           {benefits.length > 0 ? (
             <div className="bandeira-benefits">
@@ -303,18 +281,10 @@ export function CampaignBandeiraTheme({
               ))}
             </div>
           ) : null}
-        </div>
-      </section>
-
-      <section className="bandeira-final">
-        <div className="bandeira-shell bandeira-final-inner">
-          <h2>{campanha.textoImpacto || title}</h2>
-          {campanha.textoImpactoApoio ? <p>{campanha.textoImpactoApoio}</p> : null}
-          <CampaignCaptureTrigger>{groupLabel}</CampaignCaptureTrigger>
-          <strong className="bandeira-final-number">
-            {candidateName}
-            {number ? ` · ${number}` : ""}
-          </strong>
+          <CampaignCaptureTrigger className="bandeira-section-cta">
+            <MessageCircle aria-hidden="true" size={20} />
+            {groupLabel}
+          </CampaignCaptureTrigger>
         </div>
       </section>
 
@@ -348,6 +318,11 @@ export function CampaignBandeiraTheme({
         </div>
         <PoliticasRodape candidateName={campanha.candidato?.nome} />
       </footer>
+
+      <CampaignCaptureTrigger className="bandeira-fab">
+        <MessageCircle aria-hidden="true" size={25} />
+        <span>{groupLabel}</span>
+      </CampaignCaptureTrigger>
     </main>
     </CampaignCaptureProvider>
   );

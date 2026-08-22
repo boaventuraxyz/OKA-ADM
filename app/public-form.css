@@ -4179,3 +4179,630 @@ select.form-input {
 .campaign-capture-modal .capture-back {
   min-height: 56px;
 }
+
+/* ===========================================================================
+   Tema 8 · Bandeira — composição inspirada na campanha de referência
+   ========================================================================== */
+
+.campaign-theme-8 {
+  --bnd-reference-green: #1fae55;
+  --bnd-reference-green-light: #3ed17e;
+  --bnd-reference-gold: #f2c438;
+  --bnd-reference-forest: #03150c;
+  --bnd-reference-navy: #0b1626;
+  --bnd-reference-ink: #14263b;
+  background: #fff;
+  color: var(--bnd-reference-ink);
+  font-family: "Sora", "Inter", sans-serif;
+}
+
+.campaign-theme-8 h1,
+.campaign-theme-8 h2,
+.campaign-theme-8 .bandeira-wordmark,
+.campaign-theme-8 .bandeira-footer-brand strong {
+  font-family: "Sora", "Inter", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  text-transform: none;
+}
+
+.campaign-theme-8 .campaign-capture-trigger {
+  min-height: 60px;
+  gap: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--bnd-reference-green-light), var(--bnd-reference-green));
+  box-shadow: 0 20px 40px -18px rgba(31, 174, 85, 0.95);
+  padding-inline: 30px;
+  font-size: 0.84rem;
+  letter-spacing: 0.045em;
+}
+
+.campaign-theme-8 .campaign-capture-trigger:hover {
+  box-shadow: 0 24px 48px -18px rgba(31, 174, 85, 1);
+}
+
+.campaign-theme-8 .bandeira-hero {
+  min-height: auto;
+  background: var(--bnd-reference-forest);
+  color: #fff;
+}
+
+.campaign-theme-8 .bandeira-hero::before {
+  content: none;
+}
+
+.bandeira-topbar {
+  height: 72px;
+  position: relative;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(242, 196, 56, 0.14), transparent 28%),
+    linear-gradient(90deg, #14390f, #004328 58%, #00351f);
+}
+
+.campaign-theme-8 .bandeira-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #fff;
+  font-size: 0.84rem;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.campaign-theme-8 .bandeira-wordmark span {
+  max-width: 92px;
+  text-align: center;
+}
+
+.campaign-theme-8 .bandeira-wordmark b {
+  padding: 0;
+  background: transparent;
+  color: var(--bnd-reference-gold);
+  font-family: "Sora", "Inter", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.bandeira-hero-stage {
+  min-height: min(820px, calc(100svh - 72px));
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 15%, rgba(31, 174, 85, 0.35), transparent 60%),
+    linear-gradient(#0f3d22, #0c1210);
+}
+
+.bandeira-hero-stage.without-media {
+  min-height: 680px;
+}
+
+.bandeira-hero-media {
+  z-index: -2;
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.bandeira-hero-overlay {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 14, 7, 0.08) 0%, rgba(2, 15, 8, 0.38) 44%, rgba(1, 12, 6, 0.96) 100%),
+    linear-gradient(90deg, rgba(13, 89, 38, 0.28), rgba(1, 35, 19, 0.08), rgba(4, 71, 31, 0.3));
+}
+
+.campaign-theme-8 .bandeira-hero-copy {
+  width: min(100%, 820px);
+  max-width: 820px;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin-inline: auto;
+  padding-block: clamp(260px, 42vh, 390px) 64px;
+  text-align: center;
+}
+
+.campaign-theme-8 .bandeira-eyebrow,
+.campaign-theme-8 .bandeira-index {
+  position: relative;
+  padding-left: 27px;
+  color: var(--bnd-reference-gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.campaign-theme-8 .bandeira-eyebrow::before,
+.campaign-theme-8 .bandeira-index::before {
+  width: 18px;
+  height: 1px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  background: currentColor;
+  content: "";
+}
+
+.campaign-theme-8 .bandeira-hero-copy h1 {
+  margin: 18px 0 13px;
+  color: #fff;
+  font-size: clamp(2.5rem, 5vw, 4.7rem);
+  line-height: 1;
+}
+
+.campaign-theme-8 .bandeira-hero-text {
+  max-width: 650px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.campaign-theme-8 .bandeira-hero-support {
+  max-width: 610px;
+  margin: 22px 0 30px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.79rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  line-height: 1.55;
+  text-transform: uppercase;
+}
+
+.bandeira-support {
+  min-height: 720px;
+  position: relative;
+  overflow: hidden;
+  padding: 96px 0;
+  background:
+    radial-gradient(circle at 72% 15%, rgba(31, 174, 85, 0.2), transparent 46%),
+    linear-gradient(145deg, #06170e, #020b07 68%);
+  color: #fff;
+}
+
+.bandeira-support-glow {
+  width: 520px;
+  height: 520px;
+  position: absolute;
+  top: -170px;
+  right: -130px;
+  border-radius: 50%;
+  background: rgba(31, 174, 85, 0.12);
+  filter: blur(60px);
+}
+
+.bandeira-support-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.72fr);
+  align-items: center;
+  gap: clamp(50px, 8vw, 110px);
+}
+
+.bandeira-support-copy {
+  max-width: 650px;
+}
+
+.campaign-theme-8 .bandeira-support-copy h2 {
+  margin: 22px 0 28px;
+  color: #fff;
+  font-size: clamp(2.5rem, 4.8vw, 4.8rem);
+  line-height: 1.02;
+}
+
+.campaign-theme-8 .bandeira-support-copy .bandeira-paragraph {
+  margin: 0 0 18px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1.02rem;
+  line-height: 1.78;
+}
+
+.campaign-theme-8 .bandeira-support-copy .campaign-capture-trigger {
+  margin-top: 14px;
+}
+
+.bandeira-support-video {
+  width: min(100%, 390px);
+  justify-self: end;
+}
+
+.bandeira-support-video .campaign-theme4-video-carousel {
+  gap: 14px;
+}
+
+.bandeira-support-video .campaign-theme4-video-panel {
+  overflow: hidden;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  background: #050806;
+  box-shadow: 0 34px 80px rgba(0, 0, 0, 0.42);
+}
+
+.bandeira-support-video .campaign-theme4-video-panel video {
+  width: 100%;
+  max-height: 570px;
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
+  background: #000;
+  object-fit: cover;
+}
+
+.bandeira-support-video .campaign-theme4-video-arrows {
+  right: 10px;
+  left: 10px;
+}
+
+.bandeira-support-video .campaign-theme4-video-arrows button {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(2, 12, 7, 0.76);
+}
+
+.bandeira-support-video .campaign-theme4-video-arrows button:hover {
+  border-color: var(--bnd-reference-green-light);
+  background: var(--bnd-reference-green);
+}
+
+.bandeira-support-video .campaign-theme4-video-meta {
+  gap: 18px;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: "Sora", "Inter", sans-serif;
+  font-size: 0.68rem;
+}
+
+.bandeira-support-video .campaign-theme4-video-meta b,
+.bandeira-support-video .campaign-theme4-video-pagination button span {
+  color: var(--bnd-reference-green-light);
+}
+
+.bandeira-support-video .campaign-theme4-video-pagination {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.bandeira-support-video .campaign-theme4-video-pagination button {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.64);
+  font-family: "Sora", "Inter", sans-serif;
+}
+
+.bandeira-support-video .campaign-theme4-video-pagination button[aria-pressed="true"] {
+  border-color: var(--bnd-reference-green-light);
+  color: #fff;
+  box-shadow: inset 0 -2px 0 var(--bnd-reference-green-light);
+}
+
+.campaign-theme-8 .bandeira-flags {
+  padding: 104px 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(31, 174, 85, 0.14), transparent 44%),
+    linear-gradient(180deg, var(--bnd-reference-navy), #060d16);
+  color: #fff;
+}
+
+.campaign-theme-8 .bandeira-flags-heading {
+  display: block;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.bandeira-flags-heading-copy {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.campaign-theme-8 .bandeira-flags-heading h2 {
+  margin: 17px 0 14px;
+  color: #fff;
+  font-size: clamp(2.7rem, 5.4vw, 5.2rem);
+  line-height: 1;
+}
+
+.campaign-theme-8 .bandeira-flags-heading p {
+  max-width: 620px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.campaign-theme-8 .bandeira-flags-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  border: 0;
+}
+
+.campaign-theme-8 .bandeira-flag {
+  min-height: 176px;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: start;
+  gap: 18px;
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
+}
+
+.campaign-theme-8 .bandeira-flag > span {
+  color: var(--bnd-reference-gold);
+  font-family: "Sora", "Inter", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.campaign-theme-8 .bandeira-flag h3 {
+  margin: 2px 0 9px;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.campaign-theme-8 .bandeira-flag-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.61);
+  font-size: 0.9rem;
+  line-height: 1.62;
+}
+
+.campaign-theme-8 .bandeira-section-cta {
+  width: fit-content;
+  margin: 38px auto 0;
+}
+
+.campaign-theme-8 .bandeira-group {
+  padding: 108px 0;
+  background: #fff;
+  color: var(--bnd-reference-ink);
+}
+
+.campaign-theme-8 .bandeira-group-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 38px;
+  text-align: center;
+}
+
+.campaign-theme-8 .bandeira-group-intro {
+  max-width: 850px;
+  margin-inline: auto;
+}
+
+.campaign-theme-8 .bandeira-group-intro h2 {
+  margin: 18px 0 18px;
+  font-size: clamp(2.5rem, 5.2vw, 5rem);
+  line-height: 1.04;
+}
+
+.campaign-theme-8 .bandeira-group-intro p {
+  max-width: 630px;
+  margin: 0 auto;
+  color: #6b7280;
+  font-size: 1.03rem;
+  line-height: 1.7;
+}
+
+.campaign-theme-8 .bandeira-benefits {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  border: 0;
+}
+
+.campaign-theme-8 .bandeira-benefit {
+  min-height: 148px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 22px;
+  border: 1px solid rgba(20, 38, 59, 0.12);
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.campaign-theme-8 .bandeira-benefit:hover {
+  border-color: rgba(31, 174, 85, 0.44);
+  box-shadow: 0 20px 44px -30px rgba(20, 38, 59, 0.45);
+  transform: translateY(-3px);
+}
+
+.campaign-theme-8 .bandeira-benefit span {
+  color: var(--bnd-reference-green);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.campaign-theme-8 .bandeira-benefit strong {
+  color: var(--bnd-reference-ink);
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.campaign-theme-8 .bandeira-footer {
+  padding: 58px 0 22px;
+  background: #050c15;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.campaign-theme-8 .bandeira-footer-grid {
+  padding-bottom: 36px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.campaign-theme-8 .bandeira-footer-brand strong,
+.campaign-theme-8 .bandeira-footer-grid > div > strong {
+  color: #fff;
+}
+
+.campaign-theme-8 .bandeira-footer-brand span {
+  color: var(--bnd-reference-gold);
+}
+
+.campaign-theme-8 .bandeira-fab {
+  width: 58px;
+  min-height: 58px;
+  height: 58px;
+  position: fixed;
+  z-index: 90;
+  right: 22px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 18px 38px -12px rgba(31, 174, 85, 0.9);
+}
+
+.campaign-theme-8 .bandeira-fab span {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .campaign-theme-8 .bandeira-hero-copy {
+    padding-block: clamp(250px, 41vh, 360px) 58px;
+  }
+
+  .bandeira-support {
+    padding-block: 82px;
+  }
+
+  .bandeira-support-grid {
+    grid-template-columns: 1fr;
+    gap: 52px;
+  }
+
+  .bandeira-support-copy {
+    max-width: 760px;
+  }
+
+  .bandeira-support-video {
+    width: min(100%, 430px);
+    justify-self: center;
+  }
+
+  .campaign-theme-8 .bandeira-flags-list {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-theme-8 .bandeira-benefits {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .bandeira-topbar {
+    height: 62px;
+  }
+
+  .campaign-theme-8 .bandeira-wordmark {
+    font-size: 0.73rem;
+  }
+
+  .campaign-theme-8 .bandeira-wordmark b {
+    font-size: 1.1rem;
+  }
+
+  .bandeira-hero-stage {
+    min-height: 680px;
+  }
+
+  .bandeira-hero-media {
+    object-position: center center;
+  }
+
+  .campaign-theme-8 .bandeira-hero-copy {
+    padding-block: 300px 44px;
+  }
+
+  .campaign-theme-8 .bandeira-hero-copy h1 {
+    margin-top: 15px;
+    font-size: clamp(2.15rem, 10vw, 3rem);
+  }
+
+  .campaign-theme-8 .bandeira-hero-text {
+    font-size: 0.96rem;
+  }
+
+  .campaign-theme-8 .bandeira-hero-support {
+    margin-block: 18px 24px;
+    font-size: 0.68rem;
+  }
+
+  .campaign-theme-8 .campaign-capture-trigger:not(.bandeira-fab) {
+    width: 100%;
+    min-height: 58px;
+    padding-inline: 18px;
+    font-size: 0.76rem;
+  }
+
+  .bandeira-support,
+  .campaign-theme-8 .bandeira-flags,
+  .campaign-theme-8 .bandeira-group {
+    padding-block: 72px;
+  }
+
+  .campaign-theme-8 .bandeira-support-copy h2,
+  .campaign-theme-8 .bandeira-flags-heading h2,
+  .campaign-theme-8 .bandeira-group-intro h2 {
+    font-size: 2.65rem;
+  }
+
+  .campaign-theme-8 .bandeira-support-copy .bandeira-paragraph {
+    font-size: 0.96rem;
+  }
+
+  .bandeira-support-video {
+    width: min(100%, 360px);
+  }
+
+  .bandeira-support-video .campaign-theme4-video-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .campaign-theme-8 .bandeira-flag {
+    min-height: 0;
+    grid-template-columns: 46px 1fr;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .campaign-theme-8 .bandeira-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-theme-8 .bandeira-benefit {
+    min-height: 112px;
+  }
+
+  .campaign-theme-8 .bandeira-fab {
+    width: 54px;
+    min-height: 54px;
+    height: 54px;
+    right: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}

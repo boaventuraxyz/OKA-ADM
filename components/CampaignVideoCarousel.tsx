@@ -6,10 +6,14 @@ import { useState } from "react";
 import type { CampaignVideoItem } from "@/lib/campaign-video-carousel";
 
 export function CampaignVideoCarousel({
+  autoPlay = false,
   candidateName,
+  className = "",
   videos,
 }: {
+  autoPlay?: boolean;
   candidateName: string;
+  className?: string;
   videos: readonly CampaignVideoItem[];
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -26,10 +30,19 @@ export function CampaignVideoCarousel({
   }
 
   return (
-    <div className="campaign-theme4-video-carousel">
+    <div className={`campaign-theme4-video-carousel ${className}`}>
       <figure className="campaign-theme4-video-panel">
         <div className="campaign-theme4-video-viewport">
-          <video key={activeVideo.url} controls playsInline preload="metadata" src={activeVideo.url}>
+          <video
+            autoPlay={autoPlay}
+            controls
+            key={activeVideo.url}
+            loop={autoPlay}
+            muted={autoPlay}
+            playsInline
+            preload="metadata"
+            src={activeVideo.url}
+          >
             Seu navegador não suporta a exibição deste vídeo.
           </video>
           {videos.length > 1 ? (

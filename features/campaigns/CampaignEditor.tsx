@@ -1254,7 +1254,7 @@ function ContentPanel({
                   value={settings.candidateNumber}
                 />
               ) : null}
-              {theme.key === "impact-dark" && section.id === "video" ? (
+              {(theme.key === "impact-dark" || theme.key === "bandeira") && section.id === "video" ? (
                 <div className={styles.fullWidthField}>
                   <CampaignVideoCarouselField
                     inputId={controlId(prefix, "video_carousel")}
@@ -1267,7 +1267,7 @@ function ContentPanel({
                 </div>
               ) : null}
               {section.fields.filter((field) => (
-                theme.key !== "impact-dark" ||
+                (theme.key !== "impact-dark" && theme.key !== "bandeira") ||
                 (field.key !== "video_url" && field.key !== "legenda_video")
               )).map((field) => (
                 <Fragment key={field.key}>

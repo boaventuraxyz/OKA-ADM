@@ -27,30 +27,34 @@ describe("tema 8 · Bandeira", () => {
     expect(bandeira.capabilities.signatureModal).toBe(true);
     expect(bandeira.capabilities.video).toBe(true);
     expect(bandeira.capabilities.sideImage).toBe(true);
+    expect(bandeira.capabilities.backgroundImage).toBe(false);
+    expect(bandeira.capabilities.sharing).toBe(false);
     expect(bandeira.headline.field).toBe("titulo");
   });
 
   it("só cadastra campos que a página realmente usa", () => {
     const keys = themeContentKeys("bandeira");
     const required: CampaignThemeContentKey[] = [
-      "texto_faixa",
       "descricao",
       "imagem_lateral",
+      "titulo_topicos",
       "texto_contexto",
-      "texto_proposta",
-      "texto_citacao",
-      "imagem_fundo",
       "video_url",
+      "legenda_video",
+      "titulo_assinar",
+      "texto_topicos_intro",
       "texto_topicos",
       "texto_conclusao",
       "texto_impacto",
+      "texto_impacto_apoio",
     ];
     for (const key of required) {
       expect(keys.has(key)).toBe(true);
     }
-    // A página não tem seção de nota de citação nem legenda de vídeo.
+    // O novo layout não usa a antiga seção de missão nem notas auxiliares.
     expect(keys.has("nota_citacao")).toBe(false);
-    expect(keys.has("legenda_video")).toBe(false);
+    expect(keys.has("texto_proposta")).toBe(false);
+    expect(keys.has("imagem_fundo")).toBe(false);
   });
 
   it("renderiza as seções da página", () => {
@@ -58,11 +62,10 @@ describe("tema 8 · Bandeira", () => {
 
     expect(container.querySelector(".campaign-theme-8")).toBeInTheDocument();
     expect(container.querySelector(".bandeira-hero")).toBeInTheDocument();
-    expect(container.querySelector(".bandeira-statement")).toBeInTheDocument();
-    expect(container.querySelector(".bandeira-mission")).toBeInTheDocument();
+    expect(container.querySelector(".bandeira-support")).toBeInTheDocument();
     expect(container.querySelector(".bandeira-flags")).toBeInTheDocument();
     expect(container.querySelector(".bandeira-group")).toBeInTheDocument();
-    expect(container.querySelector(".bandeira-final")).toBeInTheDocument();
+    expect(container.querySelector(".bandeira-final")).not.toBeInTheDocument();
   });
 
   it("numera as bandeiras e usa a primeira linha como título", () => {
@@ -91,8 +94,8 @@ describe("tema 8 · Bandeira", () => {
       settings: { allow_sharing: true, candidate_number: "22110", require_consent: true },
     });
 
-    expect(container.querySelector(".bandeira-lockup strong")).toHaveTextContent("22110");
     expect(container.querySelector(".bandeira-wordmark b")).toHaveTextContent("22110");
+    expect(container.querySelector(".bandeira-footer-brand")).toHaveTextContent("22110");
   });
 
   it("omite o número quando não foi informado", () => {
@@ -101,19 +104,27 @@ describe("tema 8 · Bandeira", () => {
     });
 
     expect(container.querySelector(".bandeira-wordmark b")).toBeNull();
-    expect(container.querySelector(".bandeira-lockup strong")).toBeNull();
   });
 
-  it("esconde a seção de vídeo quando não há URL", () => {
-    const { container } = renderBandeira({ videoUrl: null });
-    expect(container.querySelector(".bandeira-video")).toBeNull();
+  it("esconde o player quando não há vídeos", () => {
+    const { container } = renderBandeira({ videoCarousel: null, videoUrl: null });
+    expect(container.querySelector(".bandeira-support-video")).toBeNull();
   });
 
-  it("respeita o ajuste de compartilhamento", () => {
-    const desligado = renderBandeira({
-      settings: { allow_sharing: false, require_consent: true },
+  it("renderiza o carrossel e seus controles quando há vários vídeos", () => {
+    const { container } = renderBandeira({
+      videoCarousel: [
+        { caption: "Primeiro ato", url: "https://cdn.example.com/ato-1.mp4" },
+        { caption: "Segundo ato", url: "https://cdn.example.com/ato-2.mp4" },
+      ],
     });
-    expect(desligado.container.querySelector(".campaign-theme3-share")).toBeNull();
+
+    expect(container.querySelector(".bandeira-support-video video")).toHaveAttribute(
+      "src",
+      "https://cdn.example.com/ato-1.mp4",
+    );
+    expect(container.querySelectorAll(".campaign-theme4-video-arrows button")).toHaveLength(2);
+    expect(container.querySelectorAll(".campaign-theme4-video-pagination button")).toHaveLength(2);
   });
 });
 
