@@ -68,6 +68,7 @@ import {
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
 import {
+  normalizeCandidateNumber,
   parseCampaignLegalFooter,
   parseCandidateNumber,
   type CampaignLegalFooter,
@@ -1930,7 +1931,7 @@ export function CampaignEditor({
     markDirty();
     setSettings((current) => ({
       ...current,
-      candidateNumber: candidateNumber.replace(/D/g, "").slice(0, 8)
+      candidateNumber: normalizeCandidateNumber(candidateNumber)
     }));
   }
 

@@ -22,10 +22,12 @@ type CampaignMutationAction = (
 ) => Promise<ActionResult<CampaignMutationResult>>;
 
 export function CampaignRowActions({
+  canManage,
   id,
   slug,
   status,
 }: {
+  canManage: boolean;
   id: string;
   slug: string | null;
   status: CampaignStatus;
@@ -80,7 +82,7 @@ export function CampaignRowActions({
         <Copy aria-hidden="true" size={15} />
         {pending === "duplicate" ? "Duplicando…" : "Duplicar"}
       </Button>
-      {status === "draft" ? (
+      {canManage && status === "draft" ? (
         <Button
           disabled={pending !== null}
           onClick={() => void run("publish", publishCampaignAction)}
@@ -91,7 +93,7 @@ export function CampaignRowActions({
           {pending === "publish" ? "Publicando…" : "Publicar"}
         </Button>
       ) : null}
-      {status === "published" ? (
+      {canManage && status === "published" ? (
         <Button
           disabled={pending !== null}
           onClick={() => void run("unpublish", unpublishCampaignAction)}
@@ -102,7 +104,7 @@ export function CampaignRowActions({
           {pending === "unpublish" ? "Despublicando…" : "Despublicar"}
         </Button>
       ) : null}
-      {status !== "archived" ? (
+      {canManage && status !== "archived" ? (
         <Button
           disabled={pending !== null}
           onClick={() => void run("archive", archiveCampaignAction)}

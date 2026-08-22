@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import { requireActiveProfile, requireRole } from "@/features/auth/guards";
 import { THEME_REGISTRY, themeContentFields, themeContentKeys, type CampaignThemeContentKey } from "@/features/themes/registry";
+import { paginationFor } from "@/lib/pagination";
 import type { Json } from "@/lib/supabase/database.types";
 import { createServerClient } from "@/lib/supabase/server";
 
@@ -172,17 +173,27 @@ export async function listCampaigns(input: unknown = {}): Promise<CampaignPage> 
   const context = await requireActiveProfile();
   const params = campaignListQuerySchema.parse(input);
   const client = await createTypedSessionClient();
-  const result = await listCampaignRows(
+  let result = await listCampaignRows(
     client,
     params,
     context.profile.role === "master" || context.profile.role === "admin",
   );
+  let pagination = paginationFor(result.total, params.page, params.pageSize);
+
+  if (pagination.page !== params.page) {
+    result = await listCampaignRows(
+      client,
+      { ...params, page: pagination.page },
+      context.profile.role === "master" || context.profile.role === "admin",
+    );
+    pagination = paginationFor(result.total, pagination.page, params.pageSize);
+  }
 
   return {
     ...result,
-    page: params.page,
-    pageSize: params.pageSize,
-    pageCount: Math.ceil(result.total / params.pageSize),
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    pageCount: pagination.pageCount,
   };
 }
 

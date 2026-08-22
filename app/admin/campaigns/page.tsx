@@ -1,6 +1,7 @@
 import { Bot, Plus, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -15,6 +16,7 @@ import {
   type CampaignStatus,
 } from "@/features/campaigns/domain";
 import { listCampaigns } from "@/features/campaigns/service";
+import { campaignListQuerySchema } from "@/features/campaigns/schemas";
 import { THEME_REGISTRY, getThemeByKey } from "@/features/themes/registry";
 import { requireAdmin } from "@/lib/auth";
 import styles from "@/features/campaigns/campaign-admin.module.css";
@@ -55,9 +57,9 @@ export default async function AdminCampaignsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  await requireAdmin();
+  const context = await requireAdmin();
   const params = await searchParams;
-  const query = {
+  const queryResult = campaignListQuerySchema.safeParse({
     page: value(params, "page"),
     pageSize: 20,
     search: value(params, "search") || undefined,
@@ -66,11 +68,14 @@ export default async function AdminCampaignsPage({
     candidateId: value(params, "candidateId") || undefined,
     sortBy: value(params, "sortBy") || undefined,
     sortDirection: value(params, "sortDirection") || undefined,
-  };
+  });
+  if (!queryResult.success) redirect("/admin/campaigns");
+  const query = queryResult.data;
   const [result, candidates] = await Promise.all([
     listCampaigns(query),
     listCandidateOptions()
   ]);
+  const canManage = context.profile.role === "master" || context.profile.role === "admin";
   const currentQuery = {
     search: query.search,
     status: query.status,
@@ -79,6 +84,9 @@ export default async function AdminCampaignsPage({
     sortBy: query.sortBy,
     sortDirection: query.sortDirection,
   };
+  if (result.page !== query.page) {
+    redirect(pageHref(currentQuery, result.page));
+  }
 
   return (
     <div className={styles.page}>
@@ -207,6 +215,7 @@ export default async function AdminCampaignsPage({
                       </td>
                       <td>
                         <CampaignRowActions
+                          canManage={canManage}
                           id={campaign.id}
                           slug={campaign.slug}
                           status={campaign.status}

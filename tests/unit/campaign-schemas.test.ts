@@ -87,6 +87,13 @@ describe("schemas de campanhas", () => {
         .success,
     ).toBe(true);
   });
+
+  it("aceita todos os temas registrados e rejeita IDs desconhecidos", () => {
+    expect(
+      campaignEditSchema.safeParse({ tema: 8, theme_key: "bandeira" }).success,
+    ).toBe(true);
+    expect(campaignEditSchema.safeParse({ tema: 999 }).success).toBe(false);
+  });
 });
 
 describe("slug de campanhas", () => {

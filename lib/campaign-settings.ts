@@ -15,6 +15,10 @@ export function campaignAllowsSharing(settings: unknown) {
   return typeof value === "boolean" ? value : true;
 }
 
+export function normalizeCandidateNumber(value: string) {
+  return value.replace(/\D/g, "").slice(0, 8);
+}
+
 /**
  * Número do candidato (ex.: "2211"). Fica em `settings` em vez de coluna
  * própria, no mesmo padrão de `title_highlights` e `video_carousel`, porque só
@@ -23,7 +27,7 @@ export function campaignAllowsSharing(settings: unknown) {
 export function parseCandidateNumber(settings: unknown) {
   const value = record(settings)?.candidate_number;
   if (typeof value !== "string") return null;
-  const digits = value.replace(/\D/g, "").slice(0, 8);
+  const digits = normalizeCandidateNumber(value);
   return digits || null;
 }
 

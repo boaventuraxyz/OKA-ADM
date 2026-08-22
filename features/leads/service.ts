@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { requireRole } from "@/features/auth/guards";
+import { paginationFor } from "@/lib/pagination";
 import { createServerClient } from "@/lib/supabase/server";
 
 import { groupLeadRecords } from "./grouping";
@@ -121,14 +122,12 @@ export async function listLeads(input: unknown = {}): Promise<LeadPage> {
   const client = (await createServerClient()) as unknown as LeadDatabaseClient;
   const result = await listLeadRows(client, parsed);
   const grouped = groupLeadRecords(result.items);
-  const offset = (parsed.page - 1) * parsed.pageSize;
+  const pagination = paginationFor(grouped.length, parsed.page, parsed.pageSize);
+  const offset = (pagination.page - 1) * pagination.pageSize;
 
   return {
-    items: grouped.slice(offset, offset + parsed.pageSize),
-    page: parsed.page,
-    pageSize: parsed.pageSize,
-    total: grouped.length,
-    pageCount: Math.ceil(grouped.length / parsed.pageSize),
+    items: grouped.slice(offset, offset + pagination.pageSize),
+    ...pagination,
   };
 }
 
@@ -138,16 +137,30 @@ export async function listLeadCampaignOptions(
   await requireRole(LEAD_ROLES);
   const parsed = leadCampaignOptionsQuerySchema.parse(input);
   const client = (await createServerClient()) as unknown as LeadDatabaseClient;
-  const result = await listLeadCampaignOptionRows(
+  let result = await listLeadCampaignOptionRows(
     client,
     parsed.page,
     parsed.pageSize,
   );
+  let pagination = paginationFor(result.total, parsed.page, parsed.pageSize);
+
+  if (pagination.page !== parsed.page) {
+    result = await listLeadCampaignOptionRows(
+      client,
+      pagination.page,
+      parsed.pageSize,
+    );
+    pagination = paginationFor(
+      result.total,
+      pagination.page,
+      parsed.pageSize,
+    );
+  }
 
   return {
     ...result,
-    page: parsed.page,
-    pageSize: parsed.pageSize,
-    pageCount: Math.ceil(result.total / parsed.pageSize),
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    pageCount: pagination.pageCount,
   };
 }

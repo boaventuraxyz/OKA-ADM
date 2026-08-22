@@ -373,7 +373,7 @@ export async function deleteCampanhaAction(formData: FormData) {
 }
 
 export async function deleteAssinaturaAction(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["master", "admin"]);
   const id = requiredUuid(formData);
   const assinatura = await getAssinatura(id);
   if (!assinatura || !isUuid(assinatura.campanha_id)) return;

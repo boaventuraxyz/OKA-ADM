@@ -10,6 +10,24 @@ import { createContext, useContext, useRef } from "react";
  */
 const CaptureContext = createContext<(() => void) | null>(null);
 
+function openDialog(dialog: HTMLDialogElement | null) {
+  if (!dialog || dialog.open) return;
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+    return;
+  }
+  dialog.setAttribute("open", "");
+}
+
+function closeDialog(dialog: HTMLDialogElement | null) {
+  if (!dialog) return;
+  if (typeof dialog.close === "function") {
+    dialog.close();
+    return;
+  }
+  dialog.removeAttribute("open");
+}
+
 export function CampaignCaptureProvider({
   children,
   form,
@@ -22,14 +40,15 @@ export function CampaignCaptureProvider({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   function closeOnBackdrop(event: MouseEvent<HTMLDialogElement>) {
-    if (event.target === event.currentTarget) event.currentTarget.close();
+    if (event.target === event.currentTarget) closeDialog(event.currentTarget);
   }
 
   return (
-    <CaptureContext.Provider value={() => dialogRef.current?.showModal()}>
+    <CaptureContext.Provider value={() => openDialog(dialogRef.current)}>
       {children}
 
       <dialog
+        aria-modal="true"
         aria-labelledby="campaign-capture-modal-title"
         className="campaign-capture-modal"
         onClick={closeOnBackdrop}
@@ -41,7 +60,7 @@ export function CampaignCaptureProvider({
             <button
               aria-label="Fechar formulário"
               className="campaign-capture-close"
-              onClick={() => dialogRef.current?.close()}
+              onClick={() => closeDialog(dialogRef.current)}
               type="button"
             >
               ×

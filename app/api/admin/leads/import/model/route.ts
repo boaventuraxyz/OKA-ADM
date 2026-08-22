@@ -1,4 +1,8 @@
-import { requireRole } from "@/features/auth/guards";
+import {
+  AuthenticationRequiredError,
+  AuthorizationRequiredError,
+  requireRole,
+} from "@/features/auth/guards";
 import { leadImportModelCsv } from "@/features/leads/import";
 import { apiError } from "@/lib/api/response";
 
@@ -15,7 +19,21 @@ export async function GET() {
         "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch {
-    return apiError("AUTHENTICATION_REQUIRED", "Sessão inválida.", 401);
+  } catch (error) {
+    if (error instanceof AuthenticationRequiredError) {
+      return apiError("AUTHENTICATION_REQUIRED", "Sessão expirada.", 401);
+    }
+    if (error instanceof AuthorizationRequiredError) {
+      return apiError(
+        "AUTHORIZATION_REQUIRED",
+        "Usuário sem permissão para importar leads.",
+        403,
+      );
+    }
+    return apiError(
+      "AUTH_SERVICE_UNAVAILABLE",
+      "Não foi possível validar a sessão.",
+      503,
+    );
   }
 }

@@ -8,6 +8,7 @@ import {
   type CampaignThemeContentKey,
 } from "@/features/themes/registry";
 import { createThemePreviewCampaign } from "@/features/themes/theme-preview-data";
+import { normalizeCandidateNumber } from "@/lib/campaign-settings";
 
 const bandeira = getThemeByKey("bandeira")!;
 
@@ -22,6 +23,11 @@ function renderBandeira(content: Parameters<typeof createThemePreviewCampaign>[0
 }
 
 describe("tema 8 · Bandeira", () => {
+  it("mantém somente os dígitos do número do candidato", () => {
+    expect(normalizeCandidateNumber("22D11 abc 09")).toBe("221109");
+    expect(normalizeCandidateNumber("1234567890")).toBe("12345678");
+  });
+
   it("está registrado como tema 8 com captação e vídeo", () => {
     expect(bandeira.id).toBe(8);
     expect(bandeira.capabilities.signatureModal).toBe(true);

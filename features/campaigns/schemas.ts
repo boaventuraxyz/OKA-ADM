@@ -10,6 +10,13 @@ const THEME_KEYS = THEME_REGISTRY.map((theme) => theme.key) as [
   ...(typeof THEME_REGISTRY)[number]["key"][],
 ];
 
+const themeIdSchema = z.coerce
+  .number()
+  .int()
+  .refine((id) => THEME_REGISTRY.some((theme) => theme.id === id), {
+    message: "Tema inválido.",
+  });
+
 export type JsonInput =
   | string
   | number
@@ -162,7 +169,7 @@ const campaignEditableShape = {
     .optional(),
   imagem_fundo: optionalImageData,
   imagem_lateral: optionalImageData,
-  tema: z.coerce.number().int().min(1).max(7).optional(),
+  tema: themeIdSchema.optional(),
   theme_key: z.enum(THEME_KEYS).optional(),
   texto_contexto: optionalLongText(8_000),
   texto_proposta: optionalLongText(4_000),

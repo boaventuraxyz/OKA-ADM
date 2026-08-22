@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireActiveProfile } from "@/features/auth/guards";
 import { candidatePublicSlug } from "@/lib/candidate-slug";
+import { paginationFor, positiveInteger } from "@/lib/pagination";
 import { listCandidatos } from "@/lib/supabase";
 import { createServerClient } from "@/lib/supabase/server";
 import type { Candidato } from "@/lib/types";
@@ -20,14 +21,14 @@ export type CandidateOption = {
 
 export async function listCandidates(page = 1, pageSize = 20) {
   await requireActiveProfile();
-  const safePage = Math.max(1, Math.trunc(page));
-  const safePageSize = Math.min(50, Math.max(1, Math.trunc(pageSize)));
+  const safePage = positiveInteger(page, 1);
+  const safePageSize = positiveInteger(pageSize, 20, 50);
   const candidates = (await listCandidatos()).sort((left, right) =>
     (left.nome ?? "").localeCompare(right.nome ?? "", "pt-BR")
   );
   const total = candidates.length;
-  const pageCount = Math.ceil(total / safePageSize);
-  const currentPage = pageCount > 0 ? Math.min(safePage, pageCount) : 1;
+  const pagination = paginationFor(total, safePage, safePageSize);
+  const currentPage = pagination.page;
   const from = (currentPage - 1) * safePageSize;
   const items: CandidateListItem[] = candidates
     .slice(from, from + safePageSize)
@@ -40,9 +41,9 @@ export async function listCandidates(page = 1, pageSize = 20) {
   return {
     items,
     page: currentPage,
-    pageSize: safePageSize,
-    total,
-    pageCount,
+    pageSize: pagination.pageSize,
+    total: pagination.total,
+    pageCount: pagination.pageCount,
   };
 }
 

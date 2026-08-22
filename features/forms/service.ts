@@ -1,6 +1,7 @@
 import "server-only";
 
 import { requireActiveProfile } from "@/features/auth/guards";
+import { paginationFor, positiveInteger } from "@/lib/pagination";
 import type { Json } from "@/lib/supabase/database.types";
 import { createServerClient } from "@/lib/supabase/server";
 
@@ -22,23 +23,41 @@ function configuredFieldCount(config: Json) {
 
 export async function listCampaignForms(page = 1, pageSize = 24) {
   await requireActiveProfile();
-  const safePage = Math.max(1, Math.trunc(page));
-  const safePageSize = Math.min(50, Math.max(1, Math.trunc(pageSize)));
-  const from = (safePage - 1) * safePageSize;
+  const safePage = positiveInteger(page, 1);
+  const safePageSize = positiveInteger(pageSize, 24, 50);
   const supabase = await createServerClient();
-  const { data, error, count } = await supabase
-    .from("campanhas")
-    .select("id, titulo, slug, status, form_config, updated_at", {
-      count: "exact",
-    })
-    .order("updated_at", { ascending: false })
-    .range(from, from + safePageSize - 1);
 
-  if (error) {
-    throw new Error("Não foi possível carregar os formulários.", { cause: error });
+  function fetchPage(currentPage: number) {
+    const from = (currentPage - 1) * safePageSize;
+    return supabase
+      .from("campanhas")
+      .select("id, titulo, slug, status, form_config, updated_at", {
+        count: "exact",
+      })
+      .order("updated_at", { ascending: false })
+      .range(from, from + safePageSize - 1);
   }
 
-  const items: CampaignFormSummary[] = (data ?? []).map((row) => ({
+  let result = await fetchPage(safePage);
+
+  if (result.error) {
+    throw new Error("Não foi possível carregar os formulários.", { cause: result.error });
+  }
+
+  let pagination = paginationFor(result.count ?? 0, safePage, safePageSize);
+  if (pagination.page !== safePage) {
+    result = await fetchPage(pagination.page);
+    if (result.error) {
+      throw new Error("Não foi possível carregar os formulários.", { cause: result.error });
+    }
+    pagination = paginationFor(
+      result.count ?? 0,
+      pagination.page,
+      safePageSize,
+    );
+  }
+
+  const items: CampaignFormSummary[] = (result.data ?? []).map((row) => ({
     id: row.id,
     title: row.titulo,
     slug: row.slug,
@@ -50,9 +69,6 @@ export async function listCampaignForms(page = 1, pageSize = 24) {
 
   return {
     items,
-    page: safePage,
-    pageSize: safePageSize,
-    total: count ?? 0,
-    pageCount: Math.ceil((count ?? 0) / safePageSize),
+    ...pagination,
   };
 }
