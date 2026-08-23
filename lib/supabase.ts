@@ -355,11 +355,28 @@ export async function getAssinatura(id: string) {
 }
 
 export async function createAssinatura(payload: Partial<Assinatura>) {
-  await supabaseFetch<Assinatura[]>("/assinaturas", {
+  const rows = await supabaseFetch<Assinatura[]>("/assinaturas", {
     method: "POST",
     body: JSON.stringify(payload),
     preferRepresentation: true
   });
+  return rows[0] ?? null;
+}
+
+export async function updateAssinatura(
+  id: string,
+  campanhaId: string,
+  payload: Partial<Assinatura>,
+) {
+  const rows = await supabaseFetch<Assinatura[]>(
+    `/assinaturas?id=eq.${qs(id)}&campanha_id=eq.${qs(campanhaId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      preferRepresentation: true,
+    },
+  );
+  return rows[0] ?? null;
 }
 
 export async function deleteAssinatura(id: string) {

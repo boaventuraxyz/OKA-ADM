@@ -17,70 +17,78 @@ const capture = {
     title: "Cadastro confirmado!",
   },
   steps: [
-    {
-      fields: ["nome", "telefone"],
-      label: "Seus dados",
-      note: "Ao continuar, seu nome fica registrado.",
-      submitLabel: "Continuar",
-      subtitle: "Leva 10 segundos.",
-      title: "Preencha e entre para o movimento",
-    },
-    {
-      fields: ["estado"],
-      label: "Seu estado",
-      note: "",
-      submitLabel: "Entrar no grupo",
-      subtitle: "É assim que a campanha se organiza por região.",
-      title: "Qual o seu estado?",
-    },
+    { fields: ["nome", "telefone"], label: "Dados", note: "", submitLabel: "Avançar", subtitle: "", title: "Dados" },
+    { fields: ["estado"], label: "Estado", note: "", submitLabel: "Entrar", subtitle: "", title: "Estado" },
   ],
 };
 
-describe("configuração do modo captação", () => {
-  it("permanece desligado quando form_config não declara capture", () => {
+describe("configuração progressiva compartilhada", () => {
+  it("padroniza campanhas configuradas sem perder os rótulos existentes", () => {
     const configuration = normalizePublicFormConfiguration({ fields }, {});
-    expect(configuration.capture).toBeNull();
-    expect(configuration.fields).toHaveLength(3);
+
+    expect(configuration.capture?.steps[0].fields).toEqual(["nome", "telefone", "email"]);
+    expect(configuration.capture?.steps[1].fields).toEqual([
+      "cep",
+      "bairro",
+      "cidade",
+      "estado",
+    ]);
+    expect(configuration.collectAddress).toBe(true);
+    expect(configuration.fields.map((field) => field.key)).toEqual([
+      "nome",
+      "telefone",
+      "email",
+      "cep",
+      "bairro",
+      "cidade",
+      "estado",
+    ]);
+    expect(configuration.fields.find((field) => field.key === "estado")?.label).toBe("Seu estado");
   });
 
-  it("permanece desligado no formulário legado", () => {
-    expect(normalizePublicFormConfiguration(null, {}).capture).toBeNull();
-  });
+  it("ativa o mesmo fluxo para formulários legados", () => {
+    const configuration = normalizePublicFormConfiguration(null, {});
 
-  it("lê as etapas declaradas", () => {
-    const configuration = normalizePublicFormConfiguration({ capture, fields }, {});
     expect(configuration.capture?.steps).toHaveLength(2);
-    expect(configuration.capture?.steps[0].fields).toEqual(["nome", "telefone"]);
-    expect(configuration.capture?.steps[1].submitLabel).toBe("Entrar no grupo");
+    expect(configuration.legacy).toBe(true);
+    expect(configuration.collectAddress).toBe(true);
+  });
+
+  it("preserva consentimento e confirmação personalizados", () => {
+    const configuration = normalizePublicFormConfiguration({ capture, fields }, {});
+
     expect(configuration.capture?.consentText).toContain("Autorizo");
     expect(configuration.capture?.done.title).toBe("Cadastro confirmado!");
+    expect(configuration.capture?.done.buttonLabel).toBe("Fazer parte do grupo");
+    expect(configuration.capture?.steps[1].label).toBe("Endereço");
+    expect(configuration.capture?.steps[1].submitLabel).toBe("Finalizar");
   });
 
-  it("descarta capture sem nenhuma etapa aproveitável", () => {
-    expect(
-      normalizePublicFormConfiguration({ capture: { steps: [] }, fields }, {}).capture,
-    ).toBeNull();
-    expect(
-      normalizePublicFormConfiguration({ capture: { steps: [{ title: "" }] }, fields }, {}).capture,
-    ).toBeNull();
+  it("usa textos seguros quando a configuração antiga de etapas é inválida", () => {
+    const configuration = normalizePublicFormConfiguration(
+      { capture: { steps: [{ title: "" }] }, fields },
+      {},
+    );
+
+    expect(configuration.capture?.steps[0].title).toBe("Conte um pouco sobre você");
+    expect(configuration.capture?.done.title).toBe("Cadastro concluído!");
   });
 
-  it("preenche rótulos padrão e ignora chaves de campo inválidas", () => {
+  it("leva campos específicos da campanha para a etapa de endereço", () => {
     const configuration = normalizePublicFormConfiguration(
       {
-        capture: { steps: [{ title: "Etapa", fields: ["nome", "NOME INVALIDO", "9x"] }] },
-        fields,
+        fields: [
+          ...fields,
+          { id: "occupation", key: "profissao", label: "Profissão", options: [], placeholder: "", required: false, type: "text" },
+        ],
       },
       {},
     );
-    const step = configuration.capture?.steps[0];
-    expect(step?.fields).toEqual(["nome"]);
-    expect(step?.submitLabel).toBe("Continuar");
-    expect(configuration.capture?.done.title).toBe("Cadastro confirmado!");
+
+    expect(configuration.capture?.steps[1].fields).toContain("profissao");
   });
 
-  it("mantém o consentimento obrigatório mesmo com capture ligado", () => {
-    const configuration = normalizePublicFormConfiguration({ capture, fields }, {});
-    expect(configuration.requireConsent).toBe(true);
+  it("mantém o consentimento obrigatório", () => {
+    expect(normalizePublicFormConfiguration({ fields }, {}).requireConsent).toBe(true);
   });
 });

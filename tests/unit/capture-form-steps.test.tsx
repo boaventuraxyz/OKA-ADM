@@ -1,161 +1,206 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 
-const fields = [
-  { id: "name", key: "nome", label: "Nome", options: [], placeholder: "Como você quer ser chamado", required: true, type: "text" },
-  { id: "phone", key: "telefone", label: "WhatsApp", options: [], placeholder: "(11) 9 9999-9999", required: true, type: "phone" },
-  { id: "state", key: "estado", label: "Seu estado", options: [], placeholder: "", required: true, type: "state" },
-];
+const campaignId = "00000000-0000-4000-8000-000000000000";
+const leadId = "10000000-0000-4000-8000-000000000000";
+const leadToken = "a".repeat(43);
 
-const capture = {
-  consentText: "Autorizo a campanha e o partido a me enviarem avisos por WhatsApp.",
-  done: {
-    buttonLabel: "Fazer parte do grupo",
-    label: "Pronto",
-    message: "Estamos te levando para o grupo oficial.",
-    title: "Cadastro confirmado!",
-  },
-  steps: [
-    {
-      fields: ["nome", "telefone"],
-      label: "Seus dados",
-      note: "Você conclui o cadastro na próxima etapa.",
-      submitLabel: "Continuar",
-      subtitle: "Leva 10 segundos.",
-      title: "Preencha e entre para o movimento",
-    },
-    {
-      fields: ["estado"],
-      label: "Seu estado",
-      note: "",
-      submitLabel: "Entrar no grupo",
-      subtitle: "É assim que a campanha se organiza por região.",
-      title: "Qual o seu estado?",
-    },
-  ],
-};
+function apiResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    headers: { "Content-Type": "application/json" },
+    status,
+  });
+}
+
+function contactSuccess() {
+  return apiResponse({ leadId, leadToken, sucesso: true });
+}
 
 function renderCapture() {
   return render(
     <PublicSignatureForm
-      campanhaId="00000000-0000-4000-8000-000000000000"
-      formConfig={{ capture, fields, version: 1 }}
+      campanhaId={campaignId}
+      formConfig={{}}
       meta={5000}
-      settings={{ allow_sharing: true, collect_address: false, require_consent: true }}
-      textoDot="Entre no grupo"
+      settings={{}}
+      textoDot="Participe"
       textoForm="Movimento"
       totalAssinaturas={10}
     />
   );
 }
 
-describe("formulário em etapas (modo captação)", () => {
-  it("abre na etapa 1 mostrando só os campos dela", () => {
+function fillContact() {
+  fireEvent.change(screen.getByLabelText("Nome completo"), {
+    target: { value: "Julio Boaventura" },
+  });
+  fireEvent.change(screen.getByLabelText("WhatsApp"), {
+    target: { value: "11987838530" },
+  });
+  fireEvent.change(screen.getByLabelText("E-mail"), {
+    target: { value: "julio@example.com" },
+  });
+}
+
+async function advanceToAddress(fetchMock: ReturnType<typeof vi.fn>) {
+  fetchMock.mockResolvedValueOnce(contactSuccess());
+  fillContact();
+  fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+  await screen.findByText("Etapa 2 de 2 · Endereço");
+}
+
+describe("formulário progressivo compartilhado", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("abre mostrando apenas nome, WhatsApp e e-mail", () => {
     renderCapture();
 
-    expect(screen.getByText("Etapa 1 de 3 · Seus dados")).toBeInTheDocument();
-    expect(screen.getByText("Preencha e entre para o movimento")).toBeInTheDocument();
-    expect(screen.getByLabelText("Nome")).toBeInTheDocument();
+    expect(screen.getByText("Etapa 1 de 2 · Seus dados")).toBeInTheDocument();
+    expect(screen.getByText("Conte um pouco sobre você")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome completo")).toBeInTheDocument();
     expect(screen.getByLabelText("WhatsApp")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Seu estado")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
+    expect(screen.queryByLabelText("CEP")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument();
   });
 
-  it("não mostra contador de assinaturas nem meta", () => {
-    const { container } = renderCapture();
-    expect(container.querySelector(".live-count-display")).toBeNull();
-    expect(container.querySelector(".progress-bar-track")).toBeNull();
-    expect(container.querySelector(".capture-progress")?.children).toHaveLength(3);
-  });
-
-  it("barra a passagem de etapa enquanto os campos não valem", () => {
+  it("não chama a API com telefone ou e-mail inválido", () => {
     renderCapture();
+    fireEvent.change(screen.getByLabelText("Nome completo"), {
+      target: { value: "Julio Boaventura" },
+    });
+    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11111111111" } });
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "email-invalido" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
 
-    expect(screen.getByText("Preencha e entre para o movimento")).toBeInTheDocument();
-    expect(screen.getByLabelText("Nome")).toHaveAttribute("aria-invalid", "true");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("WhatsApp")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("E-mail")).toHaveAttribute("aria-invalid", "true");
   });
 
-  it("avança para a etapa 2 e volta para a 1 preservando o preenchimento", () => {
+  it("não avança quando a captura inicial falha", async () => {
+    fetchMock.mockResolvedValueOnce(
+      apiResponse({ erro: "Não foi possível salvar agora.", sucesso: false }, 502),
+    );
     renderCapture();
+    fillContact();
 
-    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Julio Boaventura" } });
-    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11987838530" } });
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
 
-    expect(screen.getByText("Etapa 2 de 3 · Seu estado")).toBeInTheDocument();
-    expect(screen.getByText("Qual o seu estado?")).toBeInTheDocument();
-    expect(screen.getByLabelText("Seu estado")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Nome")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Entrar no grupo" })).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível salvar agora.");
+    expect(screen.getByText("Etapa 1 de 2 · Seus dados")).toBeInTheDocument();
+  });
+
+  it("salva a etapa 1 antes de mostrar o endereço e mantém o lead em abandono", async () => {
+    renderCapture();
+    await advanceToAddress(fetchMock);
+
+    expect(screen.getByLabelText("CEP")).toBeInTheDocument();
+    expect(screen.getByLabelText("Endereço")).toBeInTheDocument();
+    expect(screen.getByLabelText("Bairro")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const contactData = fetchMock.mock.calls[0][1]?.body as FormData;
+    expect(contactData.get("submission_phase")).toBe("contact");
+    expect(contactData.get("campanha_id")).toBe(campaignId);
+    expect(contactData.get("email_assinante")).toBe("julio@example.com");
+  });
+
+  it("impede clique duplo enquanto salva a etapa 1", async () => {
+    let resolveRequest: ((response: Response) => void) | undefined;
+    fetchMock.mockImplementationOnce(
+      () => new Promise<Response>((resolve) => { resolveRequest = resolve; }),
+    );
+    renderCapture();
+    fillContact();
+    const button = screen.getByRole("button", { name: "Continuar" });
+
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Salvando..." })).toBeDisabled();
+    resolveRequest?.(contactSuccess());
+    await screen.findByText("Etapa 2 de 2 · Endereço");
+  });
+
+  it("volta para editar sem criar outro lead", async () => {
+    renderCapture();
+    await advanceToAddress(fetchMock);
 
     fireEvent.click(screen.getByRole("button", { name: "‹ Voltar" }));
-
-    expect(screen.getByLabelText("Nome")).toHaveValue("Julio Boaventura");
-  });
-
-  it("mostra o consentimento da campanha somente na última etapa", () => {
-    renderCapture();
-
-    expect(screen.queryByText(capture.consentText)).not.toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Julio Boaventura" } });
-    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11987838530" } });
+    expect(screen.getByLabelText("Nome completo")).toHaveValue("Julio Boaventura");
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
 
-    expect(screen.getByText(capture.consentText)).toBeInTheDocument();
+    expect(await screen.findByText("Etapa 2 de 2 · Endereço")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
-});
 
-describe("formulário de abaixo-assinado (sem captação)", () => {
-  it("mantém contador, consentimento padrão e botão de assinar", () => {
-    const { container } = render(
-      <PublicSignatureForm
-        campanhaId="00000000-0000-4000-8000-000000000000"
-        formConfig={{ fields, version: 1 }}
-        meta={5000}
-        settings={{ allow_sharing: true, collect_address: false, require_consent: true }}
-        textoDot="Assine agora"
-        textoForm="Abaixo-assinado"
-        totalAssinaturas={10}
-      />
-    );
-
-    expect(container.querySelector(".live-count-display")).toBeInTheDocument();
-    expect(container.querySelector(".capture-progress")).toBeNull();
-    expect(screen.getByRole("button", { name: "Assinar agora" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Seu estado")).toBeInTheDocument();
-    expect(screen.getByText(/Declaro meu apoio a esta iniciativa/)).toBeInTheDocument();
-  });
-});
-
-describe("campo de estado", () => {
-  it("é uma lista de estados, não campo de duas letras", () => {
+  it("preenche o endereço pelo CEP e atualiza exatamente o lead criado", async () => {
+    fetchMock
+      .mockResolvedValueOnce(contactSuccess())
+      .mockResolvedValueOnce(
+        apiResponse({
+          success: true,
+          data: {
+            city: "São Paulo",
+            neighborhood: "Sé",
+            state: "SP",
+            street: "Praça da Sé",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(apiResponse({ redirectUrl: null, sucesso: true }));
     renderCapture();
-
-    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Julio Boaventura" } });
-    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11987838530" } });
+    fillContact();
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    await screen.findByText("Etapa 2 de 2 · Endereço");
 
-    const estado = screen.getByLabelText("Seu estado");
-    expect(estado.tagName).toBe("SELECT");
-    // 27 estados mais a opção vazia.
+    fireEvent.change(screen.getByLabelText("CEP"), { target: { value: "01001000" } });
+    await waitFor(() => expect(screen.getByLabelText("Endereço")).toHaveValue("Praça da Sé"));
+    expect(screen.getByLabelText("Bairro")).toHaveValue("Sé");
+    expect(screen.getByLabelText("Cidade")).toHaveValue("São Paulo");
+    expect(screen.getByLabelText("UF")).toHaveValue("SP");
+    fireEvent.change(screen.getByLabelText("Número"), { target: { value: "10" } });
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Finalizar" }));
+
+    await screen.findByText("Cadastro concluído!");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const completedData = fetchMock.mock.calls[2][1]?.body as FormData;
+    expect(completedData.get("submission_phase")).toBe("complete");
+    expect(completedData.get("lead_id")).toBe(leadId);
+    expect(completedData.get("lead_token")).toBe(leadToken);
+    expect(completedData.get("responses")).toContain('"bairro":"Sé"');
+  });
+
+  it("mantém o consentimento apenas na etapa final", async () => {
+    renderCapture();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+
+    await advanceToAddress(fetchMock);
+
+    expect(screen.getByRole("checkbox")).toBeRequired();
+  });
+
+  it("oferece todos os estados brasileiros e grava a sigla", async () => {
+    renderCapture();
+    await advanceToAddress(fetchMock);
+
+    const estado = screen.getByLabelText("UF");
     expect(estado.querySelectorAll("option")).toHaveLength(28);
-    expect(screen.getByRole("option", { name: "São Paulo" })).toHaveValue("SP");
-    expect(screen.getByRole("option", { name: "Minas Gerais" })).toHaveValue("MG");
-  });
-
-  it("grava a sigla, que é o formato aceito pela coluna", () => {
-    renderCapture();
-
-    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Julio Boaventura" } });
-    fireEvent.change(screen.getByLabelText("WhatsApp"), { target: { value: "11987838530" } });
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
-
-    const estado = screen.getByLabelText("Seu estado");
     fireEvent.change(estado, { target: { value: "SP" } });
     expect(estado).toHaveValue("SP");
   });

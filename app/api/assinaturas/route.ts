@@ -12,6 +12,10 @@ import {
   normalizeRequestHostname
 } from "@/lib/candidate-domain";
 import { normalizeCampaignWhatsappUrl } from "@/lib/campaign-redirect";
+import {
+  createProgressiveLeadToken,
+  verifyProgressiveLeadToken,
+} from "@/lib/progressive-lead-token";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   isSameOrigin,
@@ -22,7 +26,8 @@ import {
   createAssinatura,
   getCampanhaSubmissionConfig,
   getCandidato,
-  SupabaseRequestError
+  SupabaseRequestError,
+  updateAssinatura,
 } from "@/lib/supabase";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { formText, isUuid, singleLine } from "@/lib/validation";
@@ -127,16 +132,6 @@ export async function POST(request: Request) {
     return jsonError("INVALID_REQUEST", "Formato ou tamanho de requisicao invalido.", 413);
   }
 
-  const rateLimit = consumeRateLimit("assinatura", request.headers, {
-    limit: 10,
-    windowMs: 60 * 1000
-  });
-  if (!rateLimit.allowed) {
-    return jsonError("RATE_LIMITED", "Muitas tentativas. Aguarde um minuto.", 429, {
-      "Retry-After": String(rateLimit.retryAfterSeconds)
-    });
-  }
-
   const formData = await readFormDataWithinLimit(request, MAX_BODY_BYTES);
   if (!formData) {
     return jsonError("INVALID_FORM_DATA", "Dados do formulario invalidos.", 400);
@@ -191,29 +186,62 @@ export async function POST(request: Request) {
     16
   );
   const numero = numeroTexto ? Number(numeroTexto) : null;
+  const submissionPhase = singleLine(
+    formText(formData, "submission_phase"),
+    16,
+  ) || "legacy";
+  const progressiveContact = submissionPhase === "contact";
+  const progressiveCompletion = submissionPhase === "complete";
+  const leadId = singleLine(formText(formData, "lead_id"), 36);
+  const leadToken = singleLine(formText(formData, "lead_token"), 96) || "";
+  const rateLimitBucket = progressiveContact
+    ? "assinatura:contact"
+    : progressiveCompletion
+      ? "assinatura:complete"
+      : "assinatura:legacy";
+  const rateLimit = consumeRateLimit(rateLimitBucket, request.headers, {
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return jsonError("RATE_LIMITED", "Muitas tentativas. Aguarde um minuto.", 429, {
+      "Retry-After": String(rateLimit.retryAfterSeconds),
+    });
+  }
 
-  if (!campanhaId || !isUuid(campanhaId) || consentimento !== "sim") {
+  if (
+    !campanhaId ||
+    !isUuid(campanhaId) ||
+    !["contact", "complete", "legacy"].includes(submissionPhase) ||
+    (!progressiveContact && consentimento !== "sim") ||
+    (progressiveCompletion &&
+      (!leadId ||
+        !isUuid(leadId) ||
+        !verifyProgressiveLeadToken(leadToken, leadId, campanhaId)))
+  ) {
     return jsonError("VALIDATION_ERROR", "Confira os dados informados.", 400);
   }
 
-  // Só roda quando TURNSTILE_SECRET_KEY existe; sem a chave devolve "disabled".
-  const turnstile = await verifyTurnstileToken(
-    singleLine(formText(formData, "cf-turnstile-response", "Turnstile"), 2048),
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
-  );
-  if (turnstile === "invalid") {
-    return jsonError(
-      "TURNSTILE_FAILED",
-      "Nao foi possivel confirmar a verificacao de seguranca. Recarregue a pagina.",
-      400,
+  if (!progressiveCompletion) {
+    // O token é consumido na captura inicial; a conclusão usa o token assinado do lead.
+    const turnstile = await verifyTurnstileToken(
+      singleLine(formText(formData, "cf-turnstile-response", "Turnstile"), 2048),
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
     );
-  }
-  if (turnstile === "unavailable") {
-    return jsonError(
-      "TURNSTILE_UNAVAILABLE",
-      "A verificacao de seguranca esta indisponivel. Tente novamente em instantes.",
-      503,
-    );
+    if (turnstile === "invalid") {
+      return jsonError(
+        "TURNSTILE_FAILED",
+        "Nao foi possivel confirmar a verificacao de seguranca. Recarregue a pagina.",
+        400,
+      );
+    }
+    if (turnstile === "unavailable") {
+      return jsonError(
+        "TURNSTILE_UNAVAILABLE",
+        "A verificacao de seguranca esta indisponivel. Tente novamente em instantes.",
+        503,
+      );
+    }
   }
 
   const campanha = await getCampanhaSubmissionConfig(campanhaId);
@@ -251,13 +279,75 @@ export async function POST(request: Request) {
     campanha.settings
   );
   const fields = resolveStandardFormFields(configuration);
-  const responses = parseConfiguredResponses(
-    formText(formData, "responses"),
-    fields.custom
-  );
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const cepPattern = /^\d{5}-?\d{3}$/;
   const statePattern = /^[A-Z]{2}$/;
+  const validContact =
+    validConfiguredValue(
+      fields.name,
+      nome,
+      (value) => value.length >= 5 && value.trim().split(/\s+/).length >= 2,
+    ) &&
+    validConfiguredValue(fields.phone, telefone, validPhone) &&
+    validConfiguredValue(fields.email, email, (value) => emailPattern.test(value));
+
+  if (!validContact) {
+    return jsonError("VALIDATION_ERROR", "Confira os dados informados.", 400);
+  }
+
+  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const realIp = request.headers.get("x-real-ip");
+  const contactPayload = {
+    campanha_id: campanhaId,
+    nome_assinante: fields.name ? nome || null : null,
+    numero_assinante: fields.phone ? telefone?.replace(/\D/g, "") || null : null,
+    email_assinante: fields.email ? email || null : null,
+  };
+
+  if (progressiveContact) {
+    try {
+      const created = await createAssinatura({
+        ...contactPayload,
+        ip_origem: (forwardedFor || realIp || null)?.slice(0, 64) || null,
+        assinado_em: new Date().toISOString(),
+        consented_at: null,
+        metadata: {
+          form_version: configuration.legacy ? 0 : 1,
+          legacy_form: configuration.legacy,
+          progressive_capture: true,
+          status: "contact_captured",
+        },
+        responses: {},
+        source: "public_form",
+        user_agent: singleLine(request.headers.get("user-agent") || "", 512) || null,
+      });
+      if (!created) throw new Error("Lead sem representacao retornada.");
+
+      return jsonSuccess({
+        leadId: created.id,
+        leadToken: createProgressiveLeadToken(created.id, campanhaId),
+        phase: "contact_captured",
+      });
+    } catch (error) {
+      if (error instanceof SupabaseRequestError && error.status === 409) {
+        return jsonError(
+          "DUPLICATE_SIGNATURE",
+          "Este contato ja foi registrado nesta campanha.",
+          409,
+        );
+      }
+      return jsonError(
+        "SUBMISSION_FAILED",
+        "Nao foi possivel salvar seus dados agora. Tente novamente.",
+        502,
+      );
+    }
+  }
+
+  const responses = parseConfiguredResponses(
+    formText(formData, "responses"),
+    fields.custom,
+  );
   const validAddress =
     !configuration.collectAddress ||
     (Boolean(endereco && endereco.length >= 3) &&
@@ -271,13 +361,6 @@ export async function POST(request: Request) {
 
   if (
     responses === null ||
-    !validConfiguredValue(
-      fields.name,
-      nome,
-      (value) => value.length >= 5 && value.trim().split(/\s+/).length >= 2
-    ) ||
-    !validConfiguredValue(fields.phone, telefone, validPhone) ||
-    !validConfiguredValue(fields.email, email, (value) => emailPattern.test(value)) ||
     !validConfiguredValue(fields.cep, cep, (value) => cepPattern.test(value)) ||
     !validConfiguredValue(fields.city, cidade, (value) => value.length >= 2) ||
     !validConfiguredValue(fields.state, estado, (value) => statePattern.test(value)) ||
@@ -287,35 +370,46 @@ export async function POST(request: Request) {
   }
 
   const redirectUrl = normalizeCampaignWhatsappUrl(campanha.url_formulario);
-
-  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const realIp = request.headers.get("x-real-ip");
+  const completedAt = new Date().toISOString();
+  const completedPayload = {
+    ...contactPayload,
+    endereco_assinante: configuration.collectAddress ? endereco || null : null,
+    n_assinante: configuration.collectAddress ? numero : null,
+    complemento_assinante: configuration.collectAddress ? complemento : null,
+    cidade_assinante:
+      fields.city || configuration.collectAddress ? cidade || null : null,
+    cep_assinante: fields.cep || configuration.collectAddress ? cep || null : null,
+    estado_assinante:
+      fields.state || configuration.collectAddress ? estado || null : null,
+    consented_at: completedAt,
+    metadata: {
+      form_version: configuration.legacy ? 0 : 1,
+      legacy_form: configuration.legacy,
+      progressive_capture: progressiveCompletion,
+      status: "completed",
+    },
+    responses,
+  };
 
   try {
-    await createAssinatura({
-      campanha_id: campanhaId,
-      nome_assinante: fields.name ? nome || null : null,
-      numero_assinante: fields.phone ? telefone?.replace(/\D/g, "") || null : null,
-      email_assinante: fields.email ? email || null : null,
-      endereco_assinante: configuration.collectAddress ? endereco || null : null,
-      n_assinante: configuration.collectAddress ? numero : null,
-      complemento_assinante: configuration.collectAddress ? complemento : null,
-      cidade_assinante:
-        fields.city || configuration.collectAddress ? cidade || null : null,
-      cep_assinante: fields.cep || configuration.collectAddress ? cep || null : null,
-      estado_assinante:
-        fields.state || configuration.collectAddress ? estado || null : null,
-      ip_origem: (forwardedFor || realIp || null)?.slice(0, 64) || null,
-      assinado_em: new Date().toISOString(),
-      consented_at: new Date().toISOString(),
-      metadata: {
-        form_version: configuration.legacy ? 0 : 1,
-        legacy_form: configuration.legacy,
-      },
-      responses,
-      source: "public_form",
-      user_agent: singleLine(request.headers.get("user-agent") || "", 512) || null
-    });
+    if (progressiveCompletion && leadId) {
+      const updated = await updateAssinatura(leadId, campanhaId, completedPayload);
+      if (!updated) {
+        return jsonError(
+          "LEAD_NOT_FOUND",
+          "O cadastro inicial nao foi encontrado. Recarregue e tente novamente.",
+          409,
+        );
+      }
+    } else {
+      await createAssinatura({
+        ...completedPayload,
+        ip_origem: (forwardedFor || realIp || null)?.slice(0, 64) || null,
+        assinado_em: completedAt,
+        source: "public_form",
+        user_agent: singleLine(request.headers.get("user-agent") || "", 512) || null,
+      });
+    }
   } catch (error) {
     if (error instanceof SupabaseRequestError && error.status === 409) {
       return jsonError(

@@ -3217,13 +3217,125 @@ select.form-input {
 /* ==========================================================================
    Modo captação do formulário público
    Portado de lucas-pavanato-2211 (components/campaign-page.tsx + globals.css).
-   Só vale quando form_config.capture existe; o abaixo-assinado segue intacto.
+   Aplicado ao fluxo progressivo compartilhado por todas as campanhas públicas.
    ========================================================================== */
 
-.form-card-capture {
+.form-card.form-card-capture {
   --capture-green: #1ec65b;
   --capture-green-dark: #14a04a;
   --capture-navy: #07172b;
+  gap: 0;
+  border: 1px solid rgba(7, 23, 43, 0.1);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 70px rgba(2, 11, 23, 0.2);
+  color: #0a1727;
+  padding: clamp(22px, 4vw, 30px);
+}
+
+.form-card.form-card-capture .card-header {
+  text-align: left;
+}
+
+.form-card.form-card-capture .form-fields {
+  gap: 0;
+}
+
+.form-card.form-card-capture .signature-field,
+.form-card.form-card-capture .signature-address-group {
+  display: block;
+}
+
+.form-card.form-card-capture .signature-field {
+  margin-top: 13px;
+}
+
+.form-card.form-card-capture .signature-field,
+.form-card.form-card-capture .signature-address-group,
+.form-card.form-card-capture .signature-consent,
+.form-card.form-card-capture .btn-sign {
+  order: initial;
+}
+
+.form-card.form-card-capture .signature-field > label {
+  display: block;
+  margin-bottom: 7px;
+  color: #4d5662;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.form-card.form-card-capture .form-input {
+  min-height: 56px;
+  border: 2px solid #e1e4e8;
+  border-radius: 13px;
+  background: #fff;
+  color: var(--capture-navy);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.form-card.form-card-capture .form-input::placeholder {
+  color: #98a1ab;
+  font-weight: 500;
+}
+
+.form-card.form-card-capture .form-input:focus {
+  border-color: var(--capture-green-dark);
+  box-shadow: 0 0 0 4px rgba(30, 198, 91, 0.11);
+}
+
+.form-card.form-card-capture .form-input.error {
+  border-color: #c93346;
+}
+
+.form-card.form-card-capture .field-error {
+  margin-top: 6px;
+  color: #b7273a;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.form-card.form-card-capture .signature-consent {
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 15px;
+  border: 1px solid #dfe3e7;
+  border-radius: 14px;
+  background: #f8f9fa;
+  color: #5d6670;
+  cursor: pointer;
+  padding: 17px;
+  font-size: 0.83rem;
+  line-height: 1.52;
+}
+
+.form-card.form-card-capture .signature-consent input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  accent-color: var(--capture-green-dark);
+}
+
+.form-card.form-card-capture .btn-sign {
+  min-height: 56px;
+  margin-top: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #28d76a, #14aa4e);
+  box-shadow: 0 16px 32px -14px rgba(30, 198, 91, 0.85);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.form-card.form-card-capture .capture-actions .btn-sign {
+  margin-top: 0;
 }
 
 .capture-progress {
@@ -3255,7 +3367,7 @@ select.form-input {
   text-transform: uppercase;
 }
 
-.form-card-capture .card-title {
+.form-card.form-card-capture .card-title {
   color: var(--capture-navy);
   font-size: clamp(1.6rem, 4.6vw, 2.2rem);
   font-weight: 800;
@@ -3263,7 +3375,7 @@ select.form-input {
   line-height: 1.1;
 }
 
-.form-card-capture .card-desc {
+.form-card.form-card-capture .card-desc {
   margin-top: 8px;
   color: #69727d;
   font-size: 1rem;
@@ -3352,6 +3464,15 @@ select.form-input {
 }
 
 @media (max-width: 520px) {
+  .form-card.form-card-capture {
+    border-radius: 18px;
+    padding: 22px 18px;
+  }
+
+  .form-card.form-card-capture .endereco-row {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
   .capture-actions {
     grid-template-columns: 1fr;
   }
@@ -4174,6 +4295,10 @@ select.form-input {
 
 .campaign-capture-modal .capture-actions {
   margin-top: 14px;
+}
+
+.campaign-capture-modal .capture-actions .btn-sign {
+  margin-top: 0;
 }
 
 .campaign-capture-modal .capture-back {

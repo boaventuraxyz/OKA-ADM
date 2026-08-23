@@ -2,6 +2,7 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
 type ViaCepPayload = {
+  bairro?: unknown;
   erro?: boolean | string;
   localidade?: unknown;
   logradouro?: unknown;
@@ -49,6 +50,7 @@ export async function GET(
 
     return apiSuccess({
       city: safeText(payload.localidade, 100),
+      neighborhood: safeText(payload.bairro, 120),
       state: safeText(payload.uf, 2).toUpperCase(),
       street: safeText(payload.logradouro, 160)
     });

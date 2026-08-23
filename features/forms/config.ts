@@ -23,10 +23,9 @@ export type CampaignFormField = {
 };
 
 /**
- * Modo de captação: em vez do abaixo-assinado de etapa única com contador de
- * assinaturas, o formulário vira um passo a passo curto que termina levando a
- * pessoa para o grupo. Só liga quando `form_config.capture` existe, então as
- * campanhas já publicadas seguem exatamente como estão.
+ * Fluxo progressivo compartilhado por todas as campanhas. A configuração da
+ * campanha ainda personaliza consentimento e confirmação, mas os dois passos
+ * de coleta permanecem consistentes para não perder o contato antes do endereço.
  */
 export type CaptureFormStep = {
   /** Chaves dos campos exibidos nesta etapa. */
@@ -100,6 +99,15 @@ const legacyFields: CampaignFormField[] = [
     type: "cep",
   },
   {
+    id: "neighborhood",
+    key: "bairro",
+    label: "Bairro",
+    options: [],
+    placeholder: "Seu bairro",
+    required: true,
+    type: "text",
+  },
+  {
     id: "city",
     key: "cidade",
     label: "Cidade",
@@ -118,6 +126,18 @@ const legacyFields: CampaignFormField[] = [
     type: "state",
   },
 ];
+
+const defaultCapture: CaptureFormConfiguration = {
+  consentText:
+    "Declaro meu apoio a esta iniciativa e autorizo o uso dos meus dados exclusivamente para fins relacionados a esta campanha, conforme a legislação aplicável.",
+  done: {
+    buttonLabel: "Continuar",
+    label: "Pronto",
+    message: "Seus dados foram registrados com segurança.",
+    title: "Cadastro concluído!",
+  },
+  steps: [],
+};
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -215,26 +235,106 @@ function normalizeCapture(value: unknown): CaptureFormConfiguration | null {
   };
 }
 
+function isNameField(field: CampaignFormField) {
+  return (
+    field.type === "text" &&
+    (field.id === "name" || field.key === "nome" || field.key === "name")
+  );
+}
+
+function matchesStandardField(
+  candidate: CampaignFormField,
+  standard: CampaignFormField,
+) {
+  if (standard.id === "name") return isNameField(candidate);
+  if (standard.id === "neighborhood") return candidate.key === "bairro";
+  return candidate.type === standard.type;
+}
+
+function progressiveFields(configuredFields: CampaignFormField[]) {
+  const claimed = new Set<CampaignFormField>();
+  const standard = legacyFields.map((fallback) => {
+    const configured = configuredFields.find(
+      (field) => !claimed.has(field) && matchesStandardField(field, fallback),
+    );
+    if (!configured) return { ...fallback };
+    claimed.add(configured);
+    return {
+      ...configured,
+      options: fallback.type === "select" ? configured.options : [],
+      required: true,
+      type: fallback.type,
+    };
+  });
+
+  return [
+    ...standard,
+    ...configuredFields.filter((field) => !claimed.has(field)),
+  ];
+}
+
+function progressiveCapture(
+  configuredCapture: CaptureFormConfiguration | null,
+  fields: CampaignFormField[],
+): CaptureFormConfiguration {
+  const name = fields.find(isNameField);
+  const phone = fields.find((field) => field.type === "phone");
+  const email = fields.find((field) => field.type === "email");
+  const cep = fields.find((field) => field.type === "cep");
+  const neighborhood = fields.find((field) => field.key === "bairro");
+  const city = fields.find((field) => field.type === "city");
+  const state = fields.find((field) => field.type === "state");
+  const standard = new Set(
+    [name, phone, email, cep, neighborhood, city, state].filter(
+      (field): field is CampaignFormField => Boolean(field),
+    ),
+  );
+  const customKeys = fields
+    .filter((field) => !standard.has(field))
+    .map((field) => field.key);
+
+  return {
+    consentText: configuredCapture?.consentText || defaultCapture.consentText,
+    done: configuredCapture?.done || defaultCapture.done,
+    steps: [
+      {
+        fields: [name?.key, phone?.key, email?.key].filter(
+          (key): key is string => Boolean(key),
+        ),
+        label: "Seus dados",
+        note: "Ao continuar, seus dados de contato já ficam registrados com a campanha.",
+        submitLabel: "Continuar",
+        subtitle: "É rápido e seus dados ficam protegidos.",
+        title: "Conte um pouco sobre você",
+      },
+      {
+        fields: [
+          cep?.key,
+          neighborhood?.key,
+          city?.key,
+          state?.key,
+          ...customKeys,
+        ].filter((key): key is string => Boolean(key)),
+        label: "Endereço",
+        note: "Os campos de endereço completam seu cadastro no mesmo registro.",
+        submitLabel: "Finalizar",
+        subtitle: "Use o CEP para preencher o endereço automaticamente.",
+        title: "Complete seu endereço",
+      },
+    ],
+  };
+}
+
 export function normalizePublicFormConfiguration(
   formConfig: unknown,
   settings: unknown
 ): PublicFormConfiguration {
   const form = record(formConfig);
-  const appSettings = record(settings);
+  void settings;
   const configuredFields = Array.isArray(form?.fields) ? form.fields : null;
 
-  if (!configuredFields) {
-    return {
-      capture: null,
-      collectAddress: true,
-      fields: legacyFields.map((field) => ({ ...field })),
-      legacy: true,
-      requireConsent: true,
-    };
-  }
-
   const seenKeys = new Set<string>();
-  const fields = configuredFields
+  const normalizedFields = (configuredFields ?? [])
     .slice(0, 24)
     .map(normalizeField)
     .filter((field): field is CampaignFormField => {
@@ -242,12 +342,14 @@ export function normalizePublicFormConfiguration(
       seenKeys.add(field.key);
       return true;
     });
+  const fields = progressiveFields(normalizedFields);
+  const capture = normalizeCapture(form?.capture);
 
   return {
-    capture: normalizeCapture(form?.capture),
-    collectAddress: appSettings?.collect_address === true,
+    capture: progressiveCapture(capture, fields),
+    collectAddress: true,
     fields,
-    legacy: false,
+    legacy: !configuredFields,
     // Consent is a legal/security invariant and cannot be disabled by JSON.
     requireConsent: true,
   };

@@ -26,9 +26,19 @@ type CepApiResponse = {
   success: boolean;
   data?: {
     city: string;
+    neighborhood: string;
     state: string;
     street: string;
   };
+};
+
+type ProgressiveLead = {
+  id: string;
+  token: string;
+};
+
+type TurnstileWindow = Window & {
+  turnstile?: { reset: () => void };
 };
 
 function onlyNumbers(value: string) {
@@ -120,11 +130,13 @@ export function PublicSignatureForm({
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [customResponses, setCustomResponses] = useState<Record<string, string | boolean>>({});
   const [step, setStep] = useState(0);
+  const [progressiveLead, setProgressiveLead] = useState<ProgressiveLead | null>(null);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(2);
   const cepRequest = useRef<AbortController | null>(null);
   const toastTimer = useRef<number | null>(null);
   const redirectTimer = useRef<number | null>(null);
+  const submissionLock = useRef(false);
 
   const metaValue = meta ?? 0;
   const restante = Math.max(metaValue - currentTotal, 0);
@@ -143,6 +155,8 @@ export function PublicSignatureForm({
   const cityField = standardFields.city;
   const stateField = standardFields.state;
   const customFields = standardFields.custom;
+  const neighborhoodField = customFields.find((field) => field.key === "bairro") ?? null;
+  const otherCustomFields = customFields.filter((field) => field !== neighborhoodField);
   const FormContainer = preview ? "div" : "form";
 
   const capture = configuration.capture;
@@ -154,8 +168,8 @@ export function PublicSignatureForm({
   const activeStep = capture ? captureSteps[Math.min(step, lastStep)] : null;
   const onLastStep = !capture || step >= lastStep;
   const done = Boolean(capture) && redirectTarget !== null;
-  /** Segmentos da barra: as etapas de preenchimento mais a confirmação. */
-  const stepCount = captureSteps.length + 1;
+  /** A confirmação conclui o fluxo; ela não cria uma terceira etapa artificial. */
+  const stepCount = captureSteps.length;
 
   /** Campo sem etapa declarada aparece na primeira, para nunca sumir da tela. */
   function stepOfField(key: string) {
@@ -222,6 +236,16 @@ export function PublicSignatureForm({
         setRua(result.data.street || rua);
         setCidade(result.data.city);
         setEstado(result.data.state);
+        if (neighborhoodField && result.data.neighborhood) {
+          setCustomResponses((current) => ({
+            ...current,
+            [neighborhoodField.key]: result.data?.neighborhood || "",
+          }));
+          setErrors((current) => ({
+            ...current,
+            [`custom_${neighborhoodField.key}`]: false,
+          }));
+        }
         setCepStatus("found");
       } else {
         setCepStatus("manual");
@@ -292,12 +316,6 @@ export function PublicSignatureForm({
     return !Object.values(scoped).some(Boolean);
   }
 
-  function advanceStep() {
-    if (!activeStep) return;
-    if (!validate(errorKeysFor(activeStep.fields))) return;
-    setStep((current) => Math.min(current + 1, lastStep));
-  }
-
   function updateCustomResponse(
     field: CampaignFormField,
     rawValue: string | boolean
@@ -320,18 +338,11 @@ export function PublicSignatureForm({
     }));
   }
 
-  async function handleSign(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (preview) return;
-    if (capture && !onLastStep) {
-      advanceStep();
-      return;
-    }
-    if (!validate()) return;
+  function resetTurnstile() {
+    (window as TurnstileWindow).turnstile?.reset();
+  }
 
-    setBusy(true);
-
-    const formElement = event.currentTarget;
+  function submissionFormData(formElement: HTMLFormElement) {
     const formData = new FormData(formElement);
     formData.set("campanha_id", campanhaId);
     formData.set("nome_assinante", nameField ? nome : "");
@@ -344,9 +355,80 @@ export function PublicSignatureForm({
     formData.set("estado_assinante", stateField || configuration.collectAddress ? estado : "");
     formData.set(
       "complemento_assinante",
-      configuration.collectAddress ? complemento.trim() : ""
+      configuration.collectAddress ? complemento.trim() : "",
     );
     formData.set("responses", JSON.stringify(customResponses));
+    return formData;
+  }
+
+  async function handleSign(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (preview || submissionLock.current) return;
+
+    const formElement = event.currentTarget;
+    if (capture && !onLastStep) {
+      if (!activeStep || !validate(errorKeysFor(activeStep.fields))) return;
+      if (progressiveLead) {
+        setStep((current) => Math.min(current + 1, lastStep));
+        return;
+      }
+
+      submissionLock.current = true;
+      setBusy(true);
+      const contactData = submissionFormData(formElement);
+      contactData.set("submission_phase", "contact");
+
+      try {
+        const response = await fetch("/api/assinaturas", {
+          method: "POST",
+          body: contactData,
+        });
+        const result = (await response.json()) as {
+          error?: { message?: string };
+          erro?: string;
+          leadId?: string;
+          leadToken?: string;
+          sucesso?: boolean;
+        };
+        if (
+          !response.ok ||
+          !result.sucesso ||
+          !result.leadId ||
+          !result.leadToken
+        ) {
+          throw new Error(result.error?.message || result.erro || "Erro ao salvar");
+        }
+
+        setProgressiveLead({ id: result.leadId, token: result.leadToken });
+        setStep((current) => Math.min(current + 1, lastStep));
+      } catch (error) {
+        resetTurnstile();
+        showToast(
+          error instanceof Error ? error.message : "Erro ao salvar seus dados",
+          "e",
+        );
+      } finally {
+        submissionLock.current = false;
+        setBusy(false);
+      }
+      return;
+    }
+    if (!validate()) return;
+
+    submissionLock.current = true;
+    setBusy(true);
+    const formData = submissionFormData(formElement);
+    if (capture) {
+      if (!progressiveLead) {
+        showToast("Salve seus dados de contato antes de finalizar.", "e");
+        submissionLock.current = false;
+        setBusy(false);
+        return;
+      }
+      formData.set("submission_phase", "complete");
+      formData.set("lead_id", progressiveLead.id);
+      formData.set("lead_token", progressiveLead.token);
+    }
 
     try {
       const response = await fetch("/api/assinaturas", {
@@ -388,14 +470,18 @@ export function PublicSignatureForm({
         setComplemento("");
         setCidade("");
         setEstado("");
+        setProgressiveLead(null);
         setCustomResponses({});
         setErrors({});
         formElement.reset();
         setBusy(false);
       }
     } catch (error) {
+      if (!capture || !progressiveLead) resetTurnstile();
       showToast(error instanceof Error ? error.message : "Erro ao enviar formulário", "e");
       setBusy(false);
+    } finally {
+      submissionLock.current = false;
     }
   }
 
@@ -403,7 +489,10 @@ export function PublicSignatureForm({
     <>
       <div className={`form-card ${editorial ? "form-card-editorial" : ""} ${capture ? "form-card-capture" : ""}`}>
         {capture ? (
-          <div aria-label={`Etapa ${step + 1} de ${stepCount}`} className="capture-progress">
+          <div
+            aria-label={done ? "Formulário concluído" : `Etapa ${step + 1} de ${stepCount}`}
+            className="capture-progress"
+          >
             {Array.from({ length: stepCount }, (_, index) => (
               <span
                 className={index <= (done ? stepCount - 1 : step) ? "active" : ""}
@@ -416,7 +505,7 @@ export function PublicSignatureForm({
         {capture && done ? (
           <div className="capture-done">
             <span className="capture-step-label">
-              {`Etapa ${stepCount} de ${stepCount} · ${capture.done.label}`}
+              {capture.done.label}
             </span>
             <span aria-hidden="true" className="capture-check">✓</span>
             <h2>{capture.done.title}</h2>
@@ -599,7 +688,16 @@ export function PublicSignatureForm({
                     (Boolean(email.trim()) && !validEmail(email))
                 }))
               }
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                setEmail(next);
+                setErrors((value) => ({
+                  ...value,
+                  mail:
+                    (emailField.required && !next.trim()) ||
+                    (Boolean(next.trim()) && !validEmail(next)),
+                }));
+              }}
               placeholder={emailField.placeholder || (editorial ? "nome@email.com" : "Seu melhor e-mail")}
               required={emailField.required}
               type="email"
@@ -709,6 +807,45 @@ export function PublicSignatureForm({
             <span className={`field-error ${errors.rua ? "show" : ""}`} id="erroRua">
               Informe o endereço e o número
             </span>
+            <div className="signature-field signature-field-complement">
+              <label htmlFor="complemento">Complemento (opcional)</label>
+              <input
+                autoComplete="address-line3"
+                className="form-input"
+                id="complemento"
+                maxLength={120}
+                name="address-line3"
+                onChange={(event) => setComplemento(event.target.value)}
+                placeholder={editorial ? "Apartamento, bloco ou casa" : "Apartamento, bloco, casa"}
+                type="text"
+                value={complemento}
+              />
+            </div>
+            {neighborhoodField ? (
+              <div className="signature-field signature-field-neighborhood">
+                <label htmlFor="bairro">{neighborhoodField.label}</label>
+                <input
+                  aria-describedby="erroBairro"
+                  aria-invalid={errors[`custom_${neighborhoodField.key}`] || undefined}
+                  autoComplete="address-level3"
+                  className={`form-input ${errors[`custom_${neighborhoodField.key}`] ? "error" : ""}`}
+                  id="bairro"
+                  maxLength={120}
+                  name={`response_${neighborhoodField.key}`}
+                  onChange={(event) => updateCustomResponse(neighborhoodField, event.target.value)}
+                  placeholder={neighborhoodField.placeholder || "Seu bairro"}
+                  required={neighborhoodField.required}
+                  type="text"
+                  value={String(customResponses[neighborhoodField.key] || "")}
+                />
+                <span
+                  className={`field-error ${errors[`custom_${neighborhoodField.key}`] ? "show" : ""}`}
+                  id="erroBairro"
+                >
+                  Informe seu bairro
+                </span>
+              </div>
+            ) : null}
             </> : null}
             <div className="endereco-row signature-location-row">
               {configuration.collectAddress || cityField ? <div className="signature-field">
@@ -756,22 +893,7 @@ export function PublicSignatureForm({
           </div>
           ) : null}
 
-          {configuration.collectAddress ? <div className="signature-field signature-field-complement">
-            <label htmlFor="complemento">Complemento (opcional)</label>
-            <input
-              autoComplete="address-line3"
-              className="form-input"
-              id="complemento"
-              maxLength={120}
-              name="address-line3"
-              onChange={(event) => setComplemento(event.target.value)}
-              placeholder={editorial ? "Apartamento, bloco ou casa" : "Apartamento, bloco, casa"}
-              type="text"
-              value={complemento}
-            />
-          </div> : null}
-
-          {customFields.filter((field) => fieldVisible(field.key)).map((field) => {
+          {otherCustomFields.filter((field) => fieldVisible(field.key)).map((field) => {
             const inputId = `custom-${field.id}`;
             const errorKey = `custom_${field.key}`;
             const errorId = `${inputId}-error`;
@@ -896,8 +1018,8 @@ export function PublicSignatureForm({
                   {busy ? "Enviando..." : activeStep?.submitLabel || "Enviar"}
                 </button>
               ) : (
-                <button className="btn-sign" onClick={advanceStep} type="button">
-                  {activeStep?.submitLabel || "Continuar"}
+                <button aria-busy={busy} className="btn-sign" disabled={busy} type="submit">
+                  {busy ? "Salvando..." : activeStep?.submitLabel || "Continuar"}
                 </button>
               )}
             </div>
