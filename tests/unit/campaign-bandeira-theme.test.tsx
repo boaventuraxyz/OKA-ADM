@@ -171,6 +171,28 @@ describe("rodapé de propaganda eleitoral", () => {
     expect(footer).toHaveTextContent(legal.contact);
   });
 
+  it("inclui as ações e o aviso de privacidade do rodapé mobile", () => {
+    const { container } = renderBandeira({
+      settings: { allow_sharing: true, legal, require_consent: true },
+    });
+    const footer = container.querySelector(".bandeira-footer")!;
+
+    expect(footer.querySelector(".pol-toggle-campaign")).toHaveTextContent(
+      "Política de Privacidade",
+    );
+    expect(footer.querySelector(".pol-terms > summary")).toHaveTextContent("Termos de Uso");
+    expect(footer.querySelector(".pol-optout > summary")).toHaveTextContent("Sair da lista");
+    expect(footer.querySelector(".pol-campaign-summary")).toHaveTextContent(
+      "Os dados informados são tratados com base no seu consentimento",
+    );
+    expect(footer.querySelector(".pol-campaign-summary")).toHaveTextContent(
+      "Partido Liberal (PL)",
+    );
+    expect(footer.querySelector(".pol-copyright")).toHaveTextContent(
+      "© 2026. Todos os direitos reservados.",
+    );
+  });
+
   it("não inventa linhas quando o rodapé não foi preenchido", () => {
     const { container } = renderBandeira({
       settings: { allow_sharing: true, require_consent: true },

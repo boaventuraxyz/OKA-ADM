@@ -316,7 +316,10 @@ export function CampaignBandeiraTheme({
             </div>
           ) : null}
         </div>
-        <PoliticasRodape candidateName={campanha.candidato?.nome} />
+        <PoliticasRodape
+          candidateName={campanha.candidato?.nome}
+          partyName={legal?.party || campanha.candidato?.partido}
+        />
       </footer>
 
       <CampaignCaptureTrigger className="bandeira-fab">

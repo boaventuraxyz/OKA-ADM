@@ -488,6 +488,18 @@ textarea {
   text-align: center;
 }
 
+.politicas-rodape .pol-item {
+  width: 100%;
+}
+
+.politicas-rodape .pol-terms,
+.politicas-rodape .pol-optout,
+.politicas-rodape .pol-toggle-campaign,
+.politicas-rodape .pol-campaign-summary,
+.politicas-rodape .pol-copyright {
+  display: none;
+}
+
 .politicas-rodape .pol-toggle {
   display: inline-flex;
   align-items: center;
@@ -507,11 +519,11 @@ textarea {
 }
 
 .politicas-rodape .pol-toggle:hover,
-.politicas-rodape[open] .pol-toggle {
+.politicas-rodape .pol-item[open] .pol-toggle {
   color: #e8c84a;
 }
 
-.politicas-rodape[open] .pol-toggle {
+.politicas-rodape .pol-item[open] .pol-toggle {
   margin-bottom: 16px;
 }
 
