@@ -28,9 +28,9 @@ export default async function AdminCandidatesPage({
     <div className={styles.page}>
       <PageHeader
         actions={canManage ? (
-          <Link className={styles.primaryLink} href="/admin/candidates/new">
+          <a className={styles.primaryLink} href="/admin/candidates/new">
             <Plus aria-hidden="true" size={18} /> Novo candidato
-          </Link>
+          </a>
         ) : null}
         description="Gerencie os responsáveis pelas campanhas e os endereços dos hubs públicos."
         eyebrow="Organização"
@@ -104,9 +104,9 @@ export default async function AdminCandidatesPage({
         <div className={styles.empty}>
           <EmptyState
             action={canManage ? (
-              <Link className={styles.primaryLink} href="/admin/candidates/new">
+              <a className={styles.primaryLink} href="/admin/candidates/new">
                 Criar primeiro candidato
-              </Link>
+              </a>
             ) : undefined}
             description="Cadastre um candidato para organizar campanhas e publicar seu hub."
             icon={<UserRound size={24} />}

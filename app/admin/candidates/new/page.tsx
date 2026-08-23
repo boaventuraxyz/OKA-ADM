@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/auth";
 import styles from "@/features/candidates/candidates-admin.module.css";
 
 export const metadata: Metadata = { title: "Novo candidato" };
+export const dynamic = "force-dynamic";
 
 export default async function NewCandidatePage({
   searchParams
