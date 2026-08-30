@@ -17,6 +17,9 @@ const seedMigrations = [
   "20260821164500_seed_felipe_sertanejo_campaign.sql",
   "20260830213058_seed_miguel_patriota_informational_campaign.sql",
 ];
+const publicationMigrations = [
+  "20260830214900_publish_miguel_patriota_informational_campaign.sql",
+];
 
 const baseline = `
   create role anon nologin;
@@ -208,3 +211,24 @@ if (miguelProblems.length) {
   process.exit(1);
 }
 console.log("\ncampanha informativa de Miguel valida: rascunho, idempotente e sem dados inventados");
+
+for (const name of publicationMigrations) {
+  await db.exec(await read(join("supabase", "migrations", name)));
+  await db.exec(await read(join("supabase", "migrations", name)));
+}
+
+const { rows: publishedRows } = await db.query(`
+  select status, ativa, published_at is not null as publicada_em
+  from public.campanhas
+  where slug = 'miguel-patriota'
+`);
+const published = publishedRows[0];
+if (
+  published?.status !== "published" ||
+  published?.ativa !== true ||
+  published?.publicada_em !== true
+) {
+  console.error("\nFALHA AO PUBLICAR MIGUEL:\n", JSON.stringify(published));
+  process.exit(1);
+}
+console.log("campanha informativa de Miguel publicada e validada de forma idempotente");
