@@ -52,6 +52,7 @@ export function getPublicCampaignView(id: string) {
               estado: candidato.estado,
               municipio: candidato.municipio,
               nome: candidato.nome,
+              numero: candidato.numero,
               partido: candidato.partido
             }
           : null,

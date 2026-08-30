@@ -19,16 +19,23 @@ export function normalizeCandidateNumber(value: string) {
   return value.replace(/\D/g, "").slice(0, 8);
 }
 
-/**
- * Número do candidato (ex.: "2211"). Fica em `settings` em vez de coluna
- * própria, no mesmo padrão de `title_highlights` e `video_carousel`, porque só
- * o tema Bandeira o exibe.
- */
+/** Compatibilidade para campanhas antigas, que guardavam o número em settings. */
 export function parseCandidateNumber(settings: unknown) {
   const value = record(settings)?.candidate_number;
   if (typeof value !== "string") return null;
   const digits = normalizeCandidateNumber(value);
   return digits || null;
+}
+
+/** O cadastro do candidato é a fonte principal; settings é apenas o legado. */
+export function resolveCandidateNumber(candidateNumber: unknown, settings: unknown) {
+  if (typeof candidateNumber === "string") {
+    const digits = normalizeCandidateNumber(candidateNumber);
+    return digits || null;
+  }
+  if (candidateNumber === null) return null;
+
+  return parseCandidateNumber(settings);
 }
 
 export type BandeiraSectionLabels = {

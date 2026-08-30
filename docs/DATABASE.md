@@ -107,6 +107,7 @@ Entidade responsável por uma ou mais campanhas.
 | `nome` | `varchar` | Obrigatório |
 | `partido`, `cargo`, `municipio` | `varchar` | Metadados opcionais |
 | `estado` | `char(2)` | UF opcional |
+| `numero` | `text` | Número eleitoral opcional, com 1 a 8 dígitos; usado automaticamente pelos temas |
 | `dominio_formularios` | `text` | Domínio normalizado e único quando presente |
 | `slug_publico` | `text` | Slug estável, válido, único e obrigatório no schema-alvo |
 | `criado_em` | `timestamp` | Timestamp legado |

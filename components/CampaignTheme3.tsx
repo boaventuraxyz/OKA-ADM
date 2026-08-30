@@ -8,7 +8,7 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
-import { campaignAllowsSharing } from "@/lib/campaign-settings";
+import { campaignAllowsSharing, resolveCandidateNumber } from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type Theme3Campaign = {
@@ -41,6 +41,7 @@ type Theme3Campaign = {
     estado: string | null;
     municipio: string | null;
     nome: string | null;
+    numero: string | null;
     partido: string | null;
   } | null;
 };
@@ -72,6 +73,11 @@ export function CampaignTheme3({
   totalAssinaturas: number;
 }) {
   const title = campanha.titulo || "Participe deste abaixo-assinado";
+  const candidateName = campanha.candidato?.nome?.trim();
+  const candidateNumber = resolveCandidateNumber(
+    campanha.candidato?.numero,
+    campanha.settings,
+  );
   const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
     .filter(Boolean)
     .join(" / ");
@@ -101,6 +107,13 @@ export function CampaignTheme3({
         <div className="campaign-theme3-wrap">
           <div className="campaign-theme3-eyebrow">
             <span>■ Abaixo-assinado</span>
+            {candidateName || candidateNumber ? (
+              <b>
+                {[candidateName, candidateNumber ? `Nº ${candidateNumber}` : null]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </b>
+            ) : null}
             {location ? <b>{location}</b> : null}
             {campanha.textoDot ? <span>{campanha.textoDot}</span> : null}
           </div>

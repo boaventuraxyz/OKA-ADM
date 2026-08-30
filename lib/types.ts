@@ -5,6 +5,7 @@ export type Candidato = {
   cargo: string | null;
   estado: string | null;
   municipio: string | null;
+  numero: string | null;
   dominio_formularios: string | null;
   slug_publico?: string | null;
   criado_em: string | null;

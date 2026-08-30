@@ -44,6 +44,7 @@ export default async function AdminCandidatesPage({
               <thead>
                 <tr>
                   <th>Candidato</th>
+                  <th>Número</th>
                   <th>Partido e cargo</th>
                   <th>Local</th>
                   <th>Hub público</th>
@@ -72,6 +73,13 @@ export default async function AdminCandidatesPage({
                             <small>Cadastrado no sistema</small>
                           </span>
                         </span>
+                      </td>
+                      <td>
+                        {candidate.numero ? (
+                          <strong className={styles.cellValue}>{candidate.numero}</strong>
+                        ) : (
+                          <span className={styles.muted}>Não informado</span>
+                        )}
                       </td>
                       <td>
                         <strong className={styles.cellValue}>{candidate.partido || "Sem partido"}</strong>

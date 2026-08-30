@@ -14,7 +14,7 @@ import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import {
   parseBandeiraSectionLabels,
   parseCampaignLegalFooter,
-  parseCandidateNumber,
+  resolveCandidateNumber,
 } from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 import {
@@ -29,6 +29,7 @@ type BandeiraCampaign = {
     estado: string | null;
     municipio: string | null;
     nome: string | null;
+    numero: string | null;
     partido: string | null;
   } | null;
   descricao: string | null;
@@ -96,7 +97,7 @@ export function CampaignBandeiraTheme({
   totalAssinaturas: number;
 }) {
   const candidateName = campanha.candidato?.nome?.trim() || "Candidatura";
-  const number = parseCandidateNumber(campanha.settings);
+  const number = resolveCandidateNumber(campanha.candidato?.numero, campanha.settings);
   const office = campanha.candidato?.cargo?.trim() || "";
   const title = campanha.titulo || "O futuro é nosso";
   const heroBlocks = blocks(campanha.descricao);

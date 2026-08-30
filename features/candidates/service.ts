@@ -16,6 +16,7 @@ export type CandidateListItem = Omit<Candidato, "nome"> & {
 export type CandidateOption = {
   id: string;
   nome: string;
+  numero: string | null;
   partido: string | null;
 };
 
@@ -65,7 +66,7 @@ export async function listCandidateOptions(): Promise<CandidateOption[]> {
   const supabase = await createServerClient();
   const { data, error } = await supabase
     .from("candidatos")
-    .select("id, nome, partido")
+    .select("id, nome, numero, partido")
     .order("nome", { ascending: true })
     .limit(200);
 
@@ -80,6 +81,7 @@ export async function listCandidateOptions(): Promise<CandidateOption[]> {
     .map((candidate) => ({
       id: candidate.id,
       nome: candidate.nome,
+      numero: candidate.numero,
       partido: candidate.partido,
     }));
 }

@@ -68,9 +68,7 @@ import {
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
 import {
-  normalizeCandidateNumber,
   parseCampaignLegalFooter,
-  parseCandidateNumber,
   type CampaignLegalFooter,
 } from "@/lib/campaign-settings";
 import {
@@ -82,7 +80,7 @@ import type { CampaignRow } from "./types";
 import styles from "./CampaignEditor.module.css";
 
 export type CampaignEditorProps = {
-  candidates?: readonly { id: string; nome: string }[];
+  candidates?: readonly CampaignEditorCandidate[];
   initialCampaign?: CampaignRow;
   initialThemeKey?: RegistryTheme["key"];
   mode: "create" | "edit";
@@ -92,6 +90,7 @@ type EditorTab = "content" | "form" | "theme" | "seo" | "settings" | "preview";
 type SaveFeedback = "idle" | "saving" | "saved" | "error";
 type FieldErrors = Record<string, string[]>;
 type RegistryTheme = (typeof THEME_REGISTRY)[number];
+type CampaignEditorCandidate = { id: string; nome: string; numero: string | null };
 
 type CampaignFormFieldType =
   | "text"
@@ -125,8 +124,6 @@ const emptyLegalFooter: CampaignLegalFooter = {
 
 type EditorSettings = {
   allowSharing: boolean;
-  /** Número do candidato; só o tema Bandeira o exibe. */
-  candidateNumber: string;
   collectAddress: boolean;
   /** Propaganda eleitoral; fica no banco por trazer dado pessoal. */
   legal: CampaignLegalFooter;
@@ -201,7 +198,7 @@ type ClientValidationError = {
   tab: EditorTab;
 };
 
-const emptyCandidates: readonly { id: string; nome: string }[] = [];
+const emptyCandidates: readonly CampaignEditorCandidate[] = [];
 const emptyFieldErrors: FieldErrors = {};
 const maxFormFields = 24;
 
@@ -590,7 +587,6 @@ function createInitialState(
       fields: parseFormFields(formConfigBase, preserveLegacyAddress),
       settings: {
         allowSharing: booleanValue(settingsBase.allow_sharing, true),
-        candidateNumber: parseCandidateNumber(settingsBase) ?? "",
         legal: parseCampaignLegalFooter(settingsBase) ?? { ...emptyLegalFooter },
         collectAddress: preserveLegacyAddress
           ? true
@@ -637,7 +633,6 @@ function settingsPayload(
   return {
     ...base,
     allow_sharing: settings.allowSharing,
-    candidate_number: settings.candidateNumber.trim(),
     legal: settings.legal,
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
     require_consent: true,
@@ -1128,7 +1123,6 @@ function headlineWordCount(theme: RegistryTheme, values: EditorValues) {
 function ContentPanel({
   candidates,
   errors,
-  onCandidateNumberChange,
   onRegenerateSlug,
   onSlugChange,
   onTitleHighlightsChange,
@@ -1139,9 +1133,8 @@ function ContentPanel({
   settings,
   values
 }: {
-  candidates: readonly { id: string; nome: string }[];
+  candidates: readonly CampaignEditorCandidate[];
   errors: FieldErrors;
-  onCandidateNumberChange: (value: string) => void;
   onRegenerateSlug: () => void;
   onSlugChange: (value: string) => void;
   onTitleHighlightsChange: (highlights: CampaignTitleHighlight[]) => void;
@@ -1153,6 +1146,7 @@ function ContentPanel({
   values: EditorValues;
 }) {
   const theme = THEME_REGISTRY.find((candidate) => candidate.key === values.themeKey) || THEME_REGISTRY[0];
+  const selectedCandidate = candidates.find((candidate) => candidate.id === values.candidatoId);
   const titleIsHeadline = theme.headline.field === "titulo";
   const headlineFallback = !titleIsHeadline && !values[headlineEditorKey(theme)].trim();
 
@@ -1232,6 +1226,11 @@ function ContentPanel({
           <small>Tema selecionado</small>
           <strong>Tema {theme.id} · {theme.name}</strong>
           <span>{theme.description}</span>
+          <span>
+            {selectedCandidate?.numero
+              ? `Número ${selectedCandidate.numero} vinculado automaticamente.`
+              : "O número será usado quando estiver preenchido no cadastro do candidato."}
+          </span>
         </div>
       </div>
 
@@ -1243,18 +1242,6 @@ function ContentPanel({
               <p>{section.description}</p>
             </header>
             <div className={styles.themeSectionFields}>
-              {theme.key === "bandeira" && section.id === "hero" ? (
-                <EditorInputField
-                  description="Aparece no topo, na chamada final e no rodapé. Somente números."
-                  id={controlId(prefix, "candidate_number")}
-                  label="Número do candidato"
-                  maxLength={8}
-                  name="candidate_number"
-                  onChange={onCandidateNumberChange}
-                  placeholder="2211"
-                  value={settings.candidateNumber}
-                />
-              ) : null}
               {(theme.key === "impact-dark" || theme.key === "bandeira") && section.id === "video" ? (
                 <div className={styles.fullWidthField}>
                   <CampaignVideoCarouselField
@@ -1747,7 +1734,7 @@ function PreviewPanel({
   theme,
   values
 }: {
-  candidates: readonly { id: string; nome: string }[];
+  candidates: readonly CampaignEditorCandidate[];
   device: PreviewDevice;
   fields: CampaignFormField[];
   onDeviceChange: (device: PreviewDevice) => void;
@@ -1755,7 +1742,7 @@ function PreviewPanel({
   theme: RegistryTheme;
   values: EditorValues;
 }) {
-  const candidateName = candidates.find((candidate) => candidate.id === values.candidatoId)?.nome;
+  const selectedCandidate = candidates.find((candidate) => candidate.id === values.candidatoId);
 
   return (
     <div className={styles.panelStack}>
@@ -1783,7 +1770,8 @@ function PreviewPanel({
           accent={values.corDestaque}
           content={{
             assinaturasMeta: Number(values.assinaturasMeta) || 0,
-            candidateName,
+            candidateName: selectedCandidate?.nome,
+            candidateNumber: selectedCandidate?.numero ?? undefined,
             descricao: values.descricao || null,
             formConfig: formConfigPayload({}, fields),
             imagemFundoUrl: values.imagemFundo || null,
@@ -1795,7 +1783,6 @@ function PreviewPanel({
             notaVideo: values.notaVideo || null,
             settings: {
               allow_sharing: settings.allowSharing,
-              candidate_number: settings.candidateNumber,
               collect_address: settings.collectAddress,
               legal: settings.legal,
               require_consent: true,
@@ -1925,14 +1912,6 @@ export function CampaignEditor({
   function changeTitleHighlights(titleHighlights: CampaignTitleHighlight[]) {
     markDirty();
     setSettings((current) => ({ ...current, titleHighlights }));
-  }
-
-  function changeCandidateNumber(candidateNumber: string) {
-    markDirty();
-    setSettings((current) => ({
-      ...current,
-      candidateNumber: normalizeCandidateNumber(candidateNumber)
-    }));
   }
 
   function changeLegalField(field: keyof CampaignLegalFooter, value: string) {
@@ -2196,7 +2175,7 @@ export function CampaignEditor({
   const activePanel = (() => {
     switch (activeTab) {
       case "content":
-        return <ContentPanel candidates={candidates} errors={fieldErrors} onCandidateNumberChange={changeCandidateNumber} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
+        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":

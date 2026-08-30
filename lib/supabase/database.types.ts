@@ -332,6 +332,7 @@ export type Database = {
           id: string
           municipio: string | null
           nome: string
+          numero: string | null
           partido: string | null
         }
         Insert: {
@@ -342,6 +343,7 @@ export type Database = {
           id?: string
           municipio?: string | null
           nome: string
+          numero?: string | null
           partido?: string | null
         }
         Update: {
@@ -352,6 +354,7 @@ export type Database = {
           id?: string
           municipio?: string | null
           nome?: string
+          numero?: string | null
           partido?: string | null
         }
         Relationships: []

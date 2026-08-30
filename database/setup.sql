@@ -96,7 +96,8 @@ create table if not exists public.candidatos (
   municipio character varying,
   criado_em timestamp without time zone default now(),
   dominio_formularios text,
-  slug_publico text
+  slug_publico text,
+  numero text
 );
 
 alter table public.candidatos
@@ -107,7 +108,8 @@ alter table public.candidatos
   add column if not exists municipio character varying,
   add column if not exists criado_em timestamp without time zone,
   add column if not exists dominio_formularios text,
-  add column if not exists slug_publico text;
+  add column if not exists slug_publico text,
+  add column if not exists numero text;
 
 -- Domain normalization is lossless apart from casing and a redundant www.
 -- prefix. Invalid non-null values are retained and reported during validation.
@@ -289,6 +291,58 @@ alter table public.campanhas
   add column if not exists updated_by uuid,
   add column if not exists form_config jsonb,
   add column if not exists settings jsonb;
+
+update public.candidatos
+set numero = nullif(
+  left(regexp_replace(coalesce(numero, ''), '[^0-9]', '', 'g'), 8),
+  ''
+)
+where numero is not null
+  and numero is distinct from nullif(
+    left(regexp_replace(coalesce(numero, ''), '[^0-9]', '', 'g'), 8),
+    ''
+  );
+
+with prepared as (
+  select
+    campanha.candidato_id,
+    nullif(
+      left(
+        regexp_replace(
+          coalesce(campanha.settings ->> 'candidate_number', ''),
+          '[^0-9]',
+          '',
+          'g'
+        ),
+        8
+      ),
+      ''
+    ) as numero,
+    coalesce(
+      campanha.updated_at,
+      campanha.created_at,
+      campanha.criado_em at time zone 'America/Sao_Paulo'
+    ) as ordenacao,
+    campanha.id
+  from public.campanhas campanha
+  where campanha.candidato_id is not null
+), ranked as (
+  select
+    candidato_id,
+    numero,
+    row_number() over (
+      partition by candidato_id
+      order by ordenacao desc nulls last, id desc
+    ) as posicao
+  from prepared
+  where numero is not null
+)
+update public.candidatos candidato
+set numero = ranked.numero
+from ranked
+where ranked.candidato_id = candidato.id
+  and ranked.posicao = 1
+  and candidato.numero is null;
 
 update public.campanhas
 set cor_destaque = '#E05A5A'
@@ -544,6 +598,11 @@ begin
           'candidatos',
           'candidatos_slug_publico_valido',
           'check (char_length(slug_publico) between 1 and 80 and slug_publico = lower(slug_publico) and slug_publico ~ ''^[a-z0-9]+(-[a-z0-9]+)*$'') not valid'
+        ),
+        (
+          'candidatos',
+          'candidatos_numero_valido',
+          'check (numero is null or numero ~ ''^[0-9]{1,8}$'') not valid'
         ),
         (
           'campanhas',
@@ -1482,6 +1541,8 @@ comment on column public.campanhas.id_planilha is
   'Legacy external integration identifier; verify consumers before removal.';
 comment on column public.candidatos.slug_publico is
   'Stable public candidate-hub slug.';
+comment on column public.candidatos.numero is
+  'Candidate ballot number, automatically shared by every campaign theme.';
 comment on column public.assinaturas.consented_at is
   'Timestamp of explicit consent; nullable only for preserved historical leads.';
 

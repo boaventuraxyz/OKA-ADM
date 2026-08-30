@@ -23,7 +23,11 @@ export function CandidateCampaignHub({
   campanhas: Array<Campanha & { slug: string }>;
   candidato: Candidato;
 }) {
-  const candidateMeta = [candidato.cargo, candidato.partido]
+  const candidateMeta = [
+    candidato.cargo,
+    candidato.partido,
+    candidato.numero ? `Nº ${candidato.numero}` : null,
+  ]
     .filter(Boolean)
     .join(" · ");
   const location = [candidato.municipio, candidato.estado]

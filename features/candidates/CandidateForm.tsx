@@ -65,6 +65,23 @@ export function CandidateForm({
               />
             )}
           </FormField>
+          <FormField
+            description="Usado automaticamente nas páginas e prévias das campanhas vinculadas."
+            id="candidate-number"
+            label="Número do candidato"
+          >
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                defaultValue={candidate?.numero ?? ""}
+                inputMode="numeric"
+                maxLength={8}
+                name="numero"
+                pattern="[0-9]{1,8}"
+                placeholder="20221"
+              />
+            )}
+          </FormField>
           <FormField id="candidate-role" label="Cargo">
             {(controlProps) => (
               <Input

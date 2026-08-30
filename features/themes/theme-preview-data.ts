@@ -7,6 +7,7 @@ export type ThemePreviewContent = Partial<
   Omit<CampaignRenderData, "candidato" | "id" | "tema">
 > & {
   candidateName?: string;
+  candidateNumber?: string;
 };
 
 const defaultFormConfig = {
@@ -23,7 +24,7 @@ export function createThemePreviewCampaign({ accent, content = {}, theme }: {
 }): CampaignRenderData {
   const defaults: CampaignRenderData = {
     assinaturasMeta: 5000,
-    candidato: { cargo: "Representante público", estado: "SP", municipio: "São Paulo", nome: content.candidateName || "Mobilização Cidadã", partido: null },
+    candidato: { cargo: "Representante público", estado: "SP", municipio: "São Paulo", nome: content.candidateName || "Mobilização Cidadã", numero: content.candidateNumber || null, partido: null },
     corDestaque: accent || theme.palette.accent,
     descricao: "Participe deste movimento e ajude a transformar apoio em ação concreta.",
     formConfig: defaultFormConfig,
@@ -65,7 +66,11 @@ export function createThemePreviewCampaign({ accent, content = {}, theme }: {
   return {
     ...defaults,
     ...content,
-    candidato: { ...defaults.candidato!, nome: content.candidateName || defaults.candidato!.nome },
+    candidato: {
+      ...defaults.candidato!,
+      nome: content.candidateName || defaults.candidato!.nome,
+      numero: content.candidateNumber || defaults.candidato!.numero,
+    },
     corDestaque: accent || content.corDestaque || defaults.corDestaque,
     id: defaults.id,
     tema: theme.id,

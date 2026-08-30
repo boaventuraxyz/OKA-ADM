@@ -77,6 +77,7 @@ function campaignColor(formData: FormData) {
 class CampaignBackgroundInputError extends Error {}
 class CampaignRedirectInputError extends Error {}
 class CandidateDomainInputError extends Error {}
+class CandidateNumberInputError extends Error {}
 class CandidateSlugInputError extends Error {}
 
 function candidateDomain(formData: FormData) {
@@ -94,8 +95,18 @@ function candidateSlug(formData: FormData, candidateName: string | null) {
   return value;
 }
 
+function candidateNumber(formData: FormData) {
+  const value = text(formData, "numero");
+  if (!value) return null;
+  if (!/^[0-9]{1,8}$/.test(value)) {
+    throw new CandidateNumberInputError("Número do candidato inválido.");
+  }
+  return value;
+}
+
 function candidateSaveErrorPath(error: unknown, path: string) {
   if (error instanceof CandidateDomainInputError) return `${path}?erro=dominio`;
+  if (error instanceof CandidateNumberInputError) return `${path}?erro=numero`;
   if (error instanceof CandidateSlugInputError) return `${path}?erro=slug`;
   if (!(error instanceof SupabaseRequestError)) return null;
   if (error.code === "PGRST204") return `${path}?erro=estrutura`;
@@ -226,6 +237,7 @@ export async function createCandidatoAction(formData: FormData) {
       cargo: nullableText(formData, "cargo", 100),
       estado: nullableText(formData, "estado", 60),
       municipio: nullableText(formData, "municipio", 120),
+      numero: candidateNumber(formData),
       dominio_formularios: candidateDomain(formData),
       slug_publico: candidateSlug(formData, nome)
     });
@@ -255,6 +267,7 @@ export async function updateCandidatoAction(formData: FormData) {
       cargo: nullableText(formData, "cargo", 100),
       estado: nullableText(formData, "estado", 60),
       municipio: nullableText(formData, "municipio", 120),
+      numero: candidateNumber(formData),
       dominio_formularios: candidateDomain(formData),
       slug_publico: candidateSlug(formData, nome)
     });

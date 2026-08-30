@@ -12,6 +12,7 @@ import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 import type { CampaignVideoItem } from "@/lib/campaign-video-carousel";
+import { resolveCandidateNumber } from "@/lib/campaign-settings";
 
 export type CampaignRenderData = {
   assinaturasMeta: number | null;
@@ -20,6 +21,7 @@ export type CampaignRenderData = {
     estado: string | null;
     municipio: string | null;
     nome: string | null;
+    numero: string | null;
     partido: string | null;
   } | null;
   corDestaque: string | null;
@@ -90,13 +92,21 @@ export function CampaignPublicRenderer({
   totalAssinaturas: number;
 }) {
   const candidateName = campanha.candidato?.nome || "Campanha Cidadã";
+  const candidateNumber = resolveCandidateNumber(
+    campanha.candidato?.numero,
+    campanha.settings,
+  );
   const [candidateFirstLine, candidateSecondLine] = splitCandidateName(candidateName);
   const accent = /^#[0-9A-F]{6}$/i.test(campanha.corDestaque || "")
     ? campanha.corDestaque || "#E05A5A"
     : "#E05A5A";
   const title = campanha.titulo || "Participe deste abaixo-assinado";
   const description = campanha.descricao;
-  const candidateMeta = [campanha.candidato?.cargo, campanha.candidato?.partido]
+  const candidateMeta = [
+    campanha.candidato?.cargo,
+    campanha.candidato?.partido,
+    candidateNumber ? `Nº ${candidateNumber}` : null,
+  ]
     .filter(Boolean)
     .join(" · ");
   const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
@@ -185,7 +195,7 @@ export function CampaignPublicRenderer({
           <div className="campaign-theme2-mark">
             {candidateFirstLine ? <span>{candidateFirstLine} </span> : null}
             <strong>{candidateSecondLine}</strong>
-            <small>— Abaixo-assinado</small>
+            <small>— {candidateNumber ? `${candidateNumber} · ` : ""}Abaixo-assinado</small>
           </div>
           <a className="campaign-theme2-mini-cta" href="#assinar">🚨 Assinar agora</a>
         </header>
@@ -302,7 +312,10 @@ export function CampaignPublicRenderer({
         <nav aria-label="Campanha" className="campaign-nav">
           <div className="campaign-candidate-name">
             <span>{candidateFirstLine}</span>
-            <strong>{candidateSecondLine}</strong>
+            <strong>
+              {candidateSecondLine}
+              {candidateNumber ? <small> · {candidateNumber}</small> : null}
+            </strong>
           </div>
           <a className="campaign-nav-cta" href="#assinar">
             <PenLine aria-hidden="true" size={17} /> Assinar

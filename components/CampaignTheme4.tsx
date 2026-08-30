@@ -11,7 +11,7 @@ import { CampaignTheme4SignatureModal } from "@/components/CampaignTheme4Signatu
 import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
-import { campaignAllowsSharing } from "@/lib/campaign-settings";
+import { campaignAllowsSharing, resolveCandidateNumber } from "@/lib/campaign-settings";
 import {
   legacyCampaignVideoCarousel,
   type CampaignVideoItem,
@@ -42,6 +42,7 @@ type Theme4Campaign = {
   titleHighlights: CampaignTitleHighlight[] | null;
   candidato: {
     nome: string | null;
+    numero: string | null;
   } | null;
 };
 
@@ -69,6 +70,10 @@ export function CampaignTheme4({
   const manifestoTitle = campanha.tituloTopicos?.trim() || "Nossa voz merece ser ouvida.";
   const manifestoBlocks = splitBlocks(campanha.textoTopicos);
   const candidateName = campanha.candidato?.nome?.trim() || "Responsável pela campanha";
+  const candidateNumber = resolveCandidateNumber(
+    campanha.candidato?.numero,
+    campanha.settings,
+  );
   const videos = campanha.videoCarousel ?? legacyCampaignVideoCarousel({
     caption: campanha.legendaVideo,
     url: campanha.videoUrl,
@@ -88,7 +93,7 @@ export function CampaignTheme4({
       <header className="campaign-theme4-topbar">
         <a className="campaign-theme4-brand" href="#topo">
           <span>01</span>
-          {brand}
+          {brand}{candidateNumber ? ` · Nº ${candidateNumber}` : ""}
         </a>
         <a className="campaign-theme4-button campaign-theme4-button-small" href="#assinar">
           Assinar agora

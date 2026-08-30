@@ -20,9 +20,10 @@ export default async function NewAdminCampaignPage({
   const requestedTheme = Array.isArray(params.theme) ? params.theme[0] : params.theme;
   const initialThemeKey = requestedTheme ? getThemeByKey(requestedTheme)?.key : undefined;
   const candidateOptions = await listCandidateOptions();
-  const candidates = candidateOptions.map(({ id, nome, partido }) => ({
+  const candidates = candidateOptions.map(({ id, nome, numero, partido }) => ({
     id,
-    nome: partido ? `${nome} (${partido})` : nome
+    nome: partido ? `${nome} (${partido})` : nome,
+    numero,
   }));
 
   return (

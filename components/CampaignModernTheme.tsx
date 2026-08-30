@@ -12,7 +12,7 @@ import { CampaignRichText } from "@/components/CampaignRichText";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
-import { campaignAllowsSharing } from "@/lib/campaign-settings";
+import { campaignAllowsSharing, resolveCandidateNumber } from "@/lib/campaign-settings";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 
 type ModernThemeId = 5 | 6 | 7;
@@ -24,6 +24,7 @@ type ModernCampaign = {
     estado: string | null;
     municipio: string | null;
     nome: string | null;
+    numero: string | null;
     partido: string | null;
   } | null;
   descricao: string | null;
@@ -104,6 +105,10 @@ export function CampaignModernTheme({
   const meta = themeMeta[themeId];
   const title = campanha.titulo || "Participe desta mobilização";
   const brand = campanha.textoFaixa?.trim() || campanha.candidato?.nome || "Mobilização cidadã";
+  const candidateNumber = resolveCandidateNumber(
+    campanha.candidato?.numero,
+    campanha.settings,
+  );
   const location = [campanha.candidato?.municipio, campanha.candidato?.estado]
     .filter(Boolean)
     .join(" / ");
@@ -135,7 +140,10 @@ export function CampaignModernTheme({
         <div className="campaign-modern-orbit" aria-hidden="true"><i /><i /><i /></div>
         <div className="campaign-modern-wrap campaign-modern-hero-grid">
           <div className="campaign-modern-hero-copy">
-            <div className="campaign-modern-eyebrow">{campanha.textoDot || meta.eyebrow}</div>
+            <div className="campaign-modern-eyebrow">
+              {candidateNumber ? `Nº ${candidateNumber} · ` : ""}
+              {campanha.textoDot || meta.eyebrow}
+            </div>
             <h1>
               <CampaignHeadline
                 highlights={campanha.titleHighlights}

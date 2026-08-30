@@ -95,9 +95,9 @@ describe("tema 8 · Bandeira", () => {
     expect(container.querySelectorAll(".bandeira-benefit")).toHaveLength(3);
   });
 
-  it("mostra o número do candidato quando settings o traz", () => {
+  it("mostra o número cadastrado no candidato", () => {
     const { container } = renderBandeira({
-      settings: { allow_sharing: true, candidate_number: "22110", require_consent: true },
+      candidateNumber: "22110",
     });
 
     expect(container.querySelector(".bandeira-wordmark b")).toHaveTextContent("22110");
@@ -110,6 +110,15 @@ describe("tema 8 · Bandeira", () => {
     });
 
     expect(container.querySelector(".bandeira-wordmark b")).toBeNull();
+  });
+
+  it("prioriza o número vinculado ao candidato", () => {
+    const { container } = renderBandeira({
+      candidateNumber: "20221",
+      settings: { allow_sharing: true, candidate_number: "22110", require_consent: true },
+    });
+
+    expect(container.querySelector(".bandeira-wordmark b")).toHaveTextContent("20221");
   });
 
   it("esconde o player quando não há vídeos", () => {

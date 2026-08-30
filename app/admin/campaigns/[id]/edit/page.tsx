@@ -28,9 +28,10 @@ export default async function EditAdminCampaignPage({
 
   if (!campaign) notFound();
 
-  const candidates = candidateOptions.map(({ id: candidateId, nome, partido }) => ({
+  const candidates = candidateOptions.map(({ id: candidateId, nome, numero, partido }) => ({
     id: candidateId,
-    nome: partido ? `${nome} (${partido})` : nome
+    nome: partido ? `${nome} (${partido})` : nome,
+    numero,
   }));
 
   return (

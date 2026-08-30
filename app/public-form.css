@@ -103,6 +103,12 @@
   font-weight: 700;
 }
 
+.campaign-candidate-name strong small {
+  color: var(--campaign-gold);
+  font-size: 0.58em;
+  white-space: nowrap;
+}
+
 .campaign-nav-cta {
   display: inline-flex;
   min-height: 42px;

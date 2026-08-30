@@ -9,6 +9,10 @@ describe("formulário de novo candidato", () => {
 
     expect(screen.getByLabelText("Nome * (obrigatório)")).toBeInTheDocument();
     expect(screen.getByLabelText("Partido")).toBeInTheDocument();
+    expect(screen.getByLabelText("Número do candidato")).toHaveAttribute(
+      "pattern",
+      "[0-9]{1,8}",
+    );
     expect(screen.getByLabelText("Cargo")).toBeInTheDocument();
     expect(screen.getByLabelText("Estado")).toBeInTheDocument();
     expect(screen.getByLabelText("Município")).toBeInTheDocument();

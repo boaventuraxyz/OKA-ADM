@@ -52,6 +52,20 @@ describe("compartilhamento por tema", () => {
   );
 });
 
+describe("número do candidato por tema", () => {
+  it.each(THEME_REGISTRY)(
+    "usa automaticamente o número cadastrado no tema $id · $name",
+    (theme) => {
+      const { container } = renderTheme(theme, {
+        candidateName: "Miguel Patriota",
+        candidateNumber: "20221",
+      });
+
+      expect(container).toHaveTextContent("20221");
+    },
+  );
+});
+
 describe("tema 4 · impacto escuro", () => {
   const impactDark = THEME_REGISTRY.find((theme) => theme.key === "impact-dark")!;
 
