@@ -12,6 +12,7 @@ import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import {
+  parseBandeiraSectionLabels,
   parseCampaignLegalFooter,
   parseCandidateNumber,
 } from "@/lib/campaign-settings";
@@ -105,6 +106,7 @@ export function CampaignBandeiraTheme({
   const benefits = lines(campanha.textoConclusao);
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
   const heroPhoto = campanha.imagemLateralUrl || null;
+  const sectionLabels = parseBandeiraSectionLabels(campanha.settings);
   const legal = parseCampaignLegalFooter(campanha.settings);
   const videos = campanha.videoCarousel ?? legacyCampaignVideoCarousel({
     caption: campanha.tituloVideo,
@@ -176,7 +178,7 @@ export function CampaignBandeiraTheme({
           ) : null}
           <div aria-hidden="true" className="bandeira-hero-overlay" />
           <div className="bandeira-shell bandeira-hero-copy">
-            <span className="bandeira-eyebrow">Movimento oficial</span>
+            <span className="bandeira-eyebrow">{sectionLabels.hero}</span>
             <h1>
               <CampaignHeadline highlights={campanha.titleHighlights} text={title} />
             </h1>
@@ -203,7 +205,7 @@ export function CampaignBandeiraTheme({
           <div aria-hidden="true" className="bandeira-support-glow" />
           <div className="bandeira-shell bandeira-support-grid">
             <div className="bandeira-support-copy">
-              <span className="bandeira-index light">Apoio</span>
+              <span className="bandeira-index light">{sectionLabels.support}</span>
               <h2>{supportTitle}</h2>
               {supportBlocks.map((block, index) => (
                 <CampaignRichText
@@ -236,7 +238,7 @@ export function CampaignBandeiraTheme({
           <div className="bandeira-shell">
             <div className="bandeira-flags-heading">
               <div className="bandeira-flags-heading-copy">
-                <span className="bandeira-index light">Bandeiras</span>
+                <span className="bandeira-index light">{sectionLabels.topics}</span>
                 {campanha.tituloAssinar ? <h2>{campanha.tituloAssinar}</h2> : null}
                 {campanha.textoTopicosIntro ? (
                   <p>{campanha.textoTopicosIntro}</p>
@@ -267,7 +269,7 @@ export function CampaignBandeiraTheme({
       <section className="bandeira-group" id="assinar">
         <div className="bandeira-shell bandeira-group-grid">
           <div className="bandeira-group-intro">
-            <span className="bandeira-index">Grupo oficial</span>
+            <span className="bandeira-index">{sectionLabels.group}</span>
             <h2>{groupTitle}</h2>
             <p>{groupSupport}</p>
           </div>

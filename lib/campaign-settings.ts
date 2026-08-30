@@ -31,6 +31,42 @@ export function parseCandidateNumber(settings: unknown) {
   return digits || null;
 }
 
+export type BandeiraSectionLabels = {
+  group: string;
+  hero: string;
+  support: string;
+  topics: string;
+};
+
+const DEFAULT_BANDEIRA_LABELS: BandeiraSectionLabels = {
+  group: "Grupo oficial",
+  hero: "Movimento oficial",
+  support: "Apoio",
+  topics: "Bandeiras",
+};
+
+function sectionLabel(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim()
+    ? value.trim().slice(0, 60)
+    : fallback;
+}
+
+/**
+ * Rótulos editoriais opcionais do tema Bandeira. Campanhas existentes mantêm
+ * a linguagem original; páginas informativas podem descrever cada seção sem
+ * herdar chamadas de mobilização que não correspondem ao seu conteúdo.
+ */
+export function parseBandeiraSectionLabels(settings: unknown): BandeiraSectionLabels {
+  const source = record(record(settings)?.bandeira_labels);
+
+  return {
+    group: sectionLabel(source?.group, DEFAULT_BANDEIRA_LABELS.group),
+    hero: sectionLabel(source?.hero, DEFAULT_BANDEIRA_LABELS.hero),
+    support: sectionLabel(source?.support, DEFAULT_BANDEIRA_LABELS.support),
+    topics: sectionLabel(source?.topics, DEFAULT_BANDEIRA_LABELS.topics),
+  };
+}
+
 export type CampaignLegalFooter = {
   candidateCnpj: string;
   committee: string;
