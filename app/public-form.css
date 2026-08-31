@@ -5166,6 +5166,18 @@ select.form-input {
   object-position: top center;
 }
 
+.campaign-theme-8 .bandeira-hero-picture {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+}
+
+.campaign-theme-8 .bandeira-hero-picture .bandeira-hero-media {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .campaign-theme-8 .bandeira-hero-overlay {
   background: linear-gradient(
     180deg,
@@ -5634,6 +5646,10 @@ select.form-input {
   .campaign-theme-8 .bandeira-hero-stage,
   .campaign-theme-8 .bandeira-hero-stage.without-media {
     min-height: 92svh;
+  }
+
+  .campaign-theme-8 .bandeira-hero-stage.has-desktop-media .bandeira-hero-media {
+    object-position: center;
   }
 
   .campaign-theme-8 .bandeira-hero-copy {

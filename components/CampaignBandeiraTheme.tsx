@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { Bell, CalendarDays, Eye, Megaphone, MessageCircle } from "lucide-react";
 
 import {
@@ -182,6 +182,39 @@ export function CampaignBandeiraTheme({
   const heroPhoto = isFelipeSertanejo
     ? "/campaigns/felipe-sertanejo/hero.png"
     : campanha.imagemLateralUrl || assets.heroUrl;
+  const desktopHeroPhoto = isFelipeSertanejo
+    ? "/campaigns/felipe-sertanejo/hero-desktop.png"
+    : null;
+  const responsiveHero = desktopHeroPhoto && heroPhoto
+    ? (() => {
+        const common = {
+          alt: `Banner da campanha de ${candidateName}`,
+          fetchPriority: "high" as const,
+          loading: "eager" as const,
+          sizes: "100vw",
+        };
+        const {
+          props: { srcSet: desktopSrcSet },
+        } = getImageProps({
+          ...common,
+          height: 893,
+          quality: 75,
+          src: desktopHeroPhoto,
+          width: 1600,
+        });
+        const {
+          props: { alt: imageAlt, srcSet: mobileSrcSet, ...imageProps },
+        } = getImageProps({
+          ...common,
+          height: 1376,
+          quality: 75,
+          src: heroPhoto,
+          width: 768,
+        });
+
+        return { desktopSrcSet, imageAlt, imageProps, mobileSrcSet };
+      })()
+    : null;
   const sectionLabels = parseBandeiraSectionLabels(campanha.settings);
   const legal = parseCampaignLegalFooter(campanha.settings);
   const videos = campanha.videoCarousel ?? legacyCampaignVideoCarousel({
@@ -258,8 +291,20 @@ export function CampaignBandeiraTheme({
           </a>
         </div>
 
-        <div className={`bandeira-hero-stage ${heroPhoto ? "has-media" : "without-media"}`}>
-          {heroPhoto ? (
+        <div
+          className={`bandeira-hero-stage ${heroPhoto ? "has-media" : "without-media"}${desktopHeroPhoto ? " has-desktop-media" : ""}`}
+        >
+          {responsiveHero ? (
+            <picture className="bandeira-hero-picture">
+              <source media="(min-width: 1024px)" srcSet={responsiveHero.desktopSrcSet} />
+              <source media="(max-width: 1023px)" srcSet={responsiveHero.mobileSrcSet} />
+              <img
+                {...responsiveHero.imageProps}
+                alt={responsiveHero.imageAlt}
+                className="bandeira-hero-media"
+              />
+            </picture>
+          ) : heroPhoto ? (
             <Image
               alt={`Banner da campanha de ${candidateName}`}
               className="bandeira-hero-media"

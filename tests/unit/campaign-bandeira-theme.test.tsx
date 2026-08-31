@@ -158,9 +158,16 @@ describe("tema 8 · Bandeira", () => {
       "src",
       "/campaigns/felipe-sertanejo/logo.png",
     );
-    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
-      "src",
-      "/campaigns/felipe-sertanejo/hero.png",
+    expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
+      encodeURIComponent("/campaigns/felipe-sertanejo/hero.png"),
+    );
+    expect(
+      container
+        .querySelector('source[media="(min-width: 1024px)"]')
+        ?.getAttribute("srcset"),
+    ).toContain(encodeURIComponent("/campaigns/felipe-sertanejo/hero-desktop.png"));
+    expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
+      "has-desktop-media",
     );
     expect(container.querySelector(".campaign-headline-custom")).toBeNull();
   });
