@@ -7,6 +7,16 @@ import {
 } from "@/components/CampaignCaptureModal";
 
 describe("pop-up de captação", () => {
+  it("pode abrir automaticamente assim que a página carrega", () => {
+    render(
+      <CampaignCaptureProvider autoOpen form={<p>Formulário</p>} title="Participe">
+        <CampaignCaptureTrigger>Abrir formulário</CampaignCaptureTrigger>
+      </CampaignCaptureProvider>,
+    );
+
+    expect(screen.getByRole("dialog")).toHaveAttribute("open");
+  });
+
   it("abre e fecha mesmo quando a API nativa de dialog não está disponível", () => {
     render(
       <CampaignCaptureProvider form={<p>Formulário</p>} title="Participe">

@@ -6,10 +6,10 @@ import {
   Check,
   CheckCircle2,
   CircleAlert,
+  Eye,
   FileText,
   FormInput,
   Globe2,
-  LayoutTemplate,
   Monitor,
   Palette,
   Plus,
@@ -38,7 +38,7 @@ import { Badge } from "@/components/ui/Badge";
 import { CampaignBackgroundField } from "@/components/CampaignBackgroundField";
 import { CampaignVideoCarouselField } from "@/components/CampaignVideoCarouselField";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FormField } from "@/components/ui/FormField";
 import { IconButton } from "@/components/ui/IconButton";
@@ -86,7 +86,7 @@ export type CampaignEditorProps = {
   mode: "create" | "edit";
 };
 
-type EditorTab = "content" | "form" | "theme" | "seo" | "settings" | "preview";
+type EditorTab = "content" | "form" | "theme" | "seo" | "settings";
 type SaveFeedback = "idle" | "saving" | "saved" | "error";
 type FieldErrors = Record<string, string[]>;
 type RegistryTheme = (typeof THEME_REGISTRY)[number];
@@ -207,8 +207,7 @@ const tabs = [
   { icon: FormInput, id: "form", label: "Formulário" },
   { icon: Palette, id: "theme", label: "Tema" },
   { icon: Globe2, id: "seo", label: "SEO" },
-  { icon: Settings2, id: "settings", label: "Configurações" },
-  { icon: LayoutTemplate, id: "preview", label: "Preview" }
+  { icon: Settings2, id: "settings", label: "Ajustes" }
 ] as const satisfies readonly { icon: LucideIcon; id: EditorTab; label: string }[];
 
 const previewDevices = [
@@ -956,6 +955,7 @@ function EditorTabList({
             }}
             role="tab"
             tabIndex={selected ? 0 : -1}
+            title={tab.label}
             type="button"
           >
             <Icon aria-hidden="true" size={17} />
@@ -1745,25 +1745,37 @@ function PreviewPanel({
   const selectedCandidate = candidates.find((candidate) => candidate.id === values.candidatoId);
 
   return (
-    <div className={styles.panelStack}>
-      <div className={styles.panelIntro}>
+    <aside aria-label="Preview da página em tempo real" className={styles.livePreview}>
+      <div className={styles.previewToolbar}>
         <div>
-          <p>Conferência visual</p>
-          <h2>Preview</h2>
+          <span className={styles.livePreviewLabel}>
+            <Eye aria-hidden="true" size={15} />
+            Preview ao vivo
+          </span>
+          <strong>{theme.name}</strong>
         </div>
-        <span>Tema, cor, textos e campos acompanham as alterações ainda não salvas.</span>
-      </div>
-      <div aria-label="Dispositivo da prévia" className={styles.deviceControls} role="group">
-        {previewDevices.map((option) => {
-          const Icon = option.icon;
-          const selected = device === option.id;
-          return (
-            <Button aria-pressed={selected} key={option.id} onClick={() => onDeviceChange(option.id)} variant={selected ? "primary" : "secondary"}>
-              <Icon aria-hidden="true" size={17} />
-              {option.label}
-            </Button>
-          );
-        })}
+        <div aria-label="Dispositivo da prévia" className={styles.deviceControls} role="group">
+          {previewDevices.map((option) => {
+            const Icon = option.icon;
+            const selected = device === option.id;
+            return (
+              <Button
+                aria-label={`Visualizar em ${option.label}`}
+                aria-pressed={selected}
+                className={`${styles.deviceButton} ${selected ? styles.deviceButtonActive : ""}`}
+                key={option.id}
+                onClick={() => onDeviceChange(option.id)}
+                size="small"
+                title={option.label}
+                type="button"
+                variant={selected ? "primary" : "ghost"}
+              >
+                <Icon aria-hidden="true" size={17} />
+                <span>{option.label}</span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
       <div className={styles.previewFrame}>
         <ThemePreview
@@ -1814,21 +1826,15 @@ function PreviewPanel({
           theme={theme}
         />
       </div>
-      <Card>
-        <CardHeader className={styles.previewSummaryHeader}>
-          <div>
-            <small>Tema {theme.id}</small>
-            <h3>{values.titulo || "Campanha sem título"}</h3>
-            <code>/f/{values.slug || "slug-gerado-ao-salvar"}</code>
-          </div>
-          <Badge variant="info">{theme.name}</Badge>
-        </CardHeader>
-        <CardContent className={styles.previewSummary}>
-          <p>{values.descricao || "Adicione um resumo para apresentar a causa com clareza."}</p>
-          <span>{fields.length} {fields.length === 1 ? "campo configurado" : "campos configurados"}</span>
-        </CardContent>
-      </Card>
-    </div>
+      <div className={styles.previewStatus}>
+        <div>
+          <span>Página pública</span>
+          <strong>{values.titulo || "Campanha sem título"}</strong>
+          <code>/f/{values.slug || "slug-gerado-ao-salvar"}</code>
+        </div>
+        <span>{fields.length} {fields.length === 1 ? "campo" : "campos"}</span>
+      </div>
+    </aside>
   );
 }
 
@@ -1847,7 +1853,7 @@ export function CampaignEditor({
   const [settings, setSettings] = useState(initial.snapshot.settings);
   const [baseline, setBaseline] = useState(initial.snapshot);
   const [campaignVersion, setCampaignVersion] = useState(initialCampaign?.updated_at);
-  const [activeTab, setActiveTab] = useState<EditorTab>(mode === "create" ? "theme" : "content");
+  const [activeTab, setActiveTab] = useState<EditorTab>("content");
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(initialCampaign?.slug));
   const [feedback, setFeedback] = useState<SaveFeedback>("idle");
@@ -2184,8 +2190,6 @@ export function CampaignEditor({
         return <SeoPanel errors={fieldErrors} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "settings":
         return <SettingsPanel errors={fieldErrors} onLegalChange={changeLegalField} mode={mode} onSettingChange={changeSetting} onValueChange={changeValue} prefix={prefix} preserveLegacyAddress={initial.preserveLegacyAddress} settings={settings} status={initialCampaign?.status} values={values} />;
-      case "preview":
-        return <PreviewPanel candidates={candidates} device={previewDevice} fields={fields} onDeviceChange={setPreviewDevice} settings={settings} theme={selectedTheme} values={values} />;
     }
   })();
 
@@ -2207,19 +2211,42 @@ export function CampaignEditor({
     <form className={styles.editor} onSubmit={handleSubmit}>
       <div className={styles.editorHeader}>
         <div>
-          <p>{mode === "create" ? "Nova campanha" : "Editor de campanha"}</p>
+          <p>{mode === "create" ? "Editor visual · Nova campanha" : "Editor visual · Campanha"}</p>
           <h1>{values.titulo || (mode === "create" ? "Campanha sem título" : "Editar campanha")}</h1>
           <span>
             {mode === "create"
-              ? "A criação será salva como rascunho."
+              ? "Preencha os campos e acompanhe a página pronta no preview ao lado."
               : initialCampaign?.status === "published"
                 ? "Alterações válidas são salvas automaticamente e atualizam a página publicada."
                 : "Alterações válidas deste rascunho são salvas automaticamente."}
           </span>
         </div>
-        <Badge variant={statusBadgeVariant}>
-          {mode === "create" ? "Rascunho novo" : initialCampaign?.status || "Indisponível"}
-        </Badge>
+        <div className={styles.editorHeaderActions}>
+          <div aria-live="polite" className={styles.saveStatus} role="status">
+            {feedback === "saved" && !dirty ? (
+              <Check aria-hidden="true" size={17} />
+            ) : feedback === "error" ? (
+              <CircleAlert aria-hidden="true" size={17} />
+            ) : (
+              <Save aria-hidden="true" size={17} />
+            )}
+            <span>
+              <strong>{feedbackLabel}</strong>
+              <small>
+                {mode === "edit" && editableCampaign
+                  ? "Salvamento automático ativo"
+                  : "Salve quando estiver pronto"}
+              </small>
+            </span>
+          </div>
+          <Badge variant={statusBadgeVariant}>
+            {mode === "create" ? "Rascunho novo" : initialCampaign?.status || "Indisponível"}
+          </Badge>
+          <Button disabled={!editableCampaign || missingCampaign} loading={isPending} size="large" type="submit" variant="primary">
+            <Save aria-hidden="true" size={18} />
+            {mode === "create" ? "Salvar rascunho" : "Salvar"}
+          </Button>
+        </div>
       </div>
 
       {missingCampaign ? (
@@ -2241,42 +2268,30 @@ export function CampaignEditor({
         </div>
       ) : null}
 
-      <Card className={styles.editorCard}>
-        <EditorTabList activeTab={activeTab} onChange={setActiveTab} prefix={prefix} />
-        <CardContent className={styles.panelContent}>
-          <section
-            aria-labelledby={`${prefix}-${activeTab}-tab`}
-            id={`${prefix}-${activeTab}-panel`}
-            role="tabpanel"
-            tabIndex={0}
-          >
-            {activePanel}
-          </section>
-        </CardContent>
-      </Card>
+      <div className={styles.editorWorkspace}>
+        <Card className={styles.editorCard}>
+          <EditorTabList activeTab={activeTab} onChange={setActiveTab} prefix={prefix} />
+          <CardContent className={styles.panelContent}>
+            <section
+              aria-labelledby={`${prefix}-${activeTab}-tab`}
+              id={`${prefix}-${activeTab}-panel`}
+              role="tabpanel"
+              tabIndex={0}
+            >
+              {activePanel}
+            </section>
+          </CardContent>
+        </Card>
 
-      <div className={styles.saveBar}>
-        <div aria-live="polite" className={styles.saveStatus} role="status">
-          {feedback === "saved" && !dirty ? (
-            <Check aria-hidden="true" size={17} />
-          ) : feedback === "error" ? (
-            <CircleAlert aria-hidden="true" size={17} />
-          ) : (
-            <Save aria-hidden="true" size={17} />
-          )}
-          <span>
-            <strong>{feedbackLabel}</strong>
-            <small>
-              {mode === "edit" && editableCampaign
-                ? "Autosave ativo; o botão manual continua disponível"
-                : "Primeiro salvamento manual e seguro"}
-            </small>
-          </span>
-        </div>
-        <Button disabled={!editableCampaign || missingCampaign} loading={isPending} size="large" type="submit" variant="primary">
-          <Save aria-hidden="true" size={18} />
-          {mode === "create" ? "Salvar rascunho" : "Salvar alterações"}
-        </Button>
+        <PreviewPanel
+          candidates={candidates}
+          device={previewDevice}
+          fields={fields}
+          onDeviceChange={setPreviewDevice}
+          settings={settings}
+          theme={selectedTheme}
+          values={values}
+        />
       </div>
     </form>
   );

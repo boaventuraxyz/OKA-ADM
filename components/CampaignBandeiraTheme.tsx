@@ -141,6 +141,7 @@ export function CampaignBandeiraTheme({
 
   return (
     <CampaignCaptureProvider
+      autoOpen={!preview}
       form={signatureForm}
       title={campanha.textoForm || "Entre para o movimento"}
     >

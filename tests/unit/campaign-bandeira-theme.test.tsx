@@ -12,11 +12,14 @@ import { normalizeCandidateNumber } from "@/lib/campaign-settings";
 
 const bandeira = getThemeByKey("bandeira")!;
 
-function renderBandeira(content: Parameters<typeof createThemePreviewCampaign>[0]["content"] = {}) {
+function renderBandeira(
+  content: Parameters<typeof createThemePreviewCampaign>[0]["content"] = {},
+  preview = true,
+) {
   return render(
     <CampaignPublicRenderer
       campanha={createThemePreviewCampaign({ content, theme: bandeira })}
-      preview
+      preview={preview}
       totalAssinaturas={0}
     />
   );
@@ -144,6 +147,19 @@ describe("tema 8 · Bandeira", () => {
 });
 
 describe("modal de captação", () => {
+  it("abre ao carregar a página pública, mas não bloqueia o preview do editor", () => {
+    const publicPage = renderBandeira({}, false);
+    expect(publicPage.container.querySelector(".campaign-capture-modal")).toHaveAttribute(
+      "open",
+    );
+    publicPage.unmount();
+
+    const previewPage = renderBandeira();
+    expect(previewPage.container.querySelector(".campaign-capture-modal")).not.toHaveAttribute(
+      "open",
+    );
+  });
+
   it("usa um único diálogo para todos os botões da página", () => {
     const { container } = renderBandeira();
 

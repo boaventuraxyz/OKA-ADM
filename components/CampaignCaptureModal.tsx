@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { createContext, useContext, useRef } from "react";
+import { createContext, useContext, useEffect, useRef } from "react";
 
 /**
  * Um único diálogo por página, aberto por vários gatilhos. Renderizar um modal
@@ -29,15 +29,21 @@ function closeDialog(dialog: HTMLDialogElement | null) {
 }
 
 export function CampaignCaptureProvider({
+  autoOpen = false,
   children,
   form,
   title,
 }: {
+  autoOpen?: boolean;
   children: ReactNode;
   form: ReactNode;
   title: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (autoOpen) openDialog(dialogRef.current);
+  }, [autoOpen]);
 
   function closeOnBackdrop(event: MouseEvent<HTMLDialogElement>) {
     if (event.target === event.currentTarget) closeDialog(event.currentTarget);
