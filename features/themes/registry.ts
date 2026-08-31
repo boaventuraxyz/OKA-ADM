@@ -555,7 +555,7 @@ export const THEME_REGISTRY = [
       { key: "grafite", name: "Grafite", description: "Neutro escuro, com o amarelo isolado como acento.", palette: { background: "#14161A", surface: "#0B0D10", text: "#FAFAFA", accent: "#1EC65B", secondary: "#F7CB34" } }
     ],
     capabilities: {
-      backgroundImage: false,
+      backgroundImage: true,
       sideImage: true,
       video: true,
       longform: true,
@@ -569,7 +569,8 @@ export const THEME_REGISTRY = [
         description: "Chamada central sobre o banner principal.",
         fields: [
           { key: "descricao", label: "Texto do topo", maxLength: 5000, type: "textarea", help: "Separe os parágrafos com uma linha em branco. O último vira a chamada em caixa alta." },
-          { key: "imagem_lateral", label: "Banner do topo", maxLength: 7000000, type: "image", help: "Use uma imagem horizontal, de preferência 16:9." }
+          { key: "imagem_fundo", label: "Logo da campanha", maxLength: 7000000, type: "image", help: "Prefira um PNG transparente e horizontal." },
+          { key: "imagem_lateral", label: "Foto principal", maxLength: 7000000, type: "image", help: "Use uma imagem vertical, com os rostos na metade superior." }
         ]
       },
       {

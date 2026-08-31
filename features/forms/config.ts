@@ -342,12 +342,23 @@ export function normalizePublicFormConfiguration(
       seenKeys.add(field.key);
       return true;
     });
-  const fields = progressiveFields(normalizedFields);
-  const capture = normalizeCapture(form?.capture);
+  const configuredCapture = normalizeCapture(form?.capture);
+  const preserveConfiguredFlow =
+    form?.captureMode === "configured" &&
+    normalizedFields.length > 0 &&
+    configuredCapture !== null;
+  const fields = preserveConfiguredFlow
+    ? normalizedFields
+    : progressiveFields(normalizedFields);
+  const capture = preserveConfiguredFlow
+    ? configuredCapture
+    : progressiveCapture(configuredCapture, fields);
 
   return {
-    capture: progressiveCapture(capture, fields),
-    collectAddress: true,
+    capture,
+    collectAddress: preserveConfiguredFlow
+      ? fields.some((field) => field.type === "cep" || field.type === "city")
+      : true,
     fields,
     legacy: !configuredFields,
     // Consent is a legal/security invariant and cannot be disabled by JSON.

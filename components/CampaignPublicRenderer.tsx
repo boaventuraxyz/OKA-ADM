@@ -35,6 +35,7 @@ export type CampaignRenderData = {
   notaCitacao: string | null;
   notaVideo: string | null;
   settings: Record<string, unknown> | null;
+  slug: string | null;
   tema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   textoAssinar: string | null;
   textoCitacao: string | null;

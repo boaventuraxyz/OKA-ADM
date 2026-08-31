@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import { MessageCircle } from "lucide-react";
+import { Bell, CalendarDays, Eye, Megaphone, MessageCircle } from "lucide-react";
 
 import {
   CampaignCaptureProvider,
@@ -12,6 +12,7 @@ import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import {
+  parseBandeiraAssets,
   parseBandeiraSectionLabels,
   parseCampaignLegalFooter,
   resolveCandidateNumber,
@@ -38,6 +39,7 @@ type BandeiraCampaign = {
   imagemFundoUrl?: string | null;
   imagemLateralUrl?: string | null;
   settings: Record<string, unknown> | null;
+  slug: string | null;
   textoAssinar: string | null;
   textoCitacao: string | null;
   textoCompartilhar: string | null;
@@ -85,6 +87,72 @@ function flags(value?: string | null) {
   });
 }
 
+const FELIPE_FORM_CONFIG = {
+  captureMode: "configured",
+  capture: {
+    consentText:
+      "Autorizo a campanha de Felipe Sertanejo e o Partido Liberal (PL) a me enviarem avisos, conteúdos, convites e pesquisas de opinião por WhatsApp e SMS. Posso cancelar quando quiser.",
+    done: {
+      buttonLabel: "Fazer parte do grupo",
+      label: "Pronto",
+      message:
+        "Você já faz parte do movimento. Estamos te levando para o grupo oficial no WhatsApp.",
+      title: "Cadastro confirmado!",
+    },
+    steps: [
+      {
+        fields: ["nome", "telefone"],
+        label: "Seus dados",
+        note:
+          "Ao continuar, seu nome e WhatsApp ficam registrados com a campanha. Você conclui o cadastro na próxima etapa.",
+        submitLabel: "Continuar",
+        subtitle: "Leva 10 segundos. Depois você já cai direto no grupo.",
+        title: "Preencha e entre para o movimento",
+      },
+      {
+        fields: ["estado"],
+        label: "Seu estado",
+        note: "Seus dados não são vendidos nem usados para fins comerciais.",
+        submitLabel: "Entrar no grupo",
+        subtitle: "É assim que a campanha se organiza por região.",
+        title: "Qual o seu estado?",
+      },
+    ],
+  },
+  fields: [
+    {
+      id: "name",
+      key: "nome",
+      label: "Nome",
+      options: [],
+      placeholder: "Como você quer ser chamado",
+      required: true,
+      type: "text",
+    },
+    {
+      id: "phone",
+      key: "telefone",
+      label: "WhatsApp",
+      options: [],
+      placeholder: "(11) 9 9999-9999",
+      required: true,
+      type: "phone",
+    },
+    {
+      id: "state",
+      key: "estado",
+      label: "Seu estado",
+      options: [],
+      placeholder: "",
+      required: true,
+      type: "state",
+    },
+  ],
+  version: 1,
+} satisfies Record<string, unknown>;
+
+const BANDEIRA_BENEFIT_ICONS = [CalendarDays, Megaphone, Eye, Bell] as const;
+
 export function CampaignBandeiraTheme({
   accent,
   campanha,
@@ -106,7 +174,14 @@ export function CampaignBandeiraTheme({
   const campaignFlags = flags(campanha.textoTopicos);
   const benefits = lines(campanha.textoConclusao);
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
-  const heroPhoto = campanha.imagemLateralUrl || null;
+  const assets = parseBandeiraAssets(campanha.settings);
+  const isFelipeSertanejo = campanha.slug === "felipe-sertanejo";
+  const brandLogo = isFelipeSertanejo
+    ? "/campaigns/felipe-sertanejo/logo.png"
+    : campanha.imagemFundoUrl || assets.logoUrl;
+  const heroPhoto = isFelipeSertanejo
+    ? "/campaigns/felipe-sertanejo/hero.png"
+    : campanha.imagemLateralUrl || assets.heroUrl;
   const sectionLabels = parseBandeiraSectionLabels(campanha.settings);
   const legal = parseCampaignLegalFooter(campanha.settings);
   const videos = campanha.videoCarousel ?? legacyCampaignVideoCarousel({
@@ -129,7 +204,8 @@ export function CampaignBandeiraTheme({
   const signatureForm = (
     <PublicSignatureForm
       campanhaId={campanha.id}
-      formConfig={campanha.formConfig}
+      captureConfirmationStep
+      formConfig={isFelipeSertanejo ? FELIPE_FORM_CONFIG : campanha.formConfig}
       meta={campanha.assinaturasMeta}
       preview={preview}
       settings={campanha.settings}
@@ -142,6 +218,7 @@ export function CampaignBandeiraTheme({
   return (
     <CampaignCaptureProvider
       autoOpen={!preview}
+      autoOpenDelayMs={5_000}
       form={signatureForm}
       title={campanha.textoForm || "Entre para o movimento"}
     >
@@ -161,8 +238,23 @@ export function CampaignBandeiraTheme({
             className="bandeira-wordmark"
             href="#inicio"
           >
-            <span>{candidateName}</span>
-            {number ? <b>{number}</b> : null}
+            {brandLogo ? (
+              <Image
+                alt={`${candidateName}${office ? ` — ${office}` : ""}`}
+                className="bandeira-brand-logo"
+                height={900}
+                priority={!preview}
+                sizes="(max-width: 640px) 130px, 150px"
+                src={brandLogo}
+                unoptimized
+                width={1600}
+              />
+            ) : (
+              <>
+                <span>{candidateName}</span>
+                {number ? <b>{number}</b> : null}
+              </>
+            )}
           </a>
         </div>
 
@@ -182,7 +274,10 @@ export function CampaignBandeiraTheme({
           <div className="bandeira-shell bandeira-hero-copy">
             <span className="bandeira-eyebrow">{sectionLabels.hero}</span>
             <h1>
-              <CampaignHeadline highlights={campanha.titleHighlights} text={title} />
+              <CampaignHeadline
+                highlights={isFelipeSertanejo ? null : campanha.titleHighlights}
+                text={title}
+              />
             </h1>
             {heroLead.map((block, index) => (
               <CampaignRichText
@@ -195,9 +290,12 @@ export function CampaignBandeiraTheme({
               <CampaignRichText className="bandeira-hero-support" text={heroSupport} />
             ) : null}
             <CampaignCaptureTrigger>
-              <MessageCircle aria-hidden="true" size={20} />
               {groupLabel}
             </CampaignCaptureTrigger>
+            <div aria-hidden="true" className="bandeira-dots">
+              <span className="active" />
+              <span />
+            </div>
           </div>
         </div>
       </header>
@@ -217,7 +315,6 @@ export function CampaignBandeiraTheme({
                 />
               ))}
               <CampaignCaptureTrigger>
-                <MessageCircle aria-hidden="true" size={20} />
                 {groupLabel}
               </CampaignCaptureTrigger>
             </div>
@@ -260,10 +357,6 @@ export function CampaignBandeiraTheme({
                 </article>
               ))}
             </div>
-            <CampaignCaptureTrigger className="bandeira-section-cta">
-              <MessageCircle aria-hidden="true" size={20} />
-              {groupLabel}
-            </CampaignCaptureTrigger>
           </div>
         </section>
       ) : null}
@@ -271,22 +364,29 @@ export function CampaignBandeiraTheme({
       <section className="bandeira-group" id="assinar">
         <div className="bandeira-shell bandeira-group-grid">
           <div className="bandeira-group-intro">
-            <span className="bandeira-index">{sectionLabels.group}</span>
             <h2>{groupTitle}</h2>
             <p>{groupSupport}</p>
           </div>
           {benefits.length > 0 ? (
             <div className="bandeira-benefits">
-              {benefits.map((benefit, index) => (
-                <div className="bandeira-benefit" key={`${index}-${benefit.slice(0, 16)}`}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{benefit}</strong>
-                </div>
-              ))}
+              {benefits.map((benefit, index) => {
+                const BenefitIcon = BANDEIRA_BENEFIT_ICONS[index];
+                return (
+                  <div className="bandeira-benefit" key={`${index}-${benefit.slice(0, 16)}`}>
+                    <span>
+                      {BenefitIcon ? (
+                        <BenefitIcon aria-hidden="true" size={26} />
+                      ) : (
+                        String(index + 1).padStart(2, "0")
+                      )}
+                    </span>
+                    <strong>{benefit}</strong>
+                  </div>
+                );
+              })}
             </div>
           ) : null}
           <CampaignCaptureTrigger className="bandeira-section-cta">
-            <MessageCircle aria-hidden="true" size={20} />
             {groupLabel}
           </CampaignCaptureTrigger>
         </div>

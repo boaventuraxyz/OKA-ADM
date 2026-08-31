@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   CampaignCaptureProvider,
@@ -7,14 +7,46 @@ import {
 } from "@/components/CampaignCaptureModal";
 
 describe("pop-up de captação", () => {
-  it("pode abrir automaticamente assim que a página carrega", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("pode abrir automaticamente depois do tempo configurado", () => {
+    vi.useFakeTimers();
     render(
-      <CampaignCaptureProvider autoOpen form={<p>Formulário</p>} title="Participe">
+      <CampaignCaptureProvider
+        autoOpen
+        autoOpenDelayMs={5_000}
+        form={<p>Formulário</p>}
+        title="Participe"
+      >
         <CampaignCaptureTrigger>Abrir formulário</CampaignCaptureTrigger>
       </CampaignCaptureProvider>,
     );
 
+    expect(screen.getByRole("dialog", { hidden: true })).not.toHaveAttribute("open");
+    act(() => vi.advanceTimersByTime(4_999));
+    expect(screen.getByRole("dialog", { hidden: true })).not.toHaveAttribute("open");
+    act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole("dialog")).toHaveAttribute("open");
+  });
+
+  it("não reabre pelo temporizador depois de uma interação manual", () => {
+    vi.useFakeTimers();
+    render(
+      <CampaignCaptureProvider
+        autoOpen
+        autoOpenDelayMs={5_000}
+        form={<p>Formulário</p>}
+        title="Participe"
+      >
+        <CampaignCaptureTrigger>Abrir formulário</CampaignCaptureTrigger>
+      </CampaignCaptureProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir formulário" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fechar formulário" }));
+    act(() => vi.advanceTimersByTime(5_000));
+
+    expect(screen.getByRole("dialog", { hidden: true })).not.toHaveAttribute("open");
   });
 
   it("abre e fecha mesmo quando a API nativa de dialog não está disponível", () => {

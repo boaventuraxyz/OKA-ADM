@@ -1,9 +1,37 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  parseBandeiraAssets,
   parseBandeiraSectionLabels,
   resolveCandidateNumber,
 } from "@/lib/campaign-settings";
+
+describe("parseBandeiraAssets", () => {
+  it("aceita caminhos internos e URLs HTTPS", () => {
+    expect(
+      parseBandeiraAssets({
+        bandeira_assets: {
+          heroUrl: "/campaigns/felipe/hero.png",
+          logoUrl: "https://cdn.example.com/logo.png",
+        },
+      }),
+    ).toEqual({
+      heroUrl: "/campaigns/felipe/hero.png",
+      logoUrl: "https://cdn.example.com/logo.png",
+    });
+  });
+
+  it("rejeita protocolos não seguros", () => {
+    expect(
+      parseBandeiraAssets({
+        bandeira_assets: {
+          heroUrl: "javascript:alert(1)",
+          logoUrl: "http://example.com/logo.png",
+        },
+      }),
+    ).toEqual({ heroUrl: null, logoUrl: null });
+  });
+});
 
 describe("resolveCandidateNumber", () => {
   it("prioriza o número cadastrado no candidato", () => {

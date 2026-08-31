@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CampaignPublicRenderer } from "@/components/CampaignPublicRenderer";
 import {
@@ -26,6 +26,8 @@ function renderBandeira(
 }
 
 describe("tema 8 · Bandeira", () => {
+  afterEach(() => vi.useRealTimers());
+
   it("mantém somente os dígitos do número do candidato", () => {
     expect(normalizeCandidateNumber("22D11 abc 09")).toBe("221109");
     expect(normalizeCandidateNumber("1234567890")).toBe("12345678");
@@ -36,7 +38,7 @@ describe("tema 8 · Bandeira", () => {
     expect(bandeira.capabilities.signatureModal).toBe(true);
     expect(bandeira.capabilities.video).toBe(true);
     expect(bandeira.capabilities.sideImage).toBe(true);
-    expect(bandeira.capabilities.backgroundImage).toBe(false);
+    expect(bandeira.capabilities.backgroundImage).toBe(true);
     expect(bandeira.capabilities.sharing).toBe(false);
     expect(bandeira.headline.field).toBe("titulo");
   });
@@ -45,6 +47,7 @@ describe("tema 8 · Bandeira", () => {
     const keys = themeContentKeys("bandeira");
     const required: CampaignThemeContentKey[] = [
       "descricao",
+      "imagem_fundo",
       "imagem_lateral",
       "titulo_topicos",
       "texto_contexto",
@@ -63,7 +66,6 @@ describe("tema 8 · Bandeira", () => {
     // O novo layout não usa a antiga seção de missão nem notas auxiliares.
     expect(keys.has("nota_citacao")).toBe(false);
     expect(keys.has("texto_proposta")).toBe(false);
-    expect(keys.has("imagem_fundo")).toBe(false);
   });
 
   it("renderiza as seções da página", () => {
@@ -115,6 +117,54 @@ describe("tema 8 · Bandeira", () => {
     expect(container.querySelector(".bandeira-wordmark b")).toBeNull();
   });
 
+  it("usa a imagem de fundo como logo e a lateral como foto principal", () => {
+    const { container } = renderBandeira({
+      imagemFundoUrl: "/campaigns/felipe/logo.png",
+      imagemLateralUrl: "/campaigns/felipe/hero.png",
+    });
+
+    expect(container.querySelector(".bandeira-brand-logo")).toHaveAttribute(
+      "src",
+      "/campaigns/felipe/logo.png",
+    );
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/campaigns/felipe/hero.png",
+    );
+  });
+
+  it("usa as artes configuradas como reserva", () => {
+    const { container } = renderBandeira({
+      settings: {
+        bandeira_assets: {
+          heroUrl: "/campaigns/felipe/hero.png",
+          logoUrl: "/campaigns/felipe/logo.png",
+        },
+      },
+    });
+
+    expect(container.querySelector(".bandeira-brand-logo")).toBeInTheDocument();
+    expect(container.querySelector(".bandeira-hero-media")).toBeInTheDocument();
+  });
+
+  it("mantém as artes oficiais do Felipe mesmo enquanto o banco ainda tem imagens antigas", () => {
+    const { container } = renderBandeira({
+      imagemFundoUrl: "/imagem-antiga.png",
+      imagemLateralUrl: "/foto-antiga.png",
+      slug: "felipe-sertanejo",
+    });
+
+    expect(container.querySelector(".bandeira-brand-logo")).toHaveAttribute(
+      "src",
+      "/campaigns/felipe-sertanejo/logo.png",
+    );
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/campaigns/felipe-sertanejo/hero.png",
+    );
+    expect(container.querySelector(".campaign-headline-custom")).toBeNull();
+  });
+
   it("prioriza o número vinculado ao candidato", () => {
     const { container } = renderBandeira({
       candidateNumber: "20221",
@@ -147,8 +197,15 @@ describe("tema 8 · Bandeira", () => {
 });
 
 describe("modal de captação", () => {
-  it("abre ao carregar a página pública, mas não bloqueia o preview do editor", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("abre após cinco segundos na página pública, mas não bloqueia o preview do editor", () => {
+    vi.useFakeTimers();
     const publicPage = renderBandeira({}, false);
+    expect(publicPage.container.querySelector(".campaign-capture-modal")).not.toHaveAttribute(
+      "open",
+    );
+    act(() => vi.advanceTimersByTime(5_000));
     expect(publicPage.container.querySelector(".campaign-capture-modal")).toHaveAttribute(
       "open",
     );

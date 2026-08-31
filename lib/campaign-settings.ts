@@ -45,6 +45,28 @@ export type BandeiraSectionLabels = {
   topics: string;
 };
 
+export type BandeiraAssets = {
+  heroUrl: string | null;
+  logoUrl: string | null;
+};
+
+function assetUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const url = value.trim();
+  if (!url || url.length > 2048) return null;
+  return url.startsWith("/") || /^https:\/\/[^\s]+$/i.test(url) ? url : null;
+}
+
+/** Imagens oficiais opcionais do tema, usadas como reserva até um upload no editor. */
+export function parseBandeiraAssets(settings: unknown): BandeiraAssets {
+  const source = record(record(settings)?.bandeira_assets);
+
+  return {
+    heroUrl: assetUrl(source?.heroUrl),
+    logoUrl: assetUrl(source?.logoUrl),
+  };
+}
+
 const DEFAULT_BANDEIRA_LABELS: BandeiraSectionLabels = {
   group: "Grupo oficial",
   hero: "Movimento oficial",

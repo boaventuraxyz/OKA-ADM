@@ -20,6 +20,9 @@ const seedMigrations = [
 const publicationMigrations = [
   "20260830214900_publish_miguel_patriota_informational_campaign.sql",
 ];
+const felipeUpdateMigrations = [
+  "20260831013000_atualizar_imagens_felipe_sertanejo.sql",
+];
 
 const baseline = `
   create role anon nologin;
@@ -121,6 +124,45 @@ if (problems.length) {
   process.exit(1);
 }
 console.log("\nseed valida: aplica, e idempotente e nao carrega dado pessoal");
+
+for (const name of felipeUpdateMigrations) {
+  await db.exec(await read(join("supabase", "migrations", name)));
+  await db.exec(await read(join("supabase", "migrations", name)));
+}
+
+const { rows: updatedFelipeRows } = await db.query(`
+  select
+    settings -> 'bandeira_assets' ->> 'heroUrl' as hero,
+    settings -> 'bandeira_assets' ->> 'logoUrl' as logo,
+    settings -> 'title_highlights' as destaques,
+    form_config ->> 'captureMode' as modo_formulario,
+    jsonb_array_length(form_config -> 'fields') as campos,
+    jsonb_array_length(form_config -> 'capture' -> 'steps') as etapas
+  from public.campanhas
+  where slug = 'felipe-sertanejo'
+`);
+const updatedFelipe = updatedFelipeRows[0];
+const felipeUpdateProblems = [];
+if (updatedFelipe?.hero !== "/campaigns/felipe-sertanejo/hero.png") {
+  felipeUpdateProblems.push("foto principal oficial nao foi configurada");
+}
+if (updatedFelipe?.logo !== "/campaigns/felipe-sertanejo/logo.png") {
+  felipeUpdateProblems.push("logo oficial nao foi configurado");
+}
+if (updatedFelipe?.modo_formulario !== "configured") {
+  felipeUpdateProblems.push("formulario oficial nao foi preservado");
+}
+if (updatedFelipe?.campos !== 3 || updatedFelipe?.etapas !== 2) {
+  felipeUpdateProblems.push("campos ou etapas da campanha foram alterados");
+}
+if (JSON.stringify(updatedFelipe?.destaques) !== "[]") {
+  felipeUpdateProblems.push("titulo deveria ficar inteiramente branco");
+}
+if (felipeUpdateProblems.length) {
+  console.error("\nFALHAS NA ATUALIZACAO DO FELIPE:\n- " + felipeUpdateProblems.join("\n- "));
+  process.exit(1);
+}
+console.log("campanha do Felipe atualizada com artes e formulario oficiais");
 
 const { rows: miguelRows } = await db.query(`
   select

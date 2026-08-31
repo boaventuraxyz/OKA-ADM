@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef } from "react";
 
 /**
  * Um único diálogo por página, aberto por vários gatilhos. Renderizar um modal
@@ -30,27 +30,43 @@ function closeDialog(dialog: HTMLDialogElement | null) {
 
 export function CampaignCaptureProvider({
   autoOpen = false,
+  autoOpenDelayMs = 0,
   children,
   form,
   title,
 }: {
   autoOpen?: boolean;
+  autoOpenDelayMs?: number;
   children: ReactNode;
   form: ReactNode;
   title: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const hasInteractedRef = useRef(false);
 
   useEffect(() => {
-    if (autoOpen) openDialog(dialogRef.current);
-  }, [autoOpen]);
+    if (!autoOpen) return;
+
+    const timeout = window.setTimeout(() => {
+      if (!hasInteractedRef.current) openDialog(dialogRef.current);
+    }, Math.max(0, autoOpenDelayMs));
+
+    return () => window.clearTimeout(timeout);
+  }, [autoOpen, autoOpenDelayMs]);
+
+  const openFromTrigger = useCallback(() => {
+    // Se a pessoa abriu por conta própria, o temporizador não deve reabrir o
+    // formulário depois que ela já o dispensou.
+    hasInteractedRef.current = true;
+    openDialog(dialogRef.current);
+  }, []);
 
   function closeOnBackdrop(event: MouseEvent<HTMLDialogElement>) {
     if (event.target === event.currentTarget) closeDialog(event.currentTarget);
   }
 
   return (
-    <CaptureContext.Provider value={() => openDialog(dialogRef.current)}>
+    <CaptureContext.Provider value={openFromTrigger}>
       {children}
 
       <dialog
@@ -62,7 +78,9 @@ export function CampaignCaptureProvider({
       >
         <div className="campaign-capture-panel">
           <div className="campaign-capture-header">
-            <h2 id="campaign-capture-modal-title">{title}</h2>
+            <h2 className="campaign-capture-title" id="campaign-capture-modal-title">
+              {title}
+            </h2>
             <button
               aria-label="Fechar formulário"
               className="campaign-capture-close"

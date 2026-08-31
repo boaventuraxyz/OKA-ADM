@@ -12,6 +12,7 @@ import {
 
 type Props = {
   campanhaId: string;
+  captureConfirmationStep?: boolean;
   textoDot?: string | null;
   textoForm?: string | null;
   totalAssinaturas: number;
@@ -103,6 +104,7 @@ function customFieldInvalid(
 
 export function PublicSignatureForm({
   campanhaId,
+  captureConfirmationStep = false,
   textoDot,
   textoForm,
   totalAssinaturas,
@@ -168,8 +170,8 @@ export function PublicSignatureForm({
   const activeStep = capture ? captureSteps[Math.min(step, lastStep)] : null;
   const onLastStep = !capture || step >= lastStep;
   const done = Boolean(capture) && redirectTarget !== null;
-  /** A confirmação conclui o fluxo; ela não cria uma terceira etapa artificial. */
   const stepCount = captureSteps.length;
+  const displayedStepCount = stepCount + (captureConfirmationStep ? 1 : 0);
 
   /** Campo sem etapa declarada aparece na primeira, para nunca sumir da tela. */
   function stepOfField(key: string) {
@@ -488,20 +490,6 @@ export function PublicSignatureForm({
   return (
     <>
       <div className={`form-card ${editorial ? "form-card-editorial" : ""} ${capture ? "form-card-capture" : ""}`}>
-        {capture ? (
-          <div
-            aria-label={done ? "Formulário concluído" : `Etapa ${step + 1} de ${stepCount}`}
-            className="capture-progress"
-          >
-            {Array.from({ length: stepCount }, (_, index) => (
-              <span
-                className={index <= (done ? stepCount - 1 : step) ? "active" : ""}
-                key={index}
-              />
-            ))}
-          </div>
-        ) : null}
-
         {capture && done ? (
           <div className="capture-done">
             <span className="capture-step-label">
@@ -528,14 +516,22 @@ export function PublicSignatureForm({
         <div className="card-header" hidden={done}>
           {capture ? (
             <>
-              {activeStep?.label ? (
-                <span className="capture-step-label">
-                  {`Etapa ${step + 1} de ${stepCount} · ${activeStep.label}`}
-                </span>
-              ) : null}
               <h2 className="card-title">{activeStep?.title}</h2>
               {activeStep?.subtitle ? (
                 <p className="card-desc">{activeStep.subtitle}</p>
+              ) : null}
+              <div
+                aria-label={`Etapa ${step + 1} de ${displayedStepCount}`}
+                className="capture-progress"
+              >
+                {Array.from({ length: displayedStepCount }, (_, index) => (
+                  <span className={index <= step ? "active" : ""} key={index} />
+                ))}
+              </div>
+              {activeStep?.label ? (
+                <span className="capture-step-label">
+                  {`Etapa ${step + 1} de ${displayedStepCount} · ${activeStep.label}`}
+                </span>
               ) : null}
             </>
           ) : editorial ? (

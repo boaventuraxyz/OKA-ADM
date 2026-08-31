@@ -91,4 +91,21 @@ describe("configuração progressiva compartilhada", () => {
   it("mantém o consentimento obrigatório", () => {
     expect(normalizePublicFormConfiguration({ fields }, {}).requireConsent).toBe(true);
   });
+
+  it("preserva um fluxo explicitamente configurado para campanhas especiais", () => {
+    const configuration = normalizePublicFormConfiguration(
+      { capture, captureMode: "configured", fields },
+      {},
+    );
+
+    expect(configuration.capture?.steps[0].title).toBe("Dados");
+    expect(configuration.capture?.steps[0].fields).toEqual(["nome", "telefone"]);
+    expect(configuration.capture?.steps[1].fields).toEqual(["estado"]);
+    expect(configuration.fields.map((field) => field.key)).toEqual([
+      "nome",
+      "telefone",
+      "estado",
+    ]);
+    expect(configuration.collectAddress).toBe(false);
+  });
 });
