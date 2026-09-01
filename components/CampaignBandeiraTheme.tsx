@@ -12,6 +12,7 @@ import { CampaignVideoCarousel } from "@/components/CampaignVideoCarousel";
 import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import {
+  campaignHidesBandeiraLogo,
   parseBandeiraAssets,
   parseBandeiraSectionLabels,
   parseCampaignLegalFooter,
@@ -176,12 +177,15 @@ export function CampaignBandeiraTheme({
   const benefits = lines(campanha.textoConclusao);
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
   const assets = parseBandeiraAssets(campanha.settings);
+  const hideBrandLogo = campaignHidesBandeiraLogo(campanha.settings);
   const isFelipeSertanejo = campanha.slug === "felipe-sertanejo";
   const isMiguelPatriota = campanha.slug?.includes("miguel-patriota") ?? false;
   const configuredHeroPhoto = campanha.imagemLateralUrl || assets.heroUrl;
-  const brandLogo = isFelipeSertanejo
-    ? "/campaigns/felipe-sertanejo/logo.png"
-    : campanha.imagemFundoUrl || assets.logoUrl;
+  const brandLogo = hideBrandLogo
+    ? null
+    : isFelipeSertanejo
+      ? "/campaigns/felipe-sertanejo/logo.png"
+      : campanha.imagemFundoUrl || assets.logoUrl;
   const heroPhoto = isFelipeSertanejo
     ? "/campaigns/felipe-sertanejo/hero.png"
     : isMiguelPatriota

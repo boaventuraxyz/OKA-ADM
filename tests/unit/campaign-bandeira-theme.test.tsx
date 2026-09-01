@@ -168,6 +168,20 @@ describe("tema 8 · Bandeira", () => {
     expect(container.querySelector(".bandeira-hero-media")).toBeInTheDocument();
   });
 
+  it("mantém a logo removida mesmo quando existe uma arte oficial de reserva", () => {
+    const { container } = renderBandeira({
+      imagemFundoUrl: "/uploads/logo-atual.webp",
+      settings: {
+        bandeira_assets: { logoUrl: "/campaigns/felipe-sertanejo/logo.png" },
+        bandeira_hide_logo: true,
+      },
+      slug: "felipe-sertanejo",
+    });
+
+    expect(container.querySelector(".bandeira-brand-logo")).toBeNull();
+    expect(container.querySelector(".bandeira-wordmark span")).toBeInTheDocument();
+  });
+
   it("mantém as artes oficiais do Felipe mesmo enquanto o banco ainda tem imagens antigas", () => {
     const { container } = renderBandeira({
       imagemFundoUrl: "/imagem-antiga.png",

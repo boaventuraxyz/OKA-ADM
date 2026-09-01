@@ -67,6 +67,11 @@ export function parseBandeiraAssets(settings: unknown): BandeiraAssets {
   };
 }
 
+/** Uma remoção explícita prevalece sobre uploads e artes oficiais de reserva. */
+export function campaignHidesBandeiraLogo(settings: unknown) {
+  return record(settings)?.bandeira_hide_logo === true;
+}
+
 const DEFAULT_BANDEIRA_LABELS: BandeiraSectionLabels = {
   group: "Grupo oficial",
   hero: "Movimento oficial",

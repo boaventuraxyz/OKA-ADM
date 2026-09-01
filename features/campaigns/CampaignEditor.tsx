@@ -68,6 +68,7 @@ import {
   type CampaignTitleHighlight
 } from "@/lib/campaign-title-highlights";
 import {
+  campaignHidesBandeiraLogo,
   parseCampaignLegalFooter,
   type CampaignLegalFooter,
 } from "@/lib/campaign-settings";
@@ -125,6 +126,7 @@ const emptyLegalFooter: CampaignLegalFooter = {
 type EditorSettings = {
   allowSharing: boolean;
   collectAddress: boolean;
+  hideBandeiraLogo: boolean;
   /** Propaganda eleitoral; fica no banco por trazer dado pessoal. */
   legal: CampaignLegalFooter;
   requireConsent: true;
@@ -591,6 +593,7 @@ function createInitialState(
       fields: parseFormFields(formConfigBase, preserveLegacyAddress),
       settings: {
         allowSharing: booleanValue(settingsBase.allow_sharing, true),
+        hideBandeiraLogo: campaignHidesBandeiraLogo(settingsBase),
         legal: parseCampaignLegalFooter(settingsBase) ?? { ...emptyLegalFooter },
         collectAddress: preserveLegacyAddress
           ? true
@@ -637,6 +640,7 @@ function settingsPayload(
   return {
     ...base,
     allow_sharing: settings.allowSharing,
+    bandeira_hide_logo: settings.hideBandeiraLogo,
     legal: settings.legal,
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
     require_consent: true,
@@ -974,9 +978,19 @@ function EditorTabList({
 
 type ValueChange = <Key extends keyof EditorValues>(key: Key, value: EditorValues[Key]) => void;
 
-function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values }: {
+function ThemeContentFieldControl({
+  errors,
+  field,
+  hideBandeiraLogo,
+  onBandeiraLogoVisibilityChange,
+  onValueChange,
+  prefix,
+  values,
+}: {
   errors: FieldErrors;
   field: CampaignThemeField;
+  hideBandeiraLogo?: boolean;
+  onBandeiraLogoVisibilityChange?: (hidden: boolean) => void;
   onValueChange: ValueChange;
   prefix: string;
   values: EditorValues;
@@ -984,7 +998,13 @@ function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values
   const editorKey = editorKeyByThemeContentKey[field.key];
   const value = values[editorKey];
   const id = controlId(prefix, field.key);
-  const change = (nextValue: string) => onValueChange(editorKey, nextValue);
+  const change = (nextValue: string) => {
+    onValueChange(editorKey, nextValue);
+    if (nextValue && field.key === "imagem_fundo") {
+      onBandeiraLogoVisibilityChange?.(false);
+    }
+  };
+  const isBandeiraLogo = field.key === "imagem_fundo" && onBandeiraLogoVisibilityChange;
 
   if (field.type === "image") {
     return (
@@ -995,6 +1015,12 @@ function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values
           label={field.label}
           name={field.key}
           onChange={change}
+          onRemove={isBandeiraLogo
+            ? () => onBandeiraLogoVisibilityChange?.(true)
+            : undefined}
+          previewAlt={isBandeiraLogo ? "Pré-visualização da logo da campanha" : undefined}
+          removeLabel={isBandeiraLogo ? "Remover logo" : undefined}
+          showRemoveWhenEmpty={Boolean(isBandeiraLogo && !hideBandeiraLogo)}
           targetHeight={field.imageHeight}
           targetWidth={field.imageWidth}
           value={value}
@@ -1138,6 +1164,7 @@ function ContentPanel({
   candidates,
   errors,
   onRegenerateSlug,
+  onBandeiraLogoVisibilityChange,
   onSlugChange,
   onTitleHighlightsChange,
   onTitleChange,
@@ -1150,6 +1177,7 @@ function ContentPanel({
   candidates: readonly CampaignEditorCandidate[];
   errors: FieldErrors;
   onRegenerateSlug: () => void;
+  onBandeiraLogoVisibilityChange: (hidden: boolean) => void;
   onSlugChange: (value: string) => void;
   onTitleHighlightsChange: (highlights: CampaignTitleHighlight[]) => void;
   onTitleChange: (value: string) => void;
@@ -1273,7 +1301,17 @@ function ContentPanel({
                 (field.key !== "video_url" && field.key !== "legenda_video")
               )).map((field) => (
                 <Fragment key={field.key}>
-                  <ThemeContentFieldControl errors={errors} field={field} onValueChange={onValueChange} prefix={prefix} values={values} />
+                  <ThemeContentFieldControl
+                    errors={errors}
+                    field={field}
+                    hideBandeiraLogo={theme.key === "bandeira" ? settings.hideBandeiraLogo : undefined}
+                    onBandeiraLogoVisibilityChange={theme.key === "bandeira"
+                      ? onBandeiraLogoVisibilityChange
+                      : undefined}
+                    onValueChange={onValueChange}
+                    prefix={prefix}
+                    values={values}
+                  />
                   {!titleIsHeadline && field.key === theme.headline.field ? (
                     <div className={styles.fullWidthField}>
                       <HeadlineHighlightEditor
@@ -1811,6 +1849,7 @@ function PreviewPanel({
             notaVideo: values.notaVideo || null,
             settings: {
               allow_sharing: settings.allowSharing,
+              bandeira_hide_logo: settings.hideBandeiraLogo,
               collect_address: settings.collectAddress,
               legal: settings.legal,
               require_consent: true,
@@ -1975,6 +2014,11 @@ export function CampaignEditor({
   function changeSetting(key: MutableEditorSetting, value: boolean) {
     markDirty();
     setSettings((current) => ({ ...current, [key]: value }));
+  }
+
+  function changeBandeiraLogoVisibility(hidden: boolean) {
+    markDirty();
+    setSettings((current) => ({ ...current, hideBandeiraLogo: hidden }));
   }
 
   function addField() {
@@ -2197,7 +2241,7 @@ export function CampaignEditor({
   const activePanel = (() => {
     switch (activeTab) {
       case "content":
-        return <ContentPanel candidates={candidates} errors={fieldErrors} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
+        return <ContentPanel candidates={candidates} errors={fieldErrors} onBandeiraLogoVisibilityChange={changeBandeiraLogoVisibility} onRegenerateSlug={regenerateSlug} onSlugChange={changeSlug} onTitleChange={changeTitle} onTitleHighlightsChange={changeTitleHighlights} onValueChange={changeValue} onVideoCarouselChange={changeVideoCarousel} prefix={prefix} settings={settings} values={values} />;
       case "form":
         return <FormPanel errors={fieldErrors} fields={fields} onAdd={addField} onMove={moveField} onRemove={removeField} onUpdate={updateField} onValueChange={changeValue} prefix={prefix} values={values} />;
       case "theme":

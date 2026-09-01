@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  campaignHidesBandeiraLogo,
   parseBandeiraAssets,
   parseBandeiraSectionLabels,
   resolveCandidateNumber,
@@ -30,6 +31,15 @@ describe("parseBandeiraAssets", () => {
         },
       }),
     ).toEqual({ heroUrl: null, logoUrl: null });
+  });
+});
+
+describe("campaignHidesBandeiraLogo", () => {
+  it("só oculta a logo quando a remoção foi gravada explicitamente", () => {
+    expect(campaignHidesBandeiraLogo({ bandeira_hide_logo: true })).toBe(true);
+    expect(campaignHidesBandeiraLogo({ bandeira_hide_logo: false })).toBe(false);
+    expect(campaignHidesBandeiraLogo({ bandeira_hide_logo: "true" })).toBe(false);
+    expect(campaignHidesBandeiraLogo(null)).toBe(false);
   });
 });
 

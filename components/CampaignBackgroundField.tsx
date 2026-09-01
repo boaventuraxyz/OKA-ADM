@@ -124,6 +124,10 @@ type CampaignImageFieldProps = {
   label?: string;
   name?: string;
   onChange?: (value: string) => void;
+  onRemove?: () => void;
+  previewAlt?: string;
+  removeLabel?: string;
+  showRemoveWhenEmpty?: boolean;
   targetHeight?: number;
   targetWidth?: number;
   value?: string;
@@ -136,6 +140,10 @@ export function CampaignBackgroundField({
   label = "Foto de fundo desta campanha (opcional)",
   name = "imagem_fundo",
   onChange,
+  onRemove,
+  previewAlt = "Pre-visualizacao da foto de fundo",
+  removeLabel,
+  showRemoveWhenEmpty = false,
   targetHeight,
   targetWidth,
   value: controlledValue
@@ -184,6 +192,7 @@ export function CampaignBackgroundField({
   function removeImage() {
     setInternalValue("");
     onChange?.("");
+    onRemove?.();
     setError("");
   }
 
@@ -201,7 +210,7 @@ export function CampaignBackgroundField({
         >
           {value ? (
             <NextImage
-              alt="Pre-visualizacao da foto de fundo"
+              alt={previewAlt}
               fill
               sizes="180px"
               src={value}
@@ -227,15 +236,16 @@ export function CampaignBackgroundField({
             )}
             {processing ? "Processando" : value ? "Trocar imagem" : "Selecionar imagem"}
           </label>
-          {value ? (
+          {value || showRemoveWhenEmpty ? (
             <button
-              aria-label="Remover foto de fundo"
-              className="button danger icon"
+              aria-label={removeLabel || "Remover foto de fundo"}
+              className={`button danger${removeLabel ? "" : " icon"}`}
               onClick={removeImage}
-              title="Remover foto de fundo"
+              title={removeLabel || "Remover foto de fundo"}
               type="button"
             >
               <Trash2 aria-hidden="true" size={16} />
+              {removeLabel}
             </button>
           ) : null}
         </div>
