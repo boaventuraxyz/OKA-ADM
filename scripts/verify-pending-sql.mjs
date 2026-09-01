@@ -64,6 +64,7 @@ const checks = await db.query(`
   select
     (select pg_get_constraintdef(oid) from pg_constraint where conname='campanhas_tema_valido') as tema,
     (select pg_get_constraintdef(oid) from pg_constraint where conname='campanhas_imagem_fundo_valida') as imagem,
+    (select pg_get_constraintdef(oid) from pg_constraint where conname='campanhas_imagem_desktop_valida') as imagem_desktop,
     (select count(*)::int from public.campanhas where slug='felipe-sertanejo') as campanhas,
     (select count(*)::int from public.candidatos where nome='Felipe Sertanejo') as felipes,
     (select candidato_id from public.campanhas where slug='felipe-sertanejo') as vinculado_a,
@@ -82,6 +83,7 @@ console.log(JSON.stringify(r, null, 2));
 const problems = [];
 if (!r.tema?.includes("8")) problems.push("tema 8 nao liberado");
 if (!r.imagem?.includes("7000000")) problems.push("limite de imagem nao subiu");
+if (!r.imagem_desktop?.includes("7000000")) problems.push("wallpaper desktop nao foi criado");
 if (r.campanhas !== 1) problems.push(`campanha criada ${r.campanhas}x`);
 if (!r.slug_novo) problems.push("candidato sem slug_publico");
 if (r.felipes !== 1) problems.push(`candidato Felipe duplicado (${r.felipes})`);

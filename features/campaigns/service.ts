@@ -407,6 +407,7 @@ function duplicatePayload(
     destaque_primario: source.destaque_primario,
     destaque_secundario: source.destaque_secundario,
     cor_destaque: source.cor_destaque,
+    imagem_desktop: source.imagem_desktop,
     imagem_fundo: source.imagem_fundo,
     imagem_lateral: source.imagem_lateral,
     tema: source.tema,

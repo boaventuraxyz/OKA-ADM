@@ -28,6 +28,8 @@ export type CampaignRenderData = {
   descricao: string | null;
   formConfig: Record<string, unknown> | null;
   id: string;
+  imagemDesktopUrl?: string | null;
+  imagemDesktopVersao: string | null;
   imagemFundoUrl?: string | null;
   imagemFundoVersao: string | null;
   imagemLateralUrl?: string | null;
@@ -76,7 +78,7 @@ function campaignImageSource({
 }: {
   campaignId: string;
   directUrl?: string | null;
-  kind: "imagem" | "imagem-lateral";
+  kind: "imagem" | "imagem-desktop" | "imagem-lateral";
   version: string | null;
 }) {
   if (directUrl) return directUrl;
@@ -115,6 +117,12 @@ export function CampaignPublicRenderer({
     .join(" / ");
 
   if (campanha.tema === 8) {
+    const desktopHeroPhoto = campaignImageSource({
+      campaignId: campanha.id,
+      directUrl: campanha.imagemDesktopUrl,
+      kind: "imagem-desktop",
+      version: campanha.imagemDesktopVersao,
+    });
     const heroPhoto = campaignImageSource({
       campaignId: campanha.id,
       directUrl: campanha.imagemLateralUrl,
@@ -131,7 +139,12 @@ export function CampaignPublicRenderer({
     return (
       <CampaignBandeiraTheme
         accent={accent || "#1EC65B"}
-        campanha={{ ...campanha, imagemFundoUrl: missionPhoto, imagemLateralUrl: heroPhoto }}
+        campanha={{
+          ...campanha,
+          imagemDesktopUrl: desktopHeroPhoto,
+          imagemFundoUrl: missionPhoto,
+          imagemLateralUrl: heroPhoto,
+        }}
         preview={preview}
         totalAssinaturas={totalAssinaturas}
       />

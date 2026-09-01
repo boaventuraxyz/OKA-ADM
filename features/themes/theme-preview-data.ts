@@ -29,6 +29,7 @@ export function createThemePreviewCampaign({ accent, content = {}, theme }: {
     descricao: "Participe deste movimento e ajude a transformar apoio em ação concreta.",
     formConfig: defaultFormConfig,
     id: "00000000-0000-4000-8000-000000000000",
+    imagemDesktopVersao: null,
     imagemFundoVersao: null,
     imagemLateralVersao: null,
     legendaVideo: null,

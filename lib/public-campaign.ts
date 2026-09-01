@@ -30,6 +30,7 @@ export function getPublicCampaignView(id: string) {
       const candidato = campanha.candidato_id
         ? await getCandidato(campanha.candidato_id)
         : null;
+      const desktopImage = parseCampaignBackground(campanha.imagem_desktop);
       const background = parseCampaignBackground(campanha.imagem_fundo);
       const sideImage = parseCampaignBackground(campanha.imagem_lateral);
       const tema = resolveCampaignTheme(campanha.theme_key, campanha.tema);
@@ -62,6 +63,7 @@ export function getPublicCampaignView(id: string) {
         ativa: campanha.ativa,
         inicioEm: campanha.inicio_em,
         fimEm: campanha.fim_em,
+        imagemDesktopVersao: desktopImage?.version ?? null,
         imagemFundoVersao: background?.version ?? null,
         imagemLateralVersao: sideImage?.version ?? null,
         tema,

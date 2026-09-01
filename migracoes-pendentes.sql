@@ -729,6 +729,29 @@ select slug, titulo, tema, theme_key, status, ativa,
 from public.campanhas
 where slug = 'felipe-sertanejo';
 
+-- ============================================================================
+-- Tema 8: wallpaper horizontal separado (1600x893)
+-- ============================================================================
+begin;
+
+alter table public.campanhas
+  add column if not exists imagem_desktop text;
+
+alter table public.campanhas
+  drop constraint if exists campanhas_imagem_desktop_valida;
+
+alter table public.campanhas
+  add constraint campanhas_imagem_desktop_valida
+  check (
+    imagem_desktop is null
+    or (
+      octet_length(imagem_desktop) <= 7000000
+      and imagem_desktop ~ '^data:image/(jpeg|png|webp);base64,'
+    )
+  );
+
+commit;
+
 -- Ainda falta preencher (esperado vir tudo vazio agora):
 select
   url_formulario as link_do_grupo,

@@ -34,6 +34,7 @@ export type ThemeCapabilities = {
 
 export type CampaignThemeContentKey =
   | "descricao"
+  | "imagem_desktop"
   | "imagem_fundo"
   | "imagem_lateral"
   | "legenda_video"
@@ -59,6 +60,8 @@ export type CampaignThemeContentKey =
 
 export type CampaignThemeField = {
   help?: string;
+  imageHeight?: number;
+  imageWidth?: number;
   key: CampaignThemeContentKey;
   label: string;
   maxLength: number;
@@ -570,7 +573,8 @@ export const THEME_REGISTRY = [
         fields: [
           { key: "descricao", label: "Texto do topo", maxLength: 5000, type: "textarea", help: "Separe os parágrafos com uma linha em branco. O último vira a chamada em caixa alta." },
           { key: "imagem_fundo", label: "Logo da campanha", maxLength: 7000000, type: "image", help: "Prefira um PNG transparente e horizontal." },
-          { key: "imagem_lateral", label: "Foto principal", maxLength: 7000000, type: "image", help: "Use uma imagem vertical, com os rostos na metade superior." }
+          { key: "imagem_desktop", label: "Wallpaper para desktop", maxLength: 7000000, type: "image", required: true, imageWidth: 1600, imageHeight: 893, help: "Formato obrigatório: horizontal, 1600 × 893 px — o mesmo padrão visual do Felipe Sertanejo." },
+          { key: "imagem_lateral", label: "Wallpaper para celular", maxLength: 7000000, type: "image", required: true, imageWidth: 768, imageHeight: 1376, help: "Formato obrigatório: vertical, 768 × 1376 px — como o arquivo de referência do Felipe Sertanejo." }
         ]
       },
       {

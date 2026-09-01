@@ -488,6 +488,13 @@ textarea {
   text-align: center;
 }
 
+.campaign-background-field > .field-help {
+  margin: 6px 0 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .politicas-rodape .pol-item {
   width: 100%;
 }

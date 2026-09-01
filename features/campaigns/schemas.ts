@@ -167,6 +167,7 @@ const campaignEditableShape = {
     .regex(/^#[0-9a-f]{6}$/i)
     .transform((value) => value.toUpperCase())
     .optional(),
+  imagem_desktop: optionalImageData,
   imagem_fundo: optionalImageData,
   imagem_lateral: optionalImageData,
   tema: themeIdSchema.optional(),

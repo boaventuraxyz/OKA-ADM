@@ -74,6 +74,13 @@ describe("schemas de campanhas", () => {
   it("valida campos obrigatórios definidos pelo tema", () => {
     expect(campaignCreateSchema.safeParse({ titulo: "Capa", theme_key: "cover" }).success).toBe(true);
     expect(campaignCreateSchema.safeParse({ titulo: "Horizonte", theme_key: "horizon-blue" }).success).toBe(true);
+    expect(campaignCreateSchema.safeParse({ titulo: "Bandeira", theme_key: "bandeira" }).success).toBe(false);
+    expect(campaignCreateSchema.safeParse({
+      titulo: "Bandeira",
+      theme_key: "bandeira",
+      imagem_desktop: "data:image/webp;base64,AA==",
+      imagem_lateral: "data:image/webp;base64,AA==",
+    }).success).toBe(true);
   });
 
   it("exige ao menos um campo e pares de tema coerentes na edição", () => {

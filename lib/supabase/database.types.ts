@@ -144,6 +144,7 @@ export type Database = {
           form_config: Json
           id: string
           id_planilha: string | null
+          imagem_desktop: string | null
           imagem_fundo: string | null
           imagem_lateral: string | null
           inicio_em: string | null
@@ -201,6 +202,7 @@ export type Database = {
           form_config?: Json
           id?: string
           id_planilha?: string | null
+          imagem_desktop?: string | null
           imagem_fundo?: string | null
           imagem_lateral?: string | null
           inicio_em?: string | null
@@ -258,6 +260,7 @@ export type Database = {
           form_config?: Json
           id?: string
           id_planilha?: string | null
+          imagem_desktop?: string | null
           imagem_fundo?: string | null
           imagem_lateral?: string | null
           inicio_em?: string | null

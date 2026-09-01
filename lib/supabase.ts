@@ -169,6 +169,15 @@ export async function getCampanhaBackground(id: string) {
   return rows[0] ?? null;
 }
 
+export async function getCampanhaDesktopImage(id: string) {
+  const rows = await supabaseFetch<
+    Pick<Campanha, "ativa" | "fim_em" | "id" | "imagem_desktop" | "inicio_em">[]
+  >(
+    `/campanhas?id=eq.${qs(id)}&select=id,imagem_desktop,ativa,inicio_em,fim_em`
+  );
+  return rows[0] ?? null;
+}
+
 export async function getCampanhaSideImage(id: string) {
   const rows = await supabaseFetch<
     Pick<Campanha, "ativa" | "fim_em" | "id" | "imagem_lateral" | "inicio_em">[]

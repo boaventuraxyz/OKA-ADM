@@ -141,6 +141,7 @@ type EditorValues = {
   descricao: string;
   fimEm: string;
   idPlanilha: string;
+  imagemDesktop: string;
   imagemFundo: string;
   imagemLateral: string;
   inicioEm: string;
@@ -245,6 +246,7 @@ const editorValueKeys = [
   "descricao",
   "fimEm",
   "idPlanilha",
+  "imagemDesktop",
   "imagemFundo",
   "imagemLateral",
   "inicioEm",
@@ -287,6 +289,7 @@ const actionKeyByEditorValue: Record<EditorValueKey, string> = {
   descricao: "descricao",
   fimEm: "fim_em",
   idPlanilha: "id_planilha",
+  imagemDesktop: "imagem_desktop",
   imagemFundo: "imagem_fundo",
   imagemLateral: "imagem_lateral",
   inicioEm: "inicio_em",
@@ -324,6 +327,7 @@ const actionKeyByEditorValue: Record<EditorValueKey, string> = {
 
 const editorKeyByThemeContentKey: Record<CampaignThemeContentKey, EditorValueKey> = {
   descricao: "descricao",
+  imagem_desktop: "imagemDesktop",
   imagem_fundo: "imagemFundo",
   imagem_lateral: "imagemLateral",
   legenda_video: "legendaVideo",
@@ -542,6 +546,7 @@ function createInitialState(
     descricao: campaign?.descricao || "",
     fimEm: dateTimeLocalValue(campaign?.fim_em),
     idPlanilha: campaign?.id_planilha || "",
+    imagemDesktop: campaign?.imagem_desktop || "",
     imagemFundo: campaign?.imagem_fundo || "",
     imagemLateral: campaign?.imagem_lateral || "",
     inicioEm: dateTimeLocalValue(campaign?.inicio_em),
@@ -984,7 +989,16 @@ function ThemeContentFieldControl({ errors, field, onValueChange, prefix, values
   if (field.type === "image") {
     return (
       <div className={styles.imageField}>
-        <CampaignBackgroundField inputId={`${id}-file`} label={field.label} name={field.key} onChange={change} value={value} />
+        <CampaignBackgroundField
+          description={field.help}
+          inputId={`${id}-file`}
+          label={field.label}
+          name={field.key}
+          onChange={change}
+          targetHeight={field.imageHeight}
+          targetWidth={field.imageWidth}
+          value={value}
+        />
         {firstFieldError(errors, field.key) ? <p className={styles.inlineError} role="alert">{firstFieldError(errors, field.key)}</p> : null}
       </div>
     );
@@ -1786,6 +1800,8 @@ function PreviewPanel({
             candidateNumber: selectedCandidate?.numero ?? undefined,
             descricao: values.descricao || null,
             formConfig: formConfigPayload({}, fields),
+            imagemDesktopUrl: values.imagemDesktop || null,
+            imagemDesktopVersao: null,
             imagemFundoUrl: values.imagemFundo || null,
             imagemFundoVersao: null,
             imagemLateralUrl: values.imagemLateral || null,

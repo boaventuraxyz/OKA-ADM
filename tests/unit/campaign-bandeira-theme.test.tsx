@@ -47,6 +47,7 @@ describe("tema 8 · Bandeira", () => {
     const keys = themeContentKeys("bandeira");
     const required: CampaignThemeContentKey[] = [
       "descricao",
+      "imagem_desktop",
       "imagem_fundo",
       "imagem_lateral",
       "titulo_topicos",
@@ -133,6 +134,26 @@ describe("tema 8 · Bandeira", () => {
     );
   });
 
+  it("usa wallpapers separados no desktop e no celular para todas as campanhas", () => {
+    const { container } = renderBandeira({
+      imagemDesktopUrl: "/uploads/campanha-desktop.webp",
+      imagemLateralUrl: "/uploads/campanha-mobile.webp",
+      slug: "campanha-generica",
+    });
+
+    expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
+      encodeURIComponent("/uploads/campanha-mobile.webp"),
+    );
+    expect(
+      container
+        .querySelector('source[media="(min-width: 1024px)"]')
+        ?.getAttribute("srcset"),
+    ).toContain(encodeURIComponent("/uploads/campanha-desktop.webp"));
+    expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
+      "has-desktop-media",
+    );
+  });
+
   it("usa as artes configuradas como reserva", () => {
     const { container } = renderBandeira({
       settings: {
@@ -170,6 +191,25 @@ describe("tema 8 · Bandeira", () => {
       "has-desktop-media",
     );
     expect(container.querySelector(".campaign-headline-custom")).toBeNull();
+  });
+
+  it("usa a arte vertical do Miguel no mobile e preserva a imagem cadastrada no desktop", () => {
+    const { container } = renderBandeira({
+      imagemLateralUrl: "/uploads/miguel-patriota-quadrada.jpeg",
+      slug: "miguel-patriota",
+    });
+
+    expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
+      encodeURIComponent("/campaigns/miguel-patriota/hero-mobile.png"),
+    );
+    expect(
+      container
+        .querySelector('source[media="(min-width: 1024px)"]')
+        ?.getAttribute("srcset"),
+    ).toContain(encodeURIComponent("/uploads/miguel-patriota-quadrada.jpeg"));
+    expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
+      "has-desktop-media",
+    );
   });
 
   it("prioriza o número vinculado ao candidato", () => {

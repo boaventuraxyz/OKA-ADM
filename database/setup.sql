@@ -233,7 +233,8 @@ create table if not exists public.campanhas (
   created_by uuid,
   updated_by uuid,
   form_config jsonb,
-  settings jsonb
+  settings jsonb,
+  imagem_desktop text
 );
 
 alter table public.campanhas
@@ -290,7 +291,8 @@ alter table public.campanhas
   add column if not exists created_by uuid,
   add column if not exists updated_by uuid,
   add column if not exists form_config jsonb,
-  add column if not exists settings jsonb;
+  add column if not exists settings jsonb,
+  add column if not exists imagem_desktop text;
 
 update public.candidatos
 set numero = nullif(
@@ -618,6 +620,11 @@ begin
           'campanhas',
           'campanhas_tema_valido',
           'check (tema in (1, 2, 3, 4, 5, 6, 7, 8)) not valid'
+        ),
+        (
+          'campanhas',
+          'campanhas_imagem_desktop_valida',
+          'check (imagem_desktop is null or (octet_length(imagem_desktop) <= 7000000 and imagem_desktop ~ ''^data:image/(jpeg|png|webp);base64,'')) not valid'
         ),
         (
           'campanhas',

@@ -36,6 +36,7 @@ type BandeiraCampaign = {
   descricao: string | null;
   formConfig: Record<string, unknown> | null;
   id: string;
+  imagemDesktopUrl?: string | null;
   imagemFundoUrl?: string | null;
   imagemLateralUrl?: string | null;
   settings: Record<string, unknown> | null;
@@ -176,15 +177,20 @@ export function CampaignBandeiraTheme({
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
   const assets = parseBandeiraAssets(campanha.settings);
   const isFelipeSertanejo = campanha.slug === "felipe-sertanejo";
+  const isMiguelPatriota = campanha.slug?.includes("miguel-patriota") ?? false;
+  const configuredHeroPhoto = campanha.imagemLateralUrl || assets.heroUrl;
   const brandLogo = isFelipeSertanejo
     ? "/campaigns/felipe-sertanejo/logo.png"
     : campanha.imagemFundoUrl || assets.logoUrl;
   const heroPhoto = isFelipeSertanejo
     ? "/campaigns/felipe-sertanejo/hero.png"
-    : campanha.imagemLateralUrl || assets.heroUrl;
+    : isMiguelPatriota
+      ? "/campaigns/miguel-patriota/hero-mobile.png"
+      : configuredHeroPhoto;
   const desktopHeroPhoto = isFelipeSertanejo
     ? "/campaigns/felipe-sertanejo/hero-desktop.png"
-    : null;
+    : campanha.imagemDesktopUrl || (isMiguelPatriota ? configuredHeroPhoto : null);
+  const desktopHeroDimensions = { height: 893, width: 1600 };
   const responsiveHero = desktopHeroPhoto && heroPhoto
     ? (() => {
         const common = {
@@ -197,10 +203,10 @@ export function CampaignBandeiraTheme({
           props: { srcSet: desktopSrcSet },
         } = getImageProps({
           ...common,
-          height: 893,
+          height: desktopHeroDimensions.height,
           quality: 75,
           src: desktopHeroPhoto,
-          width: 1600,
+          width: desktopHeroDimensions.width,
         });
         const {
           props: { alt: imageAlt, srcSet: mobileSrcSet, ...imageProps },

@@ -28,6 +28,7 @@ export type Campanha = {
   destaque_primario: string | null;
   destaque_secundario: string | null;
   cor_destaque: string | null;
+  imagem_desktop: string | null;
   imagem_fundo: string | null;
   imagem_lateral: string | null;
   tema: number | null;
