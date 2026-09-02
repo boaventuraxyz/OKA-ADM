@@ -1,5 +1,6 @@
 /** UFs com o nome exibido; o valor gravado continua sendo a sigla. */
 export const BRAZILIAN_STATES = [
+  { name: "São Paulo", uf: "SP" },
   { name: "Acre", uf: "AC" },
   { name: "Alagoas", uf: "AL" },
   { name: "Amapá", uf: "AP" },
@@ -24,7 +25,6 @@ export const BRAZILIAN_STATES = [
   { name: "Rondônia", uf: "RO" },
   { name: "Roraima", uf: "RR" },
   { name: "Santa Catarina", uf: "SC" },
-  { name: "São Paulo", uf: "SP" },
   { name: "Sergipe", uf: "SE" },
   { name: "Tocantins", uf: "TO" },
 ] as const;

@@ -223,7 +223,10 @@ describe("formulário progressivo compartilhado", () => {
     await advanceToAddress(fetchMock);
 
     const estado = screen.getByLabelText("UF");
-    expect(estado.querySelectorAll("option")).toHaveLength(28);
+    const options = estado.querySelectorAll("option");
+    expect(options).toHaveLength(28);
+    expect(options[1]).toHaveTextContent("São Paulo");
+    expect(options[1]).toHaveValue("SP");
     fireEvent.change(estado, { target: { value: "SP" } });
     expect(estado).toHaveValue("SP");
   });
