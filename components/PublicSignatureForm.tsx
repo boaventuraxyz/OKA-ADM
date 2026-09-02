@@ -513,7 +513,7 @@ export function PublicSignatureForm({
           </div>
         ) : null}
 
-        <div className="card-header" hidden={done}>
+        {!done ? <div className="card-header">
           {capture ? (
             <>
               <h2 className="card-title">{activeStep?.title}</h2>
@@ -556,7 +556,7 @@ export function PublicSignatureForm({
               </div>
             </>
           )}
-        </div>
+        </div> : null}
 
         {!editorial && !capture ? (
           <>
@@ -590,11 +590,10 @@ export function PublicSignatureForm({
           </>
         ) : null}
 
-        <FormContainer
+        {!done ? <FormContainer
           aria-label={preview ? "Demonstração do formulário de assinatura" : undefined}
           autoComplete={preview ? undefined : "on"}
           className="form-fields"
-          hidden={done}
           id={preview ? undefined : "formAssinar"}
           onSubmit={preview ? undefined : (event) => {
             void handleSign(event as React.FormEvent<HTMLFormElement>);
@@ -1024,7 +1023,7 @@ export function PublicSignatureForm({
               {busy ? "Enviando..." : "Assinar agora"}
             </button>
           )}
-        </FormContainer>
+        </FormContainer> : null}
 
         {capture ? (
           activeStep?.note && !done ? (

@@ -197,6 +197,10 @@ describe("formulário progressivo compartilhado", () => {
     fireEvent.click(screen.getByRole("button", { name: "Finalizar" }));
 
     await screen.findByText("Cadastro concluído!");
+    expect(screen.queryByLabelText("CEP")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "‹ Voltar" })).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(3);
     const completedData = fetchMock.mock.calls[2][1]?.body as FormData;
     expect(completedData.get("submission_phase")).toBe("complete");
