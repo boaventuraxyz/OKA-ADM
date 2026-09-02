@@ -372,6 +372,37 @@ export async function createAssinatura(payload: Partial<Assinatura>) {
   return rows[0] ?? null;
 }
 
+export async function findAssinaturasByContact(
+  campanhaId: string,
+  contact: { email?: string | null; telefone?: string | null },
+) {
+  const email = contact.email?.trim().toLowerCase() || null;
+  const telefone = contact.telefone?.replace(/\D/g, "") || null;
+  const select = "select=id,campanha_id,email_assinante,numero_assinante";
+  const requests: Array<Promise<Array<Pick<
+    Assinatura,
+    "campanha_id" | "email_assinante" | "id" | "numero_assinante"
+  >>>> = [];
+
+  if (email) {
+    requests.push(
+      supabaseFetch(
+        `/assinaturas?campanha_id=eq.${qs(campanhaId)}&email_assinante=eq.${qs(email)}&${select}&limit=2`,
+      ),
+    );
+  }
+  if (telefone) {
+    requests.push(
+      supabaseFetch(
+        `/assinaturas?campanha_id=eq.${qs(campanhaId)}&numero_assinante=eq.${qs(telefone)}&${select}&limit=2`,
+      ),
+    );
+  }
+
+  const matches = (await Promise.all(requests)).flat();
+  return [...new Map(matches.map((match) => [match.id, match])).values()];
+}
+
 export async function updateAssinatura(
   id: string,
   campanhaId: string,

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createAssinatura: vi.fn(),
+  findAssinaturasByContact: vi.fn(),
   getCampanhaSubmissionConfig: vi.fn(),
   getCandidato: vi.fn(),
   updateAssinatura: vi.fn(),
@@ -17,6 +18,7 @@ vi.mock("@/lib/turnstile", () => ({
 
 vi.mock("@/lib/supabase", () => ({
   createAssinatura: mocks.createAssinatura,
+  findAssinaturasByContact: mocks.findAssinaturasByContact,
   getCampanhaSubmissionConfig: mocks.getCampanhaSubmissionConfig,
   getCandidato: mocks.getCandidato,
   SupabaseRequestError: class SupabaseRequestError extends Error {
@@ -28,6 +30,7 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 import { POST } from "@/app/api/assinaturas/route";
+import { SupabaseRequestError } from "@/lib/supabase";
 
 const campaignId = "00000000-0000-4000-8000-000000000000";
 const leadId = "10000000-0000-4000-8000-000000000000";
@@ -59,6 +62,7 @@ describe("API de assinatura progressiva", () => {
   beforeEach(() => {
     process.env.PROGRESSIVE_LEAD_SECRET = "segredo-de-teste-com-entropia-suficiente";
     mocks.createAssinatura.mockReset().mockResolvedValue({ id: leadId });
+    mocks.findAssinaturasByContact.mockReset().mockResolvedValue([]);
     mocks.updateAssinatura.mockReset().mockResolvedValue({ id: leadId });
     mocks.getCampanhaSubmissionConfig.mockReset().mockResolvedValue({
       ativa: true,
@@ -139,6 +143,70 @@ describe("API de assinatura progressiva", () => {
     const response = await POST(request(completion));
 
     expect(response.status).toBe(400);
+    expect(mocks.updateAssinatura).not.toHaveBeenCalled();
+  });
+
+  it("reaproveita e atualiza o lead quando o contato já existe", async () => {
+    mocks.createAssinatura.mockRejectedValueOnce(new SupabaseRequestError(409));
+    mocks.findAssinaturasByContact.mockResolvedValueOnce([{
+      campanha_id: campaignId,
+      email_assinante: "julio@example.com",
+      id: leadId,
+      numero_assinante: "11987838530",
+    }]);
+
+    const response = await POST(request(contactForm()));
+    const body = await response.json() as {
+      leadId: string;
+      leadToken: string;
+      phase: string;
+      reused: boolean;
+    };
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      leadId,
+      phase: "contact_updated",
+      reused: true,
+    });
+    expect(body.leadToken).toEqual(expect.any(String));
+    expect(mocks.findAssinaturasByContact).toHaveBeenCalledWith(campaignId, {
+      email: "julio@example.com",
+      telefone: "11987838530",
+    });
+    expect(mocks.updateAssinatura).toHaveBeenCalledWith(
+      leadId,
+      campaignId,
+      expect.objectContaining({
+        email_assinante: "julio@example.com",
+        nome_assinante: "Julio Boaventura",
+        numero_assinante: "11987838530",
+      }),
+    );
+  });
+
+  it("não mescla cadastros quando e-mail e telefone pertencem a leads diferentes", async () => {
+    mocks.createAssinatura.mockRejectedValueOnce(new SupabaseRequestError(409));
+    mocks.findAssinaturasByContact.mockResolvedValueOnce([
+      {
+        campanha_id: campaignId,
+        email_assinante: "julio@example.com",
+        id: leadId,
+        numero_assinante: "11987838530",
+      },
+      {
+        campanha_id: campaignId,
+        email_assinante: "outra@example.com",
+        id: "20000000-0000-4000-8000-000000000000",
+        numero_assinante: "11999999999",
+      },
+    ]);
+
+    const response = await POST(request(contactForm()));
+    const body = await response.json() as { error: { code: string } };
+
+    expect(response.status).toBe(409);
+    expect(body.error.code).toBe("DUPLICATE_CONTACT_CONFLICT");
     expect(mocks.updateAssinatura).not.toHaveBeenCalled();
   });
 });

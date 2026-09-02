@@ -24,6 +24,7 @@ import {
 } from "@/lib/request-security";
 import {
   createAssinatura,
+  findAssinaturasByContact,
   getCampanhaSubmissionConfig,
   getCandidato,
   SupabaseRequestError,
@@ -221,6 +222,7 @@ export async function POST(request: Request) {
   ) {
     return jsonError("VALIDATION_ERROR", "Confira os dados informados.", 400);
   }
+  const validCampanhaId = campanhaId;
 
   if (!progressiveCompletion) {
     // O token é consumido na captura inicial; a conclusão usa o token assinado do lead.
@@ -304,6 +306,15 @@ export async function POST(request: Request) {
     email_assinante: fields.email ? email || null : null,
   };
 
+  async function updateExistingContact(payload: Parameters<typeof updateAssinatura>[2]) {
+    const matches = await findAssinaturasByContact(validCampanhaId, {
+      email: contactPayload.email_assinante,
+      telefone: contactPayload.numero_assinante,
+    });
+    if (matches.length !== 1) return null;
+    return updateAssinatura(matches[0].id, validCampanhaId, payload);
+  }
+
   if (progressiveContact) {
     try {
       const created = await createAssinatura({
@@ -330,9 +341,27 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       if (error instanceof SupabaseRequestError && error.status === 409) {
+        try {
+          const updated = await updateExistingContact({
+            ...contactPayload,
+            ip_origem: (forwardedFor || realIp || null)?.slice(0, 64) || null,
+            source: "public_form",
+            user_agent: singleLine(request.headers.get("user-agent") || "", 512) || null,
+          });
+          if (updated) {
+            return jsonSuccess({
+              leadId: updated.id,
+              leadToken: createProgressiveLeadToken(updated.id, campanhaId),
+              phase: "contact_updated",
+              reused: true,
+            });
+          }
+        } catch {
+          // Mantém a resposta genérica e não expõe detalhes do cadastro existente.
+        }
         return jsonError(
-          "DUPLICATE_SIGNATURE",
-          "Este contato ja foi registrado nesta campanha.",
+          "DUPLICATE_CONTACT_CONFLICT",
+          "Nao foi possivel continuar com estes dados. Confira o e-mail e o WhatsApp.",
           409,
         );
       }
@@ -412,9 +441,15 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     if (error instanceof SupabaseRequestError && error.status === 409) {
+      try {
+        const updated = await updateExistingContact(completedPayload);
+        if (updated) return jsonSuccess({ redirectUrl, reused: true });
+      } catch {
+        // Mantém a resposta genérica e não expõe detalhes do cadastro existente.
+      }
       return jsonError(
-        "DUPLICATE_SIGNATURE",
-        "Esta assinatura ja foi registrada.",
+        "DUPLICATE_CONTACT_CONFLICT",
+        "Nao foi possivel atualizar este cadastro. Confira os dados informados.",
         409,
       );
     }

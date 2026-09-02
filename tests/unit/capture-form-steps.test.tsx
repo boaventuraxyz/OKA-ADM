@@ -118,6 +118,25 @@ describe("formulário progressivo compartilhado", () => {
     expect(contactData.get("email_assinante")).toBe("julio@example.com");
   });
 
+  it("avança normalmente quando a API atualiza um contato já cadastrado", async () => {
+    fetchMock.mockResolvedValueOnce(
+      apiResponse({
+        leadId,
+        leadToken,
+        phase: "contact_updated",
+        reused: true,
+        sucesso: true,
+      }),
+    );
+    renderCapture();
+    fillContact();
+
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+
+    expect(await screen.findByText("Etapa 2 de 2 · Endereço")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("impede clique duplo enquanto salva a etapa 1", async () => {
     let resolveRequest: ((response: Response) => void) | undefined;
     fetchMock.mockImplementationOnce(
