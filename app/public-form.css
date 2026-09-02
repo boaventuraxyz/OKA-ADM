@@ -5274,7 +5274,7 @@ select.form-input {
 
 .campaign-theme-8 .bandeira-support {
   min-height: 0;
-  margin-top: 56px;
+  margin-top: 0;
   padding: 100px 0 90px;
   background:
     linear-gradient(180deg, rgba(3, 10, 6, 0.55), rgba(3, 10, 6, 0.94)),
