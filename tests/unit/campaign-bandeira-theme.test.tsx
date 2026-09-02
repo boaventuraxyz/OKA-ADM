@@ -154,7 +154,7 @@ describe("tema 8 · Bandeira", () => {
     );
   });
 
-  it("usa as artes configuradas como reserva", () => {
+  it("não ressuscita artes removidas por configurações antigas", () => {
     const { container } = renderBandeira({
       settings: {
         bandeira_assets: {
@@ -164,8 +164,8 @@ describe("tema 8 · Bandeira", () => {
       },
     });
 
-    expect(container.querySelector(".bandeira-brand-logo")).toBeInTheDocument();
-    expect(container.querySelector(".bandeira-hero-media")).toBeInTheDocument();
+    expect(container.querySelector(".bandeira-brand-logo")).toBeNull();
+    expect(container.querySelector(".bandeira-hero-media")).toBeNull();
   });
 
   it("mantém a logo removida mesmo quando existe uma arte oficial de reserva", () => {
@@ -182,45 +182,76 @@ describe("tema 8 · Bandeira", () => {
     expect(container.querySelector(".bandeira-wordmark span")).toBeInTheDocument();
   });
 
-  it("mantém as artes oficiais do Felipe mesmo enquanto o banco ainda tem imagens antigas", () => {
+  it("respeita as artes salvas no cadastro do Felipe", () => {
     const { container } = renderBandeira({
       imagemFundoUrl: "/imagem-antiga.png",
+      imagemDesktopUrl: "/foto-desktop.png",
       imagemLateralUrl: "/foto-antiga.png",
       slug: "felipe-sertanejo",
     });
 
     expect(container.querySelector(".bandeira-brand-logo")).toHaveAttribute(
       "src",
-      "/campaigns/felipe-sertanejo/logo.png",
+      "/imagem-antiga.png",
     );
     expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
-      encodeURIComponent("/campaigns/felipe-sertanejo/hero.png"),
+      encodeURIComponent("/foto-antiga.png"),
     );
     expect(
       container
         .querySelector('source[media="(min-width: 1024px)"]')
         ?.getAttribute("srcset"),
-    ).toContain(encodeURIComponent("/campaigns/felipe-sertanejo/hero-desktop.png"));
+    ).toContain(encodeURIComponent("/foto-desktop.png"));
     expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
       "has-desktop-media",
     );
     expect(container.querySelector(".campaign-headline-custom")).toBeNull();
   });
 
-  it("usa a arte vertical do Miguel no mobile e preserva a imagem cadastrada no desktop", () => {
+  it("respeita as artes salvas no cadastro do Miguel", () => {
     const { container } = renderBandeira({
+      imagemDesktopUrl: "/uploads/miguel-patriota-desktop.webp",
       imagemLateralUrl: "/uploads/miguel-patriota-quadrada.jpeg",
       slug: "miguel-patriota",
     });
 
     expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
-      encodeURIComponent("/campaigns/miguel-patriota/hero-mobile.png"),
+      encodeURIComponent("/uploads/miguel-patriota-quadrada.jpeg"),
     );
     expect(
       container
         .querySelector('source[media="(min-width: 1024px)"]')
         ?.getAttribute("srcset"),
-    ).toContain(encodeURIComponent("/uploads/miguel-patriota-quadrada.jpeg"));
+    ).toContain(encodeURIComponent("/uploads/miguel-patriota-desktop.webp"));
+    expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
+      "has-desktop-media",
+    );
+  });
+
+  it("remove o wallpaper apenas do desktop quando só existe o mobile", () => {
+    const { container } = renderBandeira({
+      imagemDesktopUrl: null,
+      imagemLateralUrl: "/uploads/mobile.webp",
+    });
+
+    expect(container.querySelector(".bandeira-hero-media")).toHaveClass(
+      "bandeira-hero-media-mobile-only",
+    );
+    expect(container.querySelector('source[media="(min-width: 1024px)"]')).toBeNull();
+    expect(container.querySelector(".bandeira-hero-stage")).not.toHaveClass(
+      "has-desktop-media",
+    );
+  });
+
+  it("remove o wallpaper apenas do celular quando só existe o desktop", () => {
+    const { container } = renderBandeira({
+      imagemDesktopUrl: "/uploads/desktop.webp",
+      imagemLateralUrl: null,
+    });
+
+    expect(container.querySelector(".bandeira-hero-media")).toHaveClass(
+      "bandeira-hero-media-desktop-only",
+    );
     expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
       "has-desktop-media",
     );

@@ -5166,6 +5166,10 @@ select.form-input {
   object-position: top center;
 }
 
+.campaign-theme-8 .bandeira-hero-media-desktop-only {
+  display: none;
+}
+
 .campaign-theme-8 .bandeira-hero-picture {
   position: absolute;
   z-index: -2;
@@ -5650,6 +5654,14 @@ select.form-input {
 
   .campaign-theme-8 .bandeira-hero-stage.has-desktop-media .bandeira-hero-media {
     object-position: center;
+  }
+
+  .campaign-theme-8 .bandeira-hero-media-mobile-only {
+    display: none;
+  }
+
+  .campaign-theme-8 .bandeira-hero-media-desktop-only {
+    display: block;
   }
 
   .campaign-theme-8 .bandeira-hero-copy {

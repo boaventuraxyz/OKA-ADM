@@ -13,7 +13,6 @@ import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import {
   campaignHidesBandeiraLogo,
-  parseBandeiraAssets,
   parseBandeiraSectionLabels,
   parseCampaignLegalFooter,
   resolveCandidateNumber,
@@ -176,24 +175,12 @@ export function CampaignBandeiraTheme({
   const campaignFlags = flags(campanha.textoTopicos);
   const benefits = lines(campanha.textoConclusao);
   const groupLabel = campanha.textoDot?.trim() || "Entrar no grupo";
-  const assets = parseBandeiraAssets(campanha.settings);
   const hideBrandLogo = campaignHidesBandeiraLogo(campanha.settings);
   const isFelipeSertanejo = campanha.slug === "felipe-sertanejo";
-  const isMiguelPatriota = campanha.slug?.includes("miguel-patriota") ?? false;
-  const configuredHeroPhoto = campanha.imagemLateralUrl || assets.heroUrl;
-  const brandLogo = hideBrandLogo
-    ? null
-    : isFelipeSertanejo
-      ? "/campaigns/felipe-sertanejo/logo.png"
-      : campanha.imagemFundoUrl || assets.logoUrl;
-  const heroPhoto = isFelipeSertanejo
-    ? "/campaigns/felipe-sertanejo/hero.png"
-    : isMiguelPatriota
-      ? "/campaigns/miguel-patriota/hero-mobile.png"
-      : configuredHeroPhoto;
-  const desktopHeroPhoto = isFelipeSertanejo
-    ? "/campaigns/felipe-sertanejo/hero-desktop.png"
-    : campanha.imagemDesktopUrl || (isMiguelPatriota ? configuredHeroPhoto : null);
+  const brandLogo = hideBrandLogo ? null : campanha.imagemFundoUrl;
+  const heroPhoto = campanha.imagemLateralUrl;
+  const desktopHeroPhoto = campanha.imagemDesktopUrl;
+  const hasHeroMedia = Boolean(heroPhoto || desktopHeroPhoto);
   const desktopHeroDimensions = { height: 893, width: 1600 };
   const responsiveHero = desktopHeroPhoto && heroPhoto
     ? (() => {
@@ -302,7 +289,7 @@ export function CampaignBandeiraTheme({
         </div>
 
         <div
-          className={`bandeira-hero-stage ${heroPhoto ? "has-media" : "without-media"}${desktopHeroPhoto ? " has-desktop-media" : ""}`}
+          className={`bandeira-hero-stage ${hasHeroMedia ? "has-media" : "without-media"}${desktopHeroPhoto ? " has-desktop-media" : ""}`}
         >
           {responsiveHero ? (
             <picture className="bandeira-hero-picture">
@@ -317,11 +304,21 @@ export function CampaignBandeiraTheme({
           ) : heroPhoto ? (
             <Image
               alt={`Banner da campanha de ${candidateName}`}
-              className="bandeira-hero-media"
+              className="bandeira-hero-media bandeira-hero-media-mobile-only"
               fill
               priority={!preview}
               sizes="100vw"
               src={heroPhoto}
+              unoptimized
+            />
+          ) : desktopHeroPhoto ? (
+            <Image
+              alt={`Banner da campanha de ${candidateName}`}
+              className="bandeira-hero-media bandeira-hero-media-desktop-only"
+              fill
+              priority={!preview}
+              sizes="100vw"
+              src={desktopHeroPhoto}
               unoptimized
             />
           ) : null}
