@@ -141,14 +141,15 @@ describe("tema 8 · Bandeira", () => {
       slug: "campanha-generica",
     });
 
-    expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
-      encodeURIComponent("/uploads/campanha-mobile.webp"),
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/uploads/campanha-mobile.webp",
     );
     expect(
       container
         .querySelector('source[media="(min-width: 1024px)"]')
         ?.getAttribute("srcset"),
-    ).toContain(encodeURIComponent("/uploads/campanha-desktop.webp"));
+    ).toContain("/uploads/campanha-desktop.webp");
     expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
       "has-desktop-media",
     );
@@ -194,14 +195,15 @@ describe("tema 8 · Bandeira", () => {
       "src",
       "/imagem-antiga.png",
     );
-    expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
-      encodeURIComponent("/foto-antiga.png"),
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/foto-antiga.png",
     );
     expect(
       container
         .querySelector('source[media="(min-width: 1024px)"]')
         ?.getAttribute("srcset"),
-    ).toContain(encodeURIComponent("/foto-desktop.png"));
+    ).toContain("/foto-desktop.png");
     expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
       "has-desktop-media",
     );
@@ -215,14 +217,15 @@ describe("tema 8 · Bandeira", () => {
       slug: "miguel-patriota",
     });
 
-    expect(container.querySelector(".bandeira-hero-media")?.getAttribute("src")).toContain(
-      encodeURIComponent("/uploads/miguel-patriota-quadrada.jpeg"),
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/uploads/miguel-patriota-quadrada.jpeg",
     );
     expect(
       container
         .querySelector('source[media="(min-width: 1024px)"]')
         ?.getAttribute("srcset"),
-    ).toContain(encodeURIComponent("/uploads/miguel-patriota-desktop.webp"));
+    ).toContain("/uploads/miguel-patriota-desktop.webp");
     expect(container.querySelector(".bandeira-hero-stage")).toHaveClass(
       "has-desktop-media",
     );

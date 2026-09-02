@@ -191,25 +191,27 @@ export function CampaignBandeiraTheme({
           sizes: "100vw",
         };
         const {
-          props: { srcSet: desktopSrcSet },
+          props: { src: desktopSrc },
         } = getImageProps({
           ...common,
           height: desktopHeroDimensions.height,
           quality: 75,
           src: desktopHeroPhoto,
+          unoptimized: true,
           width: desktopHeroDimensions.width,
         });
         const {
-          props: { alt: imageAlt, srcSet: mobileSrcSet, ...imageProps },
+          props: { alt: imageAlt, src: mobileSrc, ...imageProps },
         } = getImageProps({
           ...common,
           height: 1376,
           quality: 75,
           src: heroPhoto,
+          unoptimized: true,
           width: 768,
         });
 
-        return { desktopSrcSet, imageAlt, imageProps, mobileSrcSet };
+        return { desktopSrc, imageAlt, imageProps, mobileSrc };
       })()
     : null;
   const sectionLabels = parseBandeiraSectionLabels(campanha.settings);
@@ -293,12 +295,13 @@ export function CampaignBandeiraTheme({
         >
           {responsiveHero ? (
             <picture className="bandeira-hero-picture">
-              <source media="(min-width: 1024px)" srcSet={responsiveHero.desktopSrcSet} />
-              <source media="(max-width: 1023px)" srcSet={responsiveHero.mobileSrcSet} />
+              <source media="(min-width: 1024px)" srcSet={responsiveHero.desktopSrc} />
+              <source media="(max-width: 1023px)" srcSet={responsiveHero.mobileSrc} />
               <img
                 {...responsiveHero.imageProps}
                 alt={responsiveHero.imageAlt}
                 className="bandeira-hero-media"
+                src={responsiveHero.mobileSrc}
               />
             </picture>
           ) : heroPhoto ? (
