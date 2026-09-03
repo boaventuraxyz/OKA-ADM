@@ -50,11 +50,6 @@ export type BandeiraAssets = {
   logoUrl: string | null;
 };
 
-export type BandeiraWallpapers = {
-  desktopUrl: string | null;
-  mobileUrl: string | null;
-};
-
 function assetUrl(value: unknown) {
   if (typeof value !== "string") return null;
   const url = value.trim();
@@ -71,16 +66,6 @@ export function parseBandeiraAssets(settings: unknown): BandeiraAssets {
   return {
     heroUrl: assetUrl(source?.heroUrl),
     logoUrl: assetUrl(source?.logoUrl),
-  };
-}
-
-/** Wallpapers versionados que pertencem ao conteúdo de uma campanha específica. */
-export function parseBandeiraWallpapers(settings: unknown): BandeiraWallpapers {
-  const source = record(record(settings)?.bandeira_wallpapers);
-
-  return {
-    desktopUrl: assetUrl(source?.desktopUrl),
-    mobileUrl: assetUrl(source?.mobileUrl),
   };
 }
 

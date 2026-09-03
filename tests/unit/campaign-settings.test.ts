@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   campaignHidesBandeiraLogo,
   parseBandeiraAssets,
-  parseBandeiraWallpapers,
   parseBandeiraSectionLabels,
   resolveCandidateNumber,
 } from "@/lib/campaign-settings";
@@ -32,31 +31,6 @@ describe("parseBandeiraAssets", () => {
         },
       }),
     ).toEqual({ heroUrl: null, logoUrl: null });
-  });
-});
-
-describe("parseBandeiraWallpapers", () => {
-  it("aceita apenas caminhos internos e URLs HTTPS", () => {
-    expect(
-      parseBandeiraWallpapers({
-        bandeira_wallpapers: {
-          desktopUrl: "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-desktop.png",
-          mobileUrl: "https://cdn.example.com/hero-mobile.webp",
-        },
-      }),
-    ).toEqual({
-      desktopUrl: "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-desktop.png",
-      mobileUrl: "https://cdn.example.com/hero-mobile.webp",
-    });
-
-    expect(
-      parseBandeiraWallpapers({
-        bandeira_wallpapers: {
-          desktopUrl: "javascript:alert(1)",
-          mobileUrl: "//example.com/hero.webp",
-        },
-      }),
-    ).toEqual({ desktopUrl: null, mobileUrl: null });
   });
 });
 

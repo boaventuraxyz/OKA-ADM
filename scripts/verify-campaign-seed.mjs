@@ -16,7 +16,6 @@ const schemaMigrations = [
 const seedMigrations = [
   "20260821164500_seed_felipe_sertanejo_campaign.sql",
   "20260830213058_seed_miguel_patriota_informational_campaign.sql",
-  "20260903164121_seed_gauchos_com_flavio_bolsonaro_campaign.sql",
 ];
 const publicationMigrations = [
   "20260830214900_publish_miguel_patriota_informational_campaign.sql",
@@ -254,78 +253,6 @@ if (miguelProblems.length) {
   process.exit(1);
 }
 console.log("\ncampanha informativa de Miguel valida: rascunho, idempotente e sem dados inventados");
-
-const { rows: flavioRows } = await db.query(`
-  select
-    c.slug,
-    c.titulo,
-    c.tema,
-    c.theme_key,
-    c.status,
-    c.ativa,
-    c.url_formulario,
-    c.candidato_id = source.candidato_id as mesmo_candidato,
-    jsonb_array_length(c.form_config -> 'fields') as campos,
-    c.form_config -> 'fields' -> 0 ->> 'key' as campo_nome,
-    c.form_config -> 'fields' -> 1 ->> 'key' as campo_email,
-    c.form_config -> 'fields' -> 2 ->> 'key' as campo_telefone,
-    c.settings ->> 'collect_address' as coleta_endereco,
-    c.settings ->> 'bandeira_hide_logo' as oculta_logo,
-    c.settings -> 'bandeira_wallpapers' ->> 'desktopUrl' as wallpaper_desktop,
-    c.settings -> 'bandeira_wallpapers' ->> 'mobileUrl' as wallpaper_mobile,
-    position('Gaúchos com Flávio Bolsonaro' in c.titulo) > 0 as titulo_correto,
-    position('receber materiais do Bolsonaro na sua casa' in c.texto_contexto) > 0 as menciona_materiais
-  from public.campanhas c
-  join public.campanhas source on source.slug = 'miguel-patriota'
-  where c.slug = 'gauchos-com-flavio-bolsonaro-rs'
-`);
-const { rows: flavioCounts } = await db.query(`
-  select count(*)::int as total
-  from public.campanhas
-  where slug = 'gauchos-com-flavio-bolsonaro-rs'
-`);
-const flavio = flavioRows[0];
-const flavioProblems = [];
-if (!flavio) flavioProblems.push("nova campanha de Miguel nao foi criada");
-if (flavioCounts[0].total !== 1) {
-  flavioProblems.push(`aplicar duas vezes duplicou a nova campanha (${flavioCounts[0].total})`);
-}
-if (flavio?.tema !== 8 || flavio?.theme_key !== "bandeira") {
-  flavioProblems.push(`tema inesperado: ${flavio?.tema}/${flavio?.theme_key}`);
-}
-if (flavio?.status !== "draft" || flavio?.ativa !== false) {
-  flavioProblems.push("nova campanha deveria nascer como rascunho inativo");
-}
-if (!flavio?.mesmo_candidato) flavioProblems.push("campanha nao reutilizou Miguel Patriota");
-if (
-  flavio?.campos !== 3 ||
-  flavio?.campo_nome !== "nome" ||
-  flavio?.campo_email !== "email" ||
-  flavio?.campo_telefone !== "telefone"
-) {
-  flavioProblems.push("formulario nao reproduz os campos da pagina de referencia");
-}
-if (flavio?.coleta_endereco !== "true") flavioProblems.push("endereco nao foi habilitado");
-if (flavio?.oculta_logo !== "true") flavioProblems.push("wordmark deveria substituir a logo");
-if (
-  flavio?.wallpaper_desktop !==
-    "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-desktop.png" ||
-  flavio?.wallpaper_mobile !==
-    "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-mobile.png"
-) {
-  flavioProblems.push("wallpapers responsivos nao foram configurados");
-}
-if (!flavio?.titulo_correto || !flavio?.menciona_materiais) {
-  flavioProblems.push("copy fornecida nao foi preservada");
-}
-if (flavio?.url_formulario !== null) flavioProblems.push("URL nao fornecida foi inventada");
-
-console.log(JSON.stringify(flavio, null, 2));
-if (flavioProblems.length) {
-  console.error("\nFALHAS NA NOVA CAMPANHA DE MIGUEL:\n- " + flavioProblems.join("\n- "));
-  process.exit(1);
-}
-console.log("nova campanha de Miguel valida: rascunho, formulario progressivo e wallpapers versionados");
 
 for (const name of publicationMigrations) {
   await db.exec(await read(join("supabase", "migrations", name)));

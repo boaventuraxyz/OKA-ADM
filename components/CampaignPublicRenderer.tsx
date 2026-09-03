@@ -12,10 +12,7 @@ import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 import type { CampaignVideoItem } from "@/lib/campaign-video-carousel";
-import {
-  parseBandeiraWallpapers,
-  resolveCandidateNumber,
-} from "@/lib/campaign-settings";
+import { resolveCandidateNumber } from "@/lib/campaign-settings";
 
 export type CampaignRenderData = {
   assinaturasMeta: number | null;
@@ -120,16 +117,15 @@ export function CampaignPublicRenderer({
     .join(" / ");
 
   if (campanha.tema === 8) {
-    const bundledWallpapers = parseBandeiraWallpapers(campanha.settings);
     const desktopHeroPhoto = campaignImageSource({
       campaignId: campanha.id,
-      directUrl: campanha.imagemDesktopUrl || bundledWallpapers.desktopUrl,
+      directUrl: campanha.imagemDesktopUrl,
       kind: "imagem-desktop",
       version: campanha.imagemDesktopVersao,
     });
     const heroPhoto = campaignImageSource({
       campaignId: campanha.id,
-      directUrl: campanha.imagemLateralUrl || bundledWallpapers.mobileUrl,
+      directUrl: campanha.imagemLateralUrl,
       kind: "imagem-lateral",
       version: campanha.imagemLateralVersao,
     });
