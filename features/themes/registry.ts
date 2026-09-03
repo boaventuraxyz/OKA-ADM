@@ -200,9 +200,11 @@ export const THEME_REGISTRY = [
       {
         id: "visual",
         title: "Imagem da capa",
-        description: "A imagem é otimizada antes do salvamento.",
+        description: "Cadastre versões próprias para desktop e celular. A imagem única continua disponível como reserva para campanhas antigas.",
         fields: [
-          { key: "imagem_fundo", label: "Imagem de fundo", maxLength: 7000000, type: "image" }
+          { key: "imagem_desktop", label: "Capa para desktop", maxLength: 7000000, type: "image", imageWidth: 1600, imageHeight: 893, help: "Formato horizontal obrigatório: 1600 × 893 px." },
+          { key: "imagem_lateral", label: "Capa para celular", maxLength: 7000000, type: "image", imageWidth: 768, imageHeight: 1376, help: "Formato vertical obrigatório: 768 × 1376 px." },
+          { key: "imagem_fundo", label: "Imagem única de reserva", maxLength: 7000000, type: "image", help: "Usada somente quando não há uma capa específica para desktop ou celular." }
         ]
       }
     ]

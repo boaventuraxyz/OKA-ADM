@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { PenLine } from "lucide-react";
 
 import { CampaignHeadline } from "@/components/CampaignHeadline";
@@ -83,6 +83,34 @@ function campaignImageSource({
 }) {
   if (directUrl) return directUrl;
   return version ? `/api/campanhas/${campaignId}/${kind}?v=${version}` : null;
+}
+
+function responsiveCoverSources(desktopUrl: string, mobileUrl: string) {
+  const common = {
+    alt: "",
+    fetchPriority: "high" as const,
+    loading: "eager" as const,
+    sizes: "100vw",
+    unoptimized: true,
+  };
+  const {
+    props: { src: desktopSrc },
+  } = getImageProps({
+    ...common,
+    height: 893,
+    src: desktopUrl,
+    width: 1600,
+  });
+  const {
+    props: { alt, src: mobileSrc, ...imageProps },
+  } = getImageProps({
+    ...common,
+    height: 1376,
+    src: mobileUrl,
+    width: 768,
+  });
+
+  return { alt, desktopSrc, imageProps, mobileSrc };
 }
 
 export function CampaignPublicRenderer({
@@ -295,12 +323,30 @@ export function CampaignPublicRenderer({
     );
   }
 
-  const backgroundImage = campaignImageSource({
+  const fallbackBackgroundImage = campaignImageSource({
     campaignId: campanha.id,
     directUrl: campanha.imagemFundoUrl,
     kind: "imagem",
     version: campanha.imagemFundoVersao,
   });
+  const desktopBackgroundImage = campaignImageSource({
+    campaignId: campanha.id,
+    directUrl: campanha.imagemDesktopUrl,
+    kind: "imagem-desktop",
+    version: campanha.imagemDesktopVersao,
+  });
+  const mobileBackgroundImage = campaignImageSource({
+    campaignId: campanha.id,
+    directUrl: campanha.imagemLateralUrl,
+    kind: "imagem-lateral",
+    version: campanha.imagemLateralVersao,
+  });
+  const desktopCover = desktopBackgroundImage || fallbackBackgroundImage || mobileBackgroundImage;
+  const mobileCover = mobileBackgroundImage || fallbackBackgroundImage || desktopBackgroundImage;
+  const responsiveCover = desktopCover && mobileCover && desktopCover !== mobileCover
+    ? responsiveCoverSources(desktopCover, mobileCover)
+    : null;
+  const singleCover = mobileCover || desktopCover;
 
   return (
     <main
@@ -308,7 +354,21 @@ export function CampaignPublicRenderer({
       style={{ "--campaign-accent": accent } as CSSProperties}
     >
       <section className="campaign-hero">
-        {backgroundImage ? (
+        {responsiveCover ? (
+          <>
+            <picture className="campaign-hero-picture">
+              <source media="(min-width: 901px)" srcSet={responsiveCover.desktopSrc} />
+              <source media="(max-width: 900px)" srcSet={responsiveCover.mobileSrc} />
+              <img
+                {...responsiveCover.imageProps}
+                alt={responsiveCover.alt}
+                className="campaign-hero-image"
+                src={responsiveCover.mobileSrc}
+              />
+            </picture>
+            <div className="campaign-hero-overlay" />
+          </>
+        ) : singleCover ? (
           <>
             <Image
               alt=""
@@ -316,7 +376,7 @@ export function CampaignPublicRenderer({
               fill
               priority={!preview}
               sizes="100vw"
-              src={backgroundImage}
+              src={singleCover}
               unoptimized
             />
             <div className="campaign-hero-overlay" />

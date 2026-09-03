@@ -66,6 +66,28 @@ describe("número do candidato por tema", () => {
   );
 });
 
+describe("tema 1 · capa", () => {
+  const cover = THEME_REGISTRY.find((theme) => theme.key === "cover")!;
+
+  it("usa as capas responsivas cadastradas para desktop e celular", () => {
+    const { container } = renderTheme(cover, {
+      imagemDesktopUrl: "/uploads/capa-desktop.webp",
+      imagemLateralUrl: "/uploads/capa-mobile.webp",
+    });
+
+    expect(
+      container.querySelector('source[media="(min-width: 901px)"]'),
+    ).toHaveAttribute("srcset", "/uploads/capa-desktop.webp");
+    expect(
+      container.querySelector('source[media="(max-width: 900px)"]'),
+    ).toHaveAttribute("srcset", "/uploads/capa-mobile.webp");
+    expect(container.querySelector(".campaign-hero-picture img")).toHaveAttribute(
+      "src",
+      "/uploads/capa-mobile.webp",
+    );
+  });
+});
+
 describe("tema 4 · impacto escuro", () => {
   const impactDark = THEME_REGISTRY.find((theme) => theme.key === "impact-dark")!;
 

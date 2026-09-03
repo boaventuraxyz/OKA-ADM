@@ -26,7 +26,12 @@ describe("registro central de temas", () => {
 
   it("não mistura os campos longos do manifesto com o tema de capa", () => {
     const cover = themeContentKeys("cover");
-    expect(cover).toEqual(new Set(["descricao", "imagem_fundo"]));
+    expect(cover).toEqual(new Set([
+      "descricao",
+      "imagem_desktop",
+      "imagem_lateral",
+      "imagem_fundo",
+    ]));
     expect(cover.has("texto_topicos")).toBe(false);
     expect(themeContentKeys("manifesto").has("texto_topicos")).toBe(true);
   });
