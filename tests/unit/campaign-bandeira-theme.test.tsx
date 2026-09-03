@@ -169,6 +169,50 @@ describe("tema 8 · Bandeira", () => {
     expect(container.querySelector(".bandeira-hero-media")).toBeNull();
   });
 
+  it("usa os wallpapers versionados da campanha quando não há upload", () => {
+    const { container } = renderBandeira({
+      settings: {
+        bandeira_wallpapers: {
+          desktopUrl: "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-desktop.png",
+          mobileUrl: "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-mobile.png",
+        },
+      },
+    });
+
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-mobile.png",
+    );
+    expect(
+      container
+        .querySelector('source[media="(min-width: 1024px)"]')
+        ?.getAttribute("srcset"),
+    ).toContain("/campaigns/gauchos-com-flavio-bolsonaro-rs/hero-desktop.png");
+  });
+
+  it("prioriza os uploads sobre os wallpapers versionados", () => {
+    const { container } = renderBandeira({
+      imagemDesktopUrl: "/uploads/desktop.webp",
+      imagemLateralUrl: "/uploads/mobile.webp",
+      settings: {
+        bandeira_wallpapers: {
+          desktopUrl: "/campaigns/bundled-desktop.webp",
+          mobileUrl: "/campaigns/bundled-mobile.webp",
+        },
+      },
+    });
+
+    expect(container.querySelector(".bandeira-hero-media")).toHaveAttribute(
+      "src",
+      "/uploads/mobile.webp",
+    );
+    expect(
+      container
+        .querySelector('source[media="(min-width: 1024px)"]')
+        ?.getAttribute("srcset"),
+    ).toContain("/uploads/desktop.webp");
+  });
+
   it("mantém a logo removida mesmo quando existe uma arte oficial de reserva", () => {
     const { container } = renderBandeira({
       imagemFundoUrl: "/uploads/logo-atual.webp",

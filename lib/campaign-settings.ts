@@ -50,11 +50,18 @@ export type BandeiraAssets = {
   logoUrl: string | null;
 };
 
+export type BandeiraWallpapers = {
+  desktopUrl: string | null;
+  mobileUrl: string | null;
+};
+
 function assetUrl(value: unknown) {
   if (typeof value !== "string") return null;
   const url = value.trim();
   if (!url || url.length > 2048) return null;
-  return url.startsWith("/") || /^https:\/\/[^\s]+$/i.test(url) ? url : null;
+  return /^\/(?!\/)[^\\\s]*$/.test(url) || /^https:\/\/[^\s]+$/i.test(url)
+    ? url
+    : null;
 }
 
 /** Imagens oficiais opcionais do tema, usadas como reserva até um upload no editor. */
@@ -64,6 +71,16 @@ export function parseBandeiraAssets(settings: unknown): BandeiraAssets {
   return {
     heroUrl: assetUrl(source?.heroUrl),
     logoUrl: assetUrl(source?.logoUrl),
+  };
+}
+
+/** Wallpapers versionados que pertencem ao conteúdo de uma campanha específica. */
+export function parseBandeiraWallpapers(settings: unknown): BandeiraWallpapers {
+  const source = record(record(settings)?.bandeira_wallpapers);
+
+  return {
+    desktopUrl: assetUrl(source?.desktopUrl),
+    mobileUrl: assetUrl(source?.mobileUrl),
   };
 }
 
