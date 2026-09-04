@@ -12,7 +12,10 @@ import { PoliticasRodape } from "@/components/PoliticasRodape";
 import { PublicSignatureForm } from "@/components/PublicSignatureForm";
 import type { CampaignTitleHighlight } from "@/lib/campaign-title-highlights";
 import type { CampaignVideoItem } from "@/lib/campaign-video-carousel";
-import { resolveCandidateNumber } from "@/lib/campaign-settings";
+import {
+  campaignUsesCoverArtworkMode,
+  resolveCandidateNumber,
+} from "@/lib/campaign-settings";
 
 export type CampaignRenderData = {
   assinaturasMeta: number | null;
@@ -347,13 +350,16 @@ export function CampaignPublicRenderer({
     ? responsiveCoverSources(desktopCover, mobileCover)
     : null;
   const singleCover = mobileCover || desktopCover;
+  const coverArtworkMode = campaignUsesCoverArtworkMode(campanha.settings);
 
   return (
     <main
       className="campaign-public-page"
       style={{ "--campaign-accent": accent } as CSSProperties}
     >
-      <section className="campaign-hero">
+      <section
+        className={`campaign-hero${coverArtworkMode ? " campaign-hero-artwork" : ""}`}
+      >
         {responsiveCover ? (
           <>
             <picture className="campaign-hero-picture">
@@ -397,30 +403,34 @@ export function CampaignPublicRenderer({
         </nav>
 
         <div className="campaign-hero-content">
-          <article className="campaign-copy">
-            <div className="campaign-badge">
-              <span aria-hidden="true" className="campaign-badge-dot" />
-              <span>{campanha.textoDot || "Assine agora"}</span>
-            </div>
-
-            <h1 className="campaign-headline">
-              <CampaignHeadline
-                highlights={campanha.titleHighlights}
-                text={title}
-              />
-            </h1>
-
-            {description && description !== title ? (
-              <CampaignRichText className="campaign-subtext" text={description} />
-            ) : null}
-
-            {candidateMeta || location ? (
-              <div className="campaign-candidate-meta">
-                {candidateMeta ? <strong>{candidateMeta}</strong> : null}
-                {location ? <span>{location}</span> : null}
+          {coverArtworkMode ? (
+            <div aria-hidden="true" className="campaign-artwork-spacer" />
+          ) : (
+            <article className="campaign-copy">
+              <div className="campaign-badge">
+                <span aria-hidden="true" className="campaign-badge-dot" />
+                <span>{campanha.textoDot || "Assine agora"}</span>
               </div>
-            ) : null}
-          </article>
+
+              <h1 className="campaign-headline">
+                <CampaignHeadline
+                  highlights={campanha.titleHighlights}
+                  text={title}
+                />
+              </h1>
+
+              {description && description !== title ? (
+                <CampaignRichText className="campaign-subtext" text={description} />
+              ) : null}
+
+              {candidateMeta || location ? (
+                <div className="campaign-candidate-meta">
+                  {candidateMeta ? <strong>{candidateMeta}</strong> : null}
+                  {location ? <span>{location}</span> : null}
+                </div>
+              ) : null}
+            </article>
+          )}
 
           <aside className="campaign-form-column" id="assinar">
             <PublicSignatureForm

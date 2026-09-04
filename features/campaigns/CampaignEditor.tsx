@@ -69,6 +69,7 @@ import {
 } from "@/lib/campaign-title-highlights";
 import {
   campaignHidesBandeiraLogo,
+  campaignUsesCoverArtworkMode,
   parseCampaignLegalFooter,
   type CampaignLegalFooter,
 } from "@/lib/campaign-settings";
@@ -126,6 +127,7 @@ const emptyLegalFooter: CampaignLegalFooter = {
 type EditorSettings = {
   allowSharing: boolean;
   collectAddress: boolean;
+  coverArtworkMode: boolean;
   hideBandeiraLogo: boolean;
   /** Propaganda eleitoral; fica no banco por trazer dado pessoal. */
   legal: CampaignLegalFooter;
@@ -134,7 +136,7 @@ type EditorSettings = {
   videoCarousel: CampaignVideoItem[] | null;
 };
 
-type MutableEditorSetting = "allowSharing" | "collectAddress";
+type MutableEditorSetting = "allowSharing" | "collectAddress" | "coverArtworkMode";
 
 type EditorValues = {
   assinaturasMeta: string;
@@ -594,6 +596,7 @@ function createInitialState(
       settings: {
         allowSharing: booleanValue(settingsBase.allow_sharing, true),
         hideBandeiraLogo: campaignHidesBandeiraLogo(settingsBase),
+        coverArtworkMode: campaignUsesCoverArtworkMode(settingsBase),
         legal: parseCampaignLegalFooter(settingsBase) ?? { ...emptyLegalFooter },
         collectAddress: preserveLegacyAddress
           ? true
@@ -641,6 +644,7 @@ function settingsPayload(
     ...base,
     allow_sharing: settings.allowSharing,
     bandeira_hide_logo: settings.hideBandeiraLogo,
+    cover_artwork_mode: settings.coverArtworkMode,
     legal: settings.legal,
     collect_address: preserveLegacyAddress ? true : settings.collectAddress,
     require_consent: true,
@@ -1765,6 +1769,14 @@ function SettingsPanel({
           label="Coletar endereço completo"
           onChange={(event) => onSettingChange("collectAddress", event.target.checked)}
         />
+        {values.themeKey === "cover" ? (
+          <Checkbox
+            checked={settings.coverArtworkMode}
+            description="Não sobrepõe título e descrição à imagem e mantém a arte completa acima do formulário no celular."
+            label="Usar capa como arte completa"
+            onChange={(event) => onSettingChange("coverArtworkMode", event.target.checked)}
+          />
+        ) : null}
       </div>
 
       <details className={styles.advanced}>
@@ -1850,6 +1862,7 @@ function PreviewPanel({
             settings: {
               allow_sharing: settings.allowSharing,
               bandeira_hide_logo: settings.hideBandeiraLogo,
+              cover_artwork_mode: settings.coverArtworkMode,
               collect_address: settings.collectAddress,
               legal: settings.legal,
               require_consent: true,

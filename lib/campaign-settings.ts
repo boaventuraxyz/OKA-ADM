@@ -15,6 +15,14 @@ export function campaignAllowsSharing(settings: unknown) {
   return typeof value === "boolean" ? value : true;
 }
 
+/**
+ * No modo de arte completa, a imagem cadastrada já contém a mensagem da capa.
+ * O tema 1 preserva o título administrativo, mas não o repete sobre a arte.
+ */
+export function campaignUsesCoverArtworkMode(settings: unknown) {
+  return record(settings)?.cover_artwork_mode === true;
+}
+
 export function normalizeCandidateNumber(value: string) {
   return value.replace(/\D/g, "").slice(0, 8);
 }

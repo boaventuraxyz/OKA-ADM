@@ -2,10 +2,20 @@ import { describe, expect, it } from "vitest";
 
 import {
   campaignHidesBandeiraLogo,
+  campaignUsesCoverArtworkMode,
   parseBandeiraAssets,
   parseBandeiraSectionLabels,
   resolveCandidateNumber,
 } from "@/lib/campaign-settings";
+
+describe("campaignUsesCoverArtworkMode", () => {
+  it("só ativa a arte completa quando o cadastro define o modo explicitamente", () => {
+    expect(campaignUsesCoverArtworkMode({ cover_artwork_mode: true })).toBe(true);
+    expect(campaignUsesCoverArtworkMode({ cover_artwork_mode: false })).toBe(false);
+    expect(campaignUsesCoverArtworkMode({ cover_artwork_mode: "true" })).toBe(false);
+    expect(campaignUsesCoverArtworkMode(null)).toBe(false);
+  });
+});
 
 describe("parseBandeiraAssets", () => {
   it("aceita caminhos internos e URLs HTTPS", () => {

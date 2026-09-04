@@ -86,6 +86,19 @@ describe("tema 1 · capa", () => {
       "/uploads/capa-mobile.webp",
     );
   });
+
+  it("preserva a arte cadastrada sem repetir título e descrição", () => {
+    const { container } = renderTheme(cover, {
+      descricao: "Descrição que não deve cobrir a arte",
+      settings: { cover_artwork_mode: true },
+      titulo: "Título que não deve cobrir a arte",
+    });
+
+    expect(container.querySelector(".campaign-hero-artwork")).toBeInTheDocument();
+    expect(container.querySelector(".campaign-artwork-spacer")).toBeInTheDocument();
+    expect(container.querySelector(".campaign-headline")).not.toBeInTheDocument();
+    expect(container.querySelector(".campaign-subtext")).not.toBeInTheDocument();
+  });
 });
 
 describe("tema 4 · impacto escuro", () => {

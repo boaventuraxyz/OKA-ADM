@@ -85,6 +85,10 @@
   background: rgba(8, 13, 22, 0.76);
 }
 
+.campaign-hero-artwork .campaign-hero-overlay {
+  background: rgba(8, 13, 22, 0.08);
+}
+
 .campaign-nav {
   position: relative;
   z-index: 2;
@@ -1300,6 +1304,30 @@
     max-width: 600px;
     justify-self: center;
   }
+
+  .campaign-hero-artwork {
+    --campaign-artwork-height: min(calc(100vw * 1376 / 768), 1376px);
+  }
+
+  .campaign-hero-artwork .campaign-hero-picture,
+  .campaign-hero-artwork > .campaign-hero-image,
+  .campaign-hero-artwork .campaign-hero-overlay {
+    bottom: auto;
+    height: var(--campaign-artwork-height);
+  }
+
+  .campaign-hero-artwork .campaign-hero-image {
+    object-position: center;
+  }
+
+  .campaign-hero-artwork .campaign-hero-content {
+    display: block;
+    padding-top: calc(var(--campaign-artwork-height) - 88px + 24px);
+  }
+
+  .campaign-hero-artwork .campaign-form-column {
+    margin-inline: auto;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1465,6 +1493,10 @@
     width: calc(100% - 32px);
     gap: 30px;
     padding: 32px 0 40px;
+  }
+
+  .campaign-hero-artwork .campaign-hero-content {
+    padding-top: calc(var(--campaign-artwork-height) - 76px + 16px);
   }
 
   .campaign-copy {
